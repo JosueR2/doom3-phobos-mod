@@ -51,6 +51,16 @@ def build():
         shutil.rmtree(mod_script)
     shutil.copytree(os.path.join(src_dir, "script"), mod_script)
     
+    # 5. Copy gamex86.dll
+    dll_src = os.path.join(game_tfphobos_dir, "gamex86.dll")
+    if os.path.exists(dll_src):
+        shutil.copy2(dll_src, os.path.join(mod_tfphobos, "gamex86.dll"))
+        
+    # 6. Copy game00.pk4
+    game00_src = os.path.join(game_tfphobos_dir, "game00.pk4")
+    if os.path.exists(game00_src):
+        shutil.copy2(game00_src, os.path.join(mod_tfphobos, "game00.pk4"))
+
     print(f"Successfully synchronized all updated files and folders to: {mod_tfphobos}")
 
 if __name__ == "__main__":

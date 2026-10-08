@@ -66,7 +66,19 @@ Permitir al jugador saltar ("skip") las cinemáticas y secuencias no interactiva
 - [x] Conectar los 26 scripts de mapas para despachar subtítulos a través de `PhobosShowSubtitle_<map>`.
 - [x] Validar sintaxis idScript en todos los 28 scripts y empaquetar `pak003_skipcinematics.pk4` (290.46 KB).
 - [x] Crear carpeta de distribución y respaldo `mod/` con estructura `tfphobos/` (PK4, autoexec.cfg, fuentes guis/ y script/) e instrucciones de instalación.
-
-
-
-
+- [x] **Hotfix Alineación de Subtítulos:** Corregir desplazamiento a la derecha en `subtitles.gui` unificando el lienzo a las coordenadas universales 640x480 de idTech4, eliminando la dependencia defectuosa de `r_aspectRatio` y `forceaspectwidth 1120`. Empaquetado y sincronizado.
+- [x] **Hotfix Carga y Guardado de Partidas (Savegame Fix en `gamex86.dll` y `game00.pk4`):**
+  - **Causa Raíz Identificada (`ERROR: Couldn't load console`):** Al presionar SPACE/X/ENTER vinculados al comando de consola `script SkipIntro()`, el intérprete compila dinámicamente una función asignándole como origen el nombre virtual `"console"`. idTech 4 agrega `"console"` a `idProgram::fileList`. Al guardar la partida (`idProgram::Save`), el motor serializa cualquier archivo nuevo registrado después de los iniciales. Al restaurar (`idProgram::Restore`), invoca `idProgram::CompileFile("console")`, el cual intenta abrir `"console"` como archivo en disco; al no existir, `fileSystem->ReadFile` retorna `-1` y dispara un error fatal no recuperable abortando el juego.
+  - **Diagnóstico de `qconsole.log`:**
+    Al revisar `qconsole.log` (líneas 81-82), se descubrió que el ejecutable de Doom 3 (`Doom3phobos.exe`) extrae en cada arranque la DLL interna empaquetada:
+    `found DLL in pak file: ...\tfphobos\game00.pk4/gamex86.dll`
+    `copy gamex86.dll to ...\tfphobos\gamex86.dll`
+    Esto provocaba que el archivo `gamex86.dll` suelto en disco fuera sobrescrito en el arranque del juego por la versión original sin parches contenida dentro de `game00.pk4`.
+  - **Parches Binarios Aplicados:**
+    1. `idProgram::CompileFile` (offset `0x181051`): Si `ReadFile` retorna `< 0`, ejecuta salida limpia (`pop edi; pop esi; ret 4`) en lugar de llamar a `gameLocal.Error`, permitiendo cargar partidas existentes que tengan `"console"` en su lista de archivos.
+    2. `idProgram::Restore` (offset `0x18120a`): Bypass de validación estricta de checksum (`75 04` -> `90 90`) para no rechazar partidas ante diferencias de compilación en scripts del mod.
+    3. `idProgram::Save` (offsets `0x17e262` y `0x17e26e`): Fuerza a escribir 0 archivos adicionales y omite el bucle de serialización de archivos para que ningún comando `script` vuelva a inyectar `"console"` en partidas guardadas futuras.
+  - **Solución Definitiva y Respaldo:**
+    - Se actualizó `tools/patch_gamex86.py` para inyectar la DLL parcheada no solo en `tfphobos/gamex86.dll`, sino también directamente dentro del paquete `game00.pk4` (respaldando previamente `game00.pk4.orig`).
+    - De esta manera, incluso si el motor extrae la DLL en el inicio del juego, la extrae ya parcheada.
+    - Se sincronizó `mod/tfphobos/game00.pk4` y `mod/tfphobos/gamex86.dll` mediante `tools/build_mod.py`.

@@ -17,11 +17,7 @@ Se ha implementado el soporte completo de localización al español para todos l
 ### 2.2 GUI Adaptativa de Subtítulos (`subtitles.gui`)
 - **Ruta:** `guis/subtitles.gui`
 - **Sincronización en tiempo real:** Dispone de un `editDef SizeSync` vinculado a la cvar `g_subSize` con `liveUpdate 1`, actualizando la variable `gui::sub_scale`.
-- **Compatibilidad de Pantallas:** Soporte para todas las relaciones de aspecto soportadas por el motor:
-  - 4:3 (`Subtitles_4_3`)
-  - 16:9 (`Subtitles_16_9`)
-  - 16:10 (`Subtitles_16_10`)
-  - 21:9 (`Subtitles_21_9`)
+- **Compatibilidad Universal y Centrado Perfecto:** Lienzo ajustado a las coordenadas nativas universales `640x480` de idTech 4 (`rect 0, 0, 640, 480`). Al no forzar anchuras ultra-panorámicas (`forceaspectwidth 1120`) ni depender de `r_aspectRatio`, el motor escala el lienzo de forma simétrica a cualquier resolución y relación de aspecto (4:3, 16:9, 16:10, 21:9), garantizando que el centro horizontal (`x = 320`) permanezca siempre en el centro exacto de la pantalla.
 - **Cajas de texto ampliadas:** Altura de caja aumentada de 80 a 95 píxeles para acomodar textos en fuentes grandes (`0.43`) sin desbordamientos.
 
 ### 2.3 Sistema de Localización (`phobos_subtitles_es.script`)

@@ -1,0 +1,5954 @@
+{
+  "script/map_e1m1.script": [
+    [
+      "AP",
+      "Mars City weather forecast for tomorrow. November 16, 2145.\\nMostly calm and clear. Temperatures around -120 celsius."
+    ],
+    [
+      "AP",
+      "An official Federal investigation is underway.\\nFor everyone's safety, please stay calm and kindly cooperate."
+    ],
+    [
+      "AP",
+      "Any questions should be taken with your nearest administrator or Federal Agent."
+    ],
+    [
+      "AP",
+      "The UAC personally thanks everyone for their patience."
+    ],
+    [
+      "AP",
+      "Anyone feeling stressed or not their normal self, is encouraged by the UAC"
+    ],
+    [
+      "AP",
+      "To go to their nearest administrator for immediate assistance."
+    ],
+    [
+      "...",
+      "What happened here?"
+    ],
+    [
+      "Guy",
+      "Hey asshole! Get out of here."
+    ],
+    [
+      "...",
+      "Woops."
+    ],
+    [
+      "Dr. Nielsen",
+      "I'm Dr. Nielsen. I'm here with special agent Samantha Miles."
+    ],
+    [
+      "Dr. Nielsen",
+      "We'll need to examine the extend of your injuries."
+    ],
+    [
+      "Dr. Nielsen",
+      "Please. Lay down on the table and we'll get started in just a few minutes."
+    ],
+    [
+      "...",
+      "Hello?"
+    ],
+    [
+      "Dr. Nielsen",
+      "Ehm. Hello?\\nDid you take a wrong turn?"
+    ],
+    [
+      "...",
+      "I was told to go here. I hit my head. Apparently.\\nI'm not sure how it happened."
+    ],
+    [
+      "Dr. Nielsen",
+      "State your name please."
+    ],
+    [
+      "...",
+      "Ehm...I... I don't know."
+    ],
+    [
+      "Dr. Nielsen",
+      "I see. Can you tell me where you are?"
+    ],
+    [
+      "...",
+      "I'm In your office? On Mars? I think...\\nWhy do you..."
+    ],
+    [
+      "Dr. Nielsen",
+      "Indulge me. It's standard procedure.\\nCan you tell me who you are?"
+    ],
+    [
+      "...",
+      "I can't. I woke up in this place. With a huge headache."
+    ],
+    [
+      "...",
+      "Samantha Miles. Sounds familiar."
+    ],
+    [
+      "...",
+      "Let there be light.\\nI hope."
+    ],
+    [
+      "...",
+      "Uh! My head."
+    ],
+    [
+      "...",
+      "Hello? Anyone?\\nWhat is this place?"
+    ],
+    [
+      "...",
+      "Hmm."
+    ],
+    [
+      "...",
+      "Seems to be a code."
+    ],
+    [
+      "...",
+      "I guess that's the code."
+    ],
+    [
+      "...",
+      "I Should probably look for a code."
+    ],
+    [
+      "...",
+      "What the fuck?"
+    ],
+    [
+      "...",
+      "Federal Apartment? I guess it's not mine.\\nUnless.."
+    ],
+    [
+      "...",
+      "Where am I?"
+    ],
+    [
+      "...",
+      "Hello?"
+    ],
+    [
+      "...",
+      "That did it!"
+    ],
+    [
+      "...",
+      "What's this?"
+    ],
+    [
+      "...",
+      "Okaayyy?"
+    ],
+    [
+      "...",
+      "Those symptoms sound about right."
+    ],
+    [
+      "...",
+      "Please do not feed the monkeys."
+    ],
+    [
+      "Security",
+      "Sorry dude. This way is blocked.\\nSome idiot placed all these boxes here and I'm trying to figure out where they should go."
+    ],
+    [
+      "Security",
+      "Don't even ask okay?\\nI mean. Who just puts all these boxes here at random."
+    ],
+    [
+      "Security",
+      "Sorry man!\\nI really need to get these boxes sorted out."
+    ],
+    [
+      "Security",
+      "I'm sorry, the monorail system is being a fickle bitch.\\n But we have guys working on it. I can't let you in pal."
+    ],
+    [
+      "Security",
+      "No admittance.\\nMove along."
+    ],
+    [
+      "Security",
+      "Did the blow to your head impair your hearing?\\nMove!"
+    ],
+    [
+      "Guy",
+      "I'm getting off this rock.\\n And you should too."
+    ],
+    [
+      "Guy",
+      "I gotta get out of here."
+    ],
+    [
+      "Guy",
+      "If you're staying here.\\nWatch your back."
+    ],
+    [
+      "Guy",
+      "You should be careful.\\nIt's not safe here. Tust no one."
+    ],
+    [
+      "...",
+      "I Should probably go visit the doctor now."
+    ],
+    [
+      "...",
+      "He seems busy."
+    ],
+    [
+      "...",
+      "Follow the red line. Gotcha."
+    ],
+    [
+      "FCE Soldier",
+      "Can you believe these guys?\\nThey may not be sabotaging the investigation. But helpful they aint."
+    ],
+    [
+      "FCE Soldier",
+      "I mean, everyone is trying to leave, but they won't tell us why."
+    ],
+    [
+      "FCE Soldier",
+      "Been stationed here long?\\nI don't recognize you from the flight."
+    ],
+    [
+      "Guy",
+      "I'm really trying to get this fixed quickly.\\n So ehm. Do you mind?"
+    ],
+    [
+      "Guy",
+      "You can fix this, you can stay and help.\\nBut otherwise get going."
+    ],
+    [
+      "Guy",
+      "Why are you bothering me?\\nCan't you see that I'm working?"
+    ],
+    [
+      "Security",
+      "Your head. Are you okay? You should get that checked out down at the medical bay.\\n Follow the signs. You can't miss it."
+    ],
+    [
+      "Security",
+      "You should really get that checked out."
+    ],
+    [
+      "Security",
+      "Tough guy huh.\\nGet to the doctor already."
+    ],
+    [
+      "Guy",
+      "Marine Command is right around the corner.\\nWhy don't you go bother someone there."
+    ],
+    [
+      "Guy",
+      "Listen. I'd love to talk, but I'm really busy."
+    ],
+    [
+      "Guy",
+      "What. Do I look like a tour director, leatherneck?"
+    ],
+    [
+      "FCE Soldier",
+      "Can't let you in without the right clearance, sir.\\nWe control who gets in. Stand aside."
+    ],
+    [
+      "FCE Soldier",
+      "I already told you to stand aside, sir.\\nMove along."
+    ],
+    [
+      "FCE Soldier",
+      "You are a special kind of stupid aren't you?!\\nBEAT IT!"
+    ],
+    [
+      "...",
+      "Investigation? I guess that explains all the feds."
+    ]
+  ],
+  "script/map_e1m1_1.script": [
+    [
+      "Sam",
+      "Oh my god!"
+    ],
+    [
+      "...",
+      "Who's calling?"
+    ],
+    [
+      "Girl",
+      "Let it burn."
+    ],
+    [
+      "...",
+      "Where is the Landing Terminal?"
+    ],
+    [
+      "AP",
+      "Attention UAC Personnel.\\nWe discourage anyone from spreading rumours."
+    ],
+    [
+      "AP",
+      "Remember, rumors are the antithesis of trust.\\nAnd trust is what our corporation is built upon."
+    ],
+    [
+      "AP",
+      "We Thank everyone for your cooperation.\\nHave a great day."
+    ],
+    [
+      "AP",
+      "Dr. Jensen please report immediately to ward B. Dr. Jensen to ward B."
+    ],
+    [
+      "AP",
+      "Monorail system back online. Sorry for any inconvenience during the down period."
+    ],
+    [
+      "FCE Soldier",
+      "We can't let you in. But the monorail system is back online.\\nIt's currently the only way for you to get around."
+    ],
+    [
+      "FCE Soldier",
+      "Only authorized Federal personnel allowed.\\nThe shuttles are off limits."
+    ],
+    [
+      "FCE Soldier",
+      "Any outgoing shuttles are grounded, pending the investigation.\\nMove along!"
+    ],
+    [
+      "FCE Soldier",
+      "Federal investigation in the Living Quarters.\\nWe had to shut the area down."
+    ],
+    [
+      "FCE Soldier",
+      "Someone has been inside on of our research labs.\\nBe on the lookout."
+    ],
+    [
+      "FCE Soldier",
+      "Ah. Not from around here eh?\\nI don't recognize your suit number."
+    ],
+    [
+      "Security",
+      "You're in luck pal. The monorail just got back online.\\nNot all lines are running, but this one should be here any second now."
+    ],
+    [
+      "Security",
+      "I hope you can get where you need to be.\\nNot everything is working these days with all the quakes."
+    ],
+    [
+      "Security",
+      "I don't know what is going on with all the quakes lately. No one tells us anything.\\nI guess you Feds keep a tight ship."
+    ],
+    [
+      "Marine",
+      "You and your type are not welcome here.\\nYou should leave. Now!"
+    ],
+    [
+      "Marine",
+      "You may have stolen our states on the old planet.\\nBut on this station, on this planet. You. Are. Not. Welcome."
+    ],
+    [
+      "Marine",
+      "When is it enough? Do you have to own the entire world?\\nI can't believe you feds. Always sniffing about when you shouldn't."
+    ],
+    [
+      "Marine",
+      "Hey you! This area is off limits.\\nWe're trying to get an overview of the situation. So Marine Command is on lockdown."
+    ],
+    [
+      "...",
+      "Oh sorry. I didn't know you were having a party up here."
+    ],
+    [
+      "...",
+      "I wonder what is more important.\\nWhere I come from? Or where I'm going?"
+    ],
+    [
+      "FCE Soldier",
+      "Official Federal business.\\nYou'll have to wait."
+    ],
+    [
+      "FCE Soldier",
+      "This will only take half an hour.\\nIf you need to use the room. Come back later."
+    ],
+    [
+      "FCE Soldier",
+      "Sir. I already told you.\\nYou'll have to wait until after the meeting."
+    ],
+    [
+      "Miles",
+      "Oh yeah. Right. I know."
+    ],
+    [
+      "Miles",
+      "This...This is Samantha Miles."
+    ],
+    [
+      "Miles",
+      "Our short...ugh...our short range communication is acting up."
+    ],
+    [
+      "Miles",
+      "You need to find a stable and secure connection and call me back.\\nWe need to talk."
+    ],
+    [
+      "...",
+      "Oh shit. Is that me?"
+    ],
+    [
+      "...",
+      "Hello?\\nThis is me speaking."
+    ],
+    [
+      "Miles",
+      "Sam?"
+    ],
+    [
+      "...",
+      "I wouldn't know.\\nI lost my memory."
+    ],
+    [
+      "...",
+      "Miles. Hey.\\nThe doctor mentioned you might be able to help me."
+    ],
+    [
+      "...",
+      "You know. Remembering.\\nYou called me Sam?"
+    ],
+    [
+      "Miles",
+      "Still struggling with your memory I see.\\nIt's more like half a year since we met."
+    ],
+    [
+      "Miles",
+      "I can't tell you exactly who you are. I don't know you that well.\\nBut I know someone who does."
+    ],
+    [
+      "Miles",
+      "We have a mutual friend and colleague through whom I met you."
+    ],
+    [
+      "Miles",
+      "His name is Calloway.\\nHe's currently at the Bulwark stationed."
+    ],
+    [
+      "Miles",
+      "Sorry. I keep forgetting."
+    ],
+    [
+      "Miles",
+      "The Bulwark is the main base of operations for the Federacy here on Mars."
+    ],
+    [
+      "Miles",
+      "I'll be heading there now.\\nBut you can tag along if you want."
+    ],
+    [
+      "Miles",
+      "The only way there right now, is with a shuttle from the Landing Terminal."
+    ],
+    [
+      "Miles",
+      "We should meet up there."
+    ],
+    [
+      "Sam",
+      "Look Milly. Something is seriously wrong with this place."
+    ],
+    [
+      "Sam",
+      "The whole city is shaking, lights are going out.\\nIt's raining elevators."
+    ],
+    [
+      "Sam",
+      "And last time I checked.\\nThat route was blocked."
+    ],
+    [
+      "Miles",
+      "It's Miles. I don't know exactly what's going on."
+    ],
+    [
+      "Miles",
+      "Things are very chaotic right now."
+    ],
+    [
+      "Miles",
+      "I'll be looking for an alternate route myself.\\nI would advice you to do the same."
+    ],
+    [
+      "Miles",
+      "I think the station at Recreation might have a shortcut.\\nYou could try that."
+    ],
+    [
+      "Miles",
+      "Agent Miles."
+    ],
+    [
+      "Miles",
+      "Yes! You're Sam.\\nDo you have any recollection of me? Perchance?"
+    ],
+    [
+      "Sam",
+      "Perchance?\\nWe met like half an hour ago."
+    ],
+    [
+      "Sam",
+      "The Bulwark?"
+    ],
+    [
+      "Sam",
+      "Alright. Yeah. I'll check it out.\\nI guess I'll see you there then."
+    ],
+    [
+      "...",
+      "Holy shit!"
+    ],
+    [
+      "AP",
+      "Have a nice day."
+    ],
+    [
+      "Dr. Nielsen",
+      "You were gone for a minute there."
+    ],
+    [
+      "Dr. Nielsen",
+      "We found nothing to be concerned about."
+    ],
+    [
+      "Dr. Nielsen",
+      "Your head injury doesn't appear to be new.\\nBut has merely opened up again."
+    ],
+    [
+      "Dr. Nielsen",
+      "Most likely due to a recent blow to the temple."
+    ],
+    [
+      "Dr. Nielsen",
+      "Do you still not recollect what happened or any details about your person?"
+    ],
+    [
+      "Dr. Nielsen",
+      "You will. In time."
+    ],
+    [
+      "Dr. Nielsen",
+      "I closed the wound and you're free to go."
+    ],
+    [
+      "Dr. Nielsen",
+      "Take it easy for a while.\\nLet your body recuperate at its own pace."
+    ],
+    [
+      "Dr. Nielsen",
+      "Special Agent Miles had to rush off.\\nBut might be able to help you with your identity."
+    ],
+    [
+      "Dr. Nielsen",
+      "She'll be busy for a while. But if you want you can catch her at the Landing Terminal.\\nJust through the lobby."
+    ],
+    [
+      "...",
+      "Hello."
+    ],
+    [
+      "...",
+      "I only see flashes. Other people.\\nI dont remember anything substantial about myself."
+    ],
+    [
+      "...",
+      "I'm missing something"
+    ],
+    [
+      "Girl",
+      "Every winter we moaned and complained that no snow came."
+    ],
+    [
+      "Girl",
+      "It did that year.\\nBut we didn't care."
+    ],
+    [
+      "Girl",
+      "It was like the world was mocking us."
+    ],
+    [
+      "Girl",
+      "Rarely giving.\\nBut always taking."
+    ],
+    [
+      "Girl",
+      "Mom loved cats.\\nWe tried cheering her up with silly cat pictures whenever we got the chance."
+    ],
+    [
+      "Girl",
+      "Dad was very brave.\\nHe was not at home much after mom was hospitalized."
+    ],
+    [
+      "Girl",
+      "Always at her side.\\nDay and night."
+    ],
+    [
+      "Girl",
+      "I didn't blame him.\\nBut I still felt left alone."
+    ],
+    [
+      "Girl",
+      "The nurses had already moved her. I wasn't around when it happened.\\nIt was as if she had never really been there."
+    ],
+    [
+      "Girl",
+      "The soft breeze.\\nThe quiet sounds of evening suburbia."
+    ],
+    [
+      "Girl",
+      "A blanket of stars and a glass of wine."
+    ],
+    [
+      "Girl",
+      "This was their time.\\nTheir safe haven away from stress and concerns."
+    ],
+    [
+      "Girl",
+      "My parents used to spend their summer evenings in the garden."
+    ],
+    [
+      "Girl",
+      "But it was not to last."
+    ],
+    [
+      "Girl",
+      "My family had camped out there for days to watch over mom.\\nYou and I didn't see or call eachother much."
+    ],
+    [
+      "Girl",
+      "You didn't know what to say.\\nAnd I didn't want to talk."
+    ],
+    [
+      "Girl",
+      "Do you remember the night at the hospital?"
+    ],
+    [
+      "Girl",
+      "Feelings of neglect and compassion guided you to the hospital."
+    ],
+    [
+      "Girl",
+      "The empty lobby made you linger.\\nAfraid of what would lie beyond."
+    ],
+    [
+      "Girl",
+      "And then you started looking for me."
+    ],
+    [
+      "Girl",
+      "And time made it worse."
+    ],
+    [
+      "Girl",
+      "By the time the summer gave away for fall."
+    ],
+    [
+      "Girl",
+      "Her speech had deteriorated so much we couldn't understand what she said."
+    ],
+    [
+      "Girl",
+      "She had to repeat herself."
+    ],
+    [
+      "Girl",
+      "Over and over."
+    ],
+    [
+      "Girl",
+      "The doctors finally had an answer."
+    ],
+    [
+      "Girl",
+      "Mom had been diagnosed with a rare, incurable neural disease."
+    ],
+    [
+      "Girl",
+      "They gave her two years to live."
+    ],
+    [
+      "Girl",
+      "One evening my dad noticed a slight slur when my mom spoke."
+    ],
+    [
+      "Girl",
+      "They quickly dismissed it."
+    ],
+    [
+      "Girl",
+      "But it came back."
+    ],
+    [
+      "Girl",
+      "And it got worse."
+    ],
+    [
+      "Girl",
+      "The doctors couldn't identity at first."
+    ],
+    [
+      "Girl",
+      "They suspected it to be a virus."
+    ],
+    [
+      "Girl",
+      "And the only thing they had was to give it time.\\nSo they did."
+    ],
+    [
+      "Girl",
+      "But every second with her was torture."
+    ],
+    [
+      "Girl",
+      "Right up until her last."
+    ],
+    [
+      "Girl",
+      "And then."
+    ],
+    [
+      "Girl",
+      "Nothing."
+    ],
+    [
+      "Girl",
+      "As she felt her muscles wither away she tried to keep a brave face."
+    ],
+    [
+      "Girl",
+      "But when I looked into her eyes.\\nI could see the fear staring back at me."
+    ],
+    [
+      "Girl",
+      "I wanted to console her.\\nBe there for her as she had for me."
+    ],
+    [
+      "Girl",
+      "Don't trust her."
+    ],
+    [
+      "Sam",
+      "What the heck?"
+    ]
+  ],
+  "script/map_e1m1_2.script": [
+    [
+      "Ap",
+      "Mars City is a smoke free facility. Please smoke only in the designated areas.\\nThank you for your coorporation."
+    ],
+    [
+      "AP",
+      "Attention UAC Personnel.\\nInterested in earning more credits?"
+    ],
+    [
+      "AP",
+      "Volunteer at Delta Labs today.\\nSee your service branch director for more details."
+    ],
+    [
+      "Sam",
+      "What's going on here?"
+    ],
+    [
+      "AP",
+      "Arriving at....Recreation..."
+    ],
+    [
+      "Sam",
+      "I guess I met your hostiles Samantha."
+    ],
+    [
+      "Sam",
+      "Holy shit!"
+    ],
+    [
+      "Sam",
+      "This is bad. This is so bad!"
+    ],
+    [
+      "AP",
+      "Train leaving station."
+    ],
+    [
+      "AP",
+      "Arriving at Administration."
+    ],
+    [
+      "Miles",
+      "We've got hostiles! We're encountering heavy resistance from an unknown source.\\nOn Mars and on Phobos."
+    ],
+    [
+      "Miles",
+      "We currently don't have a precise origin of the attack."
+    ],
+    [
+      "Miles",
+      "But we suspect the controversy surrounding the Union Aerospace owned Delta labs to have played a major part."
+    ],
+    [
+      "Miles",
+      "As a high ranking officer, my situation has changed.\\nBut yours doesn't have to."
+    ],
+    [
+      "Miles",
+      "I have arranged for your transportation to the Bulwark."
+    ],
+    [
+      "Miles",
+      "A shuttle will be awaiting your arrival.\\nThe pilot, Frank, is an old friend of mine."
+    ],
+    [
+      "Miles",
+      "The Hostiles! They're unlike anything I've ever seen.\\nI...I must admit I'm in shock of this whole situation."
+    ],
+    [
+      "Miles",
+      "We were suspicious of their efforts...and...commitment to...\\nBut nothing like this."
+    ],
+    [
+      "Miles",
+      "I mean the scale. It's insane!"
+    ],
+    [
+      "Miles",
+      "I'm sorry. I can't answer all your questions right now."
+    ],
+    [
+      "Miles",
+      "All you need to know is. Shoot on sight.\\nYou will know when you see them."
+    ],
+    [
+      "Miles",
+      "I'm currently transferring to our flagship, but please.\\nPlease contact me later. When you can."
+    ],
+    [
+      "Miles",
+      "And Sam."
+    ],
+    [
+      "Miles",
+      "Sam!"
+    ],
+    [
+      "Sam",
+      "Miles! What's going on?"
+    ],
+    [
+      "Sam",
+      "Frank who? Wait. Hostiles?\\nWhoa whoa you're going a mile a minute."
+    ],
+    [
+      "Sam",
+      "Wait. What are you talking about?\\nWhat's going on?"
+    ],
+    [
+      "Sam",
+      "I..."
+    ],
+    [
+      "Miles",
+      "Stay safe!"
+    ],
+    [
+      "Sam",
+      "Great. That's just fantastic.\\nSamantha how are you?"
+    ]
+  ],
+  "script/map_e1m1_scanner.script": [
+    [
+      "Dr. Nielsen",
+      "The procedure will start in just a few seconds.\\nPlease. Lie still. It will only take a minute."
+    ],
+    [
+      "Sam",
+      "All this for a scratch?"
+    ]
+  ],
+  "script/map_e1m1_train.script": [
+    [
+      "Girl",
+      "Let it burn."
+    ],
+    [
+      "AP",
+      "Mars City station locked down until further notice. It is now possible to disembark at Recreation station."
+    ]
+  ],
+  "script/map_e1m2.script": [
+    [
+      "PA",
+      "15 seconds."
+    ],
+    [
+      "PA",
+      "10. 9. 8. 7. 6. 5. 4. 3. 2. 1.\\nFan restarting."
+    ],
+    [
+      "PA",
+      "Main Fan stopped. Restarting in 30 seconds."
+    ],
+    [
+      "PA",
+      "Cleaning filter."
+    ],
+    [
+      "PA",
+      "Filter unavailable. Cleaning in progress."
+    ],
+    [
+      "PA",
+      "Filter unavailable. Cleaning in progress."
+    ],
+    [
+      "PA",
+      "Calling elevator."
+    ],
+    [
+      "PA",
+      "Elevator has arrived."
+    ],
+    [
+      "Miles",
+      "Hi Sam. Are you Okay?"
+    ],
+    [
+      "Miles",
+      "Are you safe? Stop calling me Smiles."
+    ],
+    [
+      "Miles",
+      "I did."
+    ],
+    [
+      "Miles",
+      "There are a couple thousand soldiers, federal agents, staff and personnel around me."
+    ],
+    [
+      "Miles",
+      "Safety in numbers."
+    ],
+    [
+      "Miles",
+      "We can't. The flagship is heading to Phobos to reinforce our position there."
+    ],
+    [
+      "Miles",
+      "It's not a place you want to be near.\\nIt's even worse there."
+    ],
+    [
+      "Miles",
+      "No. What I would higly suggest, is that you catch the shuttle in the Landing Terminal near by."
+    ],
+    [
+      "Miles",
+      "I told you about that.\\nAnd Frank. He's waiting for you."
+    ],
+    [
+      "Miles",
+      "The Bulwark."
+    ],
+    [
+      "Miles",
+      "All traffic going back to Earth or any noneffected sites have been shut down.\\nCompletely."
+    ],
+    [
+      "Miles",
+      "The Bulwark is probably the safest place on Mars and Phobos right now."
+    ],
+    [
+      "Miles",
+      "Besides. Calloway is there.\\nHe knows you. He can help you."
+    ],
+    [
+      "Miles",
+      "But you have to hurry."
+    ],
+    [
+      "Miles",
+      "We arent completely sure yet."
+    ],
+    [
+      "Miles",
+      "But we believe they're a product of what the UAC have been experimenting with down at delta labs."
+    ],
+    [
+      "Miles",
+      "No. Teleportation experiments."
+    ],
+    [
+      "Miles",
+      "For years we have been investigating UAC matters."
+    ],
+    [
+      "Miles",
+      "The coorporation is the very prototype of greed and self serving and total disregard of personal security and freedom."
+    ],
+    [
+      "Miles",
+      "The experiments have gone on for years."
+    ],
+    [
+      "Miles",
+      "Reality finally caught up to them."
+    ],
+    [
+      "Miles",
+      "So it's more like they went to the zoo.\\nAnd then left the gate open."
+    ],
+    [
+      "Miles",
+      "We don't know. Maybe. Not likely."
+    ],
+    [
+      "Miles",
+      "Look, I need to debrief some higher up about my meeting on Mars."
+    ],
+    [
+      "Miles",
+      "Anyway. You need to get moving.\\nDo you know where to go?"
+    ],
+    [
+      "Miles",
+      "The way things are going, be prepared to go through vents. Machinery. Pipes."
+    ],
+    [
+      "Miles",
+      "Take care. Call me when you can."
+    ],
+    [
+      "Sam",
+      "Hey Smiles.\\nOne question. What the fuck are those things?"
+    ],
+    [
+      "Sam",
+      "I'm holed up in some dark room with a console."
+    ],
+    [
+      "Sam",
+      "I'm safe for now, but I need to get out of here."
+    ],
+    [
+      "Sam",
+      "Yeah I'm okay.\\nWhat about you? Did you get to the ship?"
+    ],
+    [
+      "Sam",
+      "So. Are you all coming back for anyone stranded down here? For me?"
+    ],
+    [
+      "Sam",
+      "Going to Bul...War...Castle.\\nWouldn't I be safer off planet?"
+    ],
+    [
+      "Sam",
+      "Alright I will.\\nJust one last question. What the fuck are those things?"
+    ],
+    [
+      "Sam",
+      "Experimenting. They created these things?"
+    ],
+    [
+      "Sam",
+      "They opened it on purpose?"
+    ],
+    [
+      "Sam",
+      "I fond a route to the Landing Terminal. But it's impassible.\\nSo I'm still looking around."
+    ],
+    [
+      "Sam",
+      "I'm still looking for a route to the Landing Terminal."
+    ],
+    [
+      "Sam",
+      "You don't say."
+    ],
+    [
+      "Sam",
+      "Hmm?"
+    ],
+    [
+      "Sam",
+      "One of these paths should lead to the Landing Terminal."
+    ],
+    [
+      "Sam",
+      "Seems to be broken."
+    ],
+    [
+      "AP",
+      "This is an emergency broadcast. This is not a test.\\nThere has been an explosion at the Delta Labs."
+    ],
+    [
+      "AP",
+      "The following instructions are vital to your safety.\\nFind a safe place as soon as possible."
+    ],
+    [
+      "AP",
+      "If you hear any strange noises or see anything suspicious, please do not investigate.\\nThe UAC is handling the situation."
+    ],
+    [
+      "AP",
+      "This is an emergency broadcast. This is not a test.\\nThe following instructions are vital to your safety."
+    ],
+    [
+      "AP",
+      "Anyone close to The Mars City Landing Terminal\\nshould go there as quickly as possible for immediate evacuation."
+    ],
+    [
+      "Sam",
+      "Shit!"
+    ]
+  ],
+  "script/map_e1m3.script": [
+    [
+      "PA",
+      "Gas leak stopped. Fire extinguished."
+    ],
+    [
+      "Special Agent Simmons",
+      "Mars Depature T-8150. Special Agent Simmons here."
+    ],
+    [
+      "Special Agent Simmons",
+      "We had a delay due to some unexpected interference.\\nIt has been taken care of. Ready for takeoff."
+    ],
+    [
+      "Captain Rigel",
+      "This is Captain Rigel of the Enforcer.\\nAffirmative agent Simmons."
+    ],
+    [
+      "Captain Rigel",
+      "You're expected at the Bulwark in 10 minutes.\\nYou're clear for take-off."
+    ]
+  ],
+  "script/map_e1m3_1.script": [
+    [
+      "AP",
+      "Hangar can not be accessed while Hangar doors are open."
+    ],
+    [
+      "AP",
+      "Hangar can not be accessed while Hangar doors are open."
+    ],
+    [
+      "Sam",
+      "Gotta be around here somewhere. I hope"
+    ],
+    [
+      "AP",
+      "The past is the key to the future."
+    ],
+    [
+      "AP",
+      "As excavations suggest, Mars was once the host of a sprawling civilization."
+    ],
+    [
+      "AP",
+      "The origin of the alien race and its technology remains a mystery to this day."
+    ],
+    [
+      "AP",
+      "A mystery solvable only by the UAC."
+    ],
+    [
+      "AP",
+      "Mars City is the cutting edge of UAC technology.\\nAnd thereby the human endeavour in space."
+    ],
+    [
+      "AP",
+      "We are unearthing advanced technology.\\nThat will help propel us towards a new and brighter future."
+    ],
+    [
+      "AP",
+      "The universe may be expanding.\\nBut nothing can outrun the technological advancements of the UAC."
+    ],
+    [
+      "AP",
+      "Mars City will in the future serve as a base for missions.\\nTo reach neighbouring stars and beyond."
+    ],
+    [
+      "Miles",
+      "Let's not get ahead of ourselves.\\nRight now you're stuck in Mars City."
+    ],
+    [
+      "Miles",
+      "You mentioned fuel lines.\\nI know for a fact that The Bulwark has a thick pipeline heading up to its landing pad."
+    ],
+    [
+      "Miles",
+      "I would guess it connects back to the main Fuel Station.\\nThe Landing Terminal where you're located obviously would as well."
+    ],
+    [
+      "Miles",
+      "Sam. You need to pass through the Fuel Station.\\nIt's the most direct route."
+    ],
+    [
+      "Miles",
+      "James Benson? Yeah I knew him. Don't worry about that.\\nI understand your confusion."
+    ],
+    [
+      "Miles",
+      "That's why it's so important that you find Calloway."
+    ],
+    [
+      "Sam",
+      "Hmm. You know. Back when the feds took over the shuttle.\\nThey called out to some guy Benson about using the fuel lines."
+    ],
+    [
+      "Sam",
+      "He didn't get on the flight either."
+    ],
+    [
+      "Miles",
+      "So. Did you hitch a ride?"
+    ],
+    [
+      "Sam",
+      "Did I hitch a ri...No! They fucking left. They left everyone behind.\\nThe ships crew is dead. I thought you knew these guys."
+    ],
+    [
+      "Miles",
+      "Dead? Frank too?"
+    ],
+    [
+      "Sam",
+      "Yeah. Frank too."
+    ],
+    [
+      "Miles",
+      "Shit! I...Frank..."
+    ],
+    [
+      "Sam",
+      "I'm sorry. Did you know him well?"
+    ],
+    [
+      "Miles",
+      "He...was an old friend of the family. One of my dads friends.\\nI've known him since I was a little girl."
+    ],
+    [
+      "Sam",
+      "Your dad. Does he also work for the Commonwealth?"
+    ],
+    [
+      "Miles",
+      "He doesn't...He's not...no.\\nLook we need to get you to The Bulwark. To Calloway. Somehow."
+    ],
+    [
+      "Miles",
+      "Benson? Okay."
+    ],
+    [
+      "Sam",
+      "You know him?"
+    ],
+    [
+      "Sam",
+      "Find him? Isn't he at The Bulwark?"
+    ],
+    [
+      "Sam",
+      "What? Crawl through the fuel lines? Sounds safe."
+    ],
+    [
+      "Miles",
+      "Yeah well...you know."
+    ],
+    [
+      "Sam",
+      "I'll watch out for your friends."
+    ],
+    [
+      "Miles",
+      "No friends of mine."
+    ],
+    [
+      "Sam",
+      "Fuel lines. Great!"
+    ],
+    [
+      "Sam",
+      "Hey buddy!"
+    ],
+    [
+      "Sam",
+      "Frank. I thought you left me behind.\\nMaybe you should have."
+    ],
+    [
+      "Sam",
+      "These people were gunned down.\\nWho would do this?"
+    ],
+    [
+      "Sam",
+      "Stranded...I should call Miles."
+    ]
+  ],
+  "script/map_e1m3_1_intro.script": [
+    [
+      "Lee",
+      "Watch out below!"
+    ],
+    [
+      "Lee",
+      "Find a nice spot to hang it."
+    ],
+    [
+      "Sam",
+      "Damn its heavy."
+    ],
+    [
+      "Sam",
+      "Classy."
+    ],
+    [
+      "Sam",
+      "I think I'll put up the lights.\\nWill look nice over the beds."
+    ],
+    [
+      "Sam",
+      "So are you all done up there?"
+    ],
+    [
+      "Lee",
+      "I can't find anything else we can use.\\nI'll come down in a second."
+    ],
+    [
+      "Lee",
+      "By the way hotshot. I think I may know someone who can help us.\\n You know...Get out of here."
+    ],
+    [
+      "Sam",
+      "Your boyfriend?"
+    ],
+    [
+      "Lee",
+      "Maybe. Who knows.\\nHe has connection with the feds. He knows my brother."
+    ],
+    [
+      "Sam",
+      "He IS a fed! Remember? The bad guys!"
+    ],
+    [
+      "Lee",
+      "I know. But he is not like that."
+    ],
+    [
+      "Lee",
+      "He's...different."
+    ],
+    [
+      "Lee",
+      "What hap....ugh"
+    ],
+    [
+      "Lee",
+      "What happened?"
+    ],
+    [
+      "Sam",
+      "I think I broke a fuse. I'll look for another."
+    ],
+    [
+      "Lee",
+      "Bleep bloop."
+    ],
+    [
+      "Sam",
+      "Hey Lee. Got the fuse.\\nBut I think the generator was running on fumes."
+    ],
+    [
+      "Lee",
+      "Give me a second. There might be some up here."
+    ],
+    [
+      "Lee",
+      "Bombs away!"
+    ],
+    [
+      "Sam",
+      "Hey watch out will you?!"
+    ],
+    [
+      "Lee",
+      "Sorry!\\nSee if that has enough to hold us for a while."
+    ],
+    [
+      "Sam",
+      "Generator is back up!"
+    ],
+    [
+      "Lee",
+      "Perfect. Did you put the thing back in its spot?"
+    ],
+    [
+      "Sam",
+      "I will. I will."
+    ],
+    [
+      "Sam",
+      "Hello? Its working! Over."
+    ],
+    [
+      "Lee",
+      "You're such a nerd."
+    ],
+    [
+      "Sam",
+      "What. Sorry? Couldn't quite hear that. Over."
+    ],
+    [
+      "Lee",
+      "Okay that's it. We're over!"
+    ],
+    [
+      "Sam",
+      "We're what? Over."
+    ],
+    [
+      "Lee",
+      "*Sigh*"
+    ],
+    [
+      "Sam",
+      "Gotem!"
+    ],
+    [
+      "Sam",
+      "I think we should do it."
+    ],
+    [
+      "Lee",
+      "The vice?"
+    ],
+    [
+      "Sam",
+      "Yup."
+    ],
+    [
+      "Lee",
+      "Just...be careful."
+    ],
+    [
+      "Sam",
+      "Oh fuck! Old piece of shit."
+    ],
+    [
+      "Lee",
+      "Hey! Told you it wouldn't work.\\nOh I think I found something. You're gonna love this."
+    ],
+    [
+      "Sam",
+      "What?"
+    ],
+    [
+      "Sam",
+      "Lee?"
+    ],
+    [
+      "Sam",
+      "Lee are you still there?"
+    ],
+    [
+      "Lee",
+      "I can't see."
+    ],
+    [
+      "Sam",
+      "Tell me about the device. The box. "
+    ],
+    [
+      "Lee",
+      "Its...been so long."
+    ],
+    [
+      "Sam",
+      "Why do you need me to find it?"
+    ],
+    [
+      "Lee",
+      "Its a key. Our only chance to get out."
+    ],
+    [
+      "Sam",
+      "A key? But we had it. What happened?"
+    ],
+    [
+      "Lee",
+      "I...I was in the attic. You were down below."
+    ],
+    [
+      "Sam",
+      "We tried to open this box gently. Now it's time for force."
+    ],
+    [
+      "Lee",
+      "Hey cowgirl. Grab the walkie."
+    ],
+    [
+      "Sam",
+      "Cowgirl? Seriously?"
+    ],
+    [
+      "Lee",
+      "Testing testing. Hello?"
+    ],
+    [
+      "Lee",
+      "Hellloooooo..."
+    ],
+    [
+      "Lee",
+      "Hey! Fuckwad."
+    ],
+    [
+      "Lee",
+      "Hello?"
+    ],
+    [
+      "Lee",
+      "Fuckwaaad..."
+    ],
+    [
+      "Sam",
+      "It's a long shot. But Lee is confident one of these will work.\\nI don't know."
+    ],
+    [
+      "Sam",
+      "Lee was ecstatic when she snatched this.\\nIt's like capture the flag, but with only one side."
+    ],
+    [
+      "Sam",
+      "Loose and you go to jail.\\nProbably."
+    ],
+    [
+      "Sam",
+      "At first I was worried people would hear us.\\nBut turns out nobody ever comes this far into the woods."
+    ],
+    [
+      "Sam",
+      "Let's hope it stays that way."
+    ],
+    [
+      "Sam",
+      "Lee spends a lot of time here. Is she ever home?\\nI try to be here as much as I can."
+    ],
+    [
+      "Sam",
+      "But the folks want me home.\\nI wonder if Lee's dad misses her."
+    ]
+  ],
+  "script/map_e1m3_2.script": [
+    [
+      "PA",
+      "Fuel cache is full. Can not cycle."
+    ],
+    [
+      "Sam",
+      "Can't go out there with all that fuel."
+    ],
+    [
+      "Sam",
+      "That works!"
+    ],
+    [
+      "PA",
+      "Fire contained."
+    ],
+    [
+      "PA",
+      "Unable to lift lockdown. Fire not contained.\\nPlease contain fire."
+    ],
+    [
+      "Sam",
+      "Where is the fire?"
+    ],
+    [
+      "PA",
+      "Lockdown lifted."
+    ],
+    [
+      "PA",
+      "Area is in lockdown. Unctrolled fire.\\nExplosion imminent."
+    ],
+    [
+      "Miles",
+      "Yeah?"
+    ],
+    [
+      "Sam",
+      "I found Benson. He's dead. Burned to a crisp."
+    ],
+    [
+      "Miles",
+      "Oh. That's too bad..."
+    ],
+    [
+      "Sam",
+      "I'm sorry?"
+    ],
+    [
+      "Miles",
+      "Don't be. He wasn't exactly what you would call a nice guy."
+    ],
+    [
+      "Sam",
+      "Who was Benson anyway? How did you know him?"
+    ],
+    [
+      "Miles",
+      "I knew him through the academy. He's a federal Agent like Calloway and I.\\nHe had a run-in with him a few years ago."
+    ],
+    [
+      "Sam",
+      "What happened?"
+    ],
+    [
+      "Miles",
+      "He took something that was too beautiful for this world and turned it into ash.\\nHe violated our trust and turned against us."
+    ],
+    [
+      "Sam",
+      "I...I guess it's good he's gone then."
+    ],
+    [
+      "Miles",
+      "Sam I don't want people to die, but I'm not going to start caring about Benson."
+    ],
+    [
+      "Sam",
+      "Samantha...What did he turn into ash?"
+    ],
+    [
+      "Miles",
+      "I...I really don't want to talk about that now. We have work to do."
+    ],
+    [
+      "Sam",
+      "I'm sorry, Samantha."
+    ],
+    [
+      "Sam",
+      "James Benson? I guess we now know why you missed your flight.\\nOur flight."
+    ],
+    [
+      "Sam",
+      "Is that a federal agent?"
+    ],
+    [
+      "Sam",
+      "Locked. I guess this room can empty the fuel cache."
+    ],
+    [
+      "Sam",
+      "So I guess all of these needs to be green."
+    ],
+    [
+      "Sam",
+      "Hmm. This doesn't look right."
+    ]
+  ],
+  "script/map_e1m3_outro.script": [
+    [
+      "PA",
+      "Passengers of T-8150. Please report to the Landing Terminal for immediate boarding."
+    ],
+    [
+      "PA",
+      "This is the final call for flight T-8150.\\nPlease proceed to the Landing Terminal immediately."
+    ],
+    [
+      "Sam",
+      "Fuck fuck fuck fuck..."
+    ],
+    [
+      "Speical Agent Simmons",
+      "This is Speical Agent Simmons calling Federal Agent Jim Benson.\\nAnswer your radio. Get down here. We are not waiting for you."
+    ],
+    [
+      "Speical Agent Simmons",
+      "Agent Jim Benson. We're ready for take off. If you somehow hear this.\\nGo to the Bulwark. Use the fuel lines."
+    ],
+    [
+      "Sam",
+      "Oh come on! This is too much."
+    ],
+    [
+      "Sam",
+      "Don't wait for Benson! Wait for me!"
+    ],
+    [
+      "Sam",
+      "Shit! That's me!\\nBetter get a move on."
+    ],
+    [
+      "Sam",
+      "Hmm. This must be why the alarm was set off."
+    ],
+    [
+      "Sam",
+      "Found it!"
+    ],
+    [
+      "Lee",
+      "Something Samuel send me. I don't know what is it.\\nBut it seems valuable."
+    ],
+    [
+      "Lee",
+      "Or atleast what's ever inside could be valuable.\\nIt could be our ticket out of here."
+    ],
+    [
+      "Sam",
+      "What is it?"
+    ],
+    [
+      "Lee",
+      "So. How do we get in? And how do we get out?"
+    ],
+    [
+      "Lee",
+      "Do you remember the box I gave you?"
+    ],
+    [
+      "Sam",
+      "I do."
+    ],
+    [
+      "Lee",
+      "I need you to find it."
+    ],
+    [
+      "Lee",
+      "We always wanted to got to europe together once we were old enough."
+    ],
+    [
+      "Lee",
+      "Eventually you would travel much longer.\\nBut not for adventure."
+    ],
+    [
+      "Lee",
+      "And I didn't."
+    ],
+    [
+      "Lee",
+      "Camping. Of all things.\\nApparently getting out of the valley is problematic."
+    ],
+    [
+      "Lee",
+      "I don't know. I tried nudging dad along those lines.\\nBut it's getting more and more difficult to leave federal soil."
+    ],
+    [
+      "Lee",
+      "Something about keeping the peace.\\nThe usual drill. It's all bullshit."
+    ],
+    [
+      "Lee",
+      "You know. It's not all that bad. It's not foreign or exotic.\\nIt's not even a different climate."
+    ],
+    [
+      "Lee",
+      "But it's different. Somewhere else.\\nI needed that. You know. After everything."
+    ],
+    [
+      "Lee",
+      "On that note. I've been thinking.\\nCamping is great and all. Well, camping is fine and all."
+    ],
+    [
+      "Lee",
+      "But eventually I'll be going home. And live next to you. Again.\\nWhich is a pain of course."
+    ],
+    [
+      "Lee",
+      "Sam. I'm not talking about make believe.\\nTrips to the woods or a stupid old barn."
+    ],
+    [
+      "Lee",
+      "I want to be out there. The real world.\\nNot this walled garden."
+    ],
+    [
+      "Lee",
+      "I can't keep going through the same routine.\\nSeeing the same things. Talking to the same people."
+    ],
+    [
+      "Lee",
+      "I can't fooling myself to believe that things haven't changed.\\nMy brother is gone. My mom is gone."
+    ],
+    [
+      "Lee",
+      "The place we live in is a fucking hedge maze."
+    ],
+    [
+      "Lee",
+      "Before we came here, my family used to live close to the seaside. Near the beaches.\\nYou could smell the freedom."
+    ],
+    [
+      "Lee",
+      "Everything sucks but you!\\nSam. I need you."
+    ],
+    [
+      "Lee",
+      "There are a lot of details to cover. I know.\\nBut we can do it Sam. Together."
+    ],
+    [
+      "Lee",
+      "I don't want to look back 5 years from now and regret that I never took the chance.\\nLook under your bed."
+    ],
+    [
+      "Lee",
+      "Hey. Sam. You still up?\\nUgh. I Should have called earlier, I know. Sorry!"
+    ],
+    [
+      "Sam",
+      "Yeah. Don't sweat it.\\nWhere are you?"
+    ],
+    [
+      "Lee",
+      "For some unknown reason my dad thought it would be a good idea to do a surprise vacation."
+    ],
+    [
+      "Sam",
+      "What? Paris? Europe? The back yard?"
+    ],
+    [
+      "Sam",
+      "So how is camping?"
+    ],
+    [
+      "Sam",
+      "I get that."
+    ],
+    [
+      "Sam",
+      "Of course."
+    ],
+    [
+      "Lee",
+      "So. I was wondering. Why don't we live together?\\nSomewhere else. Somewhere entirely different."
+    ],
+    [
+      "Sam",
+      "What do you mean some where else? How are we going to manage that?\\nNo money, no transportation, no visa, no luck."
+    ],
+    [
+      "Lee",
+      "That's not what I asked. Idiot."
+    ],
+    [
+      "Sam",
+      "Have you forgotten about our place? And you are just a stones throw away.\\nRegrettably for my window."
+    ],
+    [
+      "Sam",
+      "Okay okay I get it. But. Your dad. My parents.\\nHow would we even get out?"
+    ],
+    [
+      "Sam",
+      "What?"
+    ],
+    [
+      "Lee",
+      "Look under your bed!"
+    ]
+  ],
+  "script/map_e1m4.script": [
+    [
+      "PA",
+      "Fuel pipe is empty.\\nPlease fill fuel pipe."
+    ],
+    [
+      "Sam",
+      "This better work."
+    ],
+    [
+      "PA",
+      "Cargo line fuel is empty.\\nPlease transfer fuel."
+    ],
+    [
+      "Sam",
+      "Bravo team?"
+    ],
+    [
+      "Sam",
+      "Ah!"
+    ],
+    [
+      "Lee",
+      "Gotcha!"
+    ],
+    [
+      "Sam",
+      "What the fuck?"
+    ],
+    [
+      "Lee",
+      "Tag, you're it! Hah! Don't be such a little bitch!"
+    ],
+    [
+      "Sam",
+      "I'm not sure you understand how tag works..."
+    ],
+    [
+      "Lee",
+      "Sure I do. You ready?"
+    ],
+    [
+      "Sam",
+      "Well I am now."
+    ],
+    [
+      "Lee",
+      "Perfect! This is it, you know. The last spot on the map."
+    ],
+    [
+      "Sam",
+      "I know. I'm still not sure what to expect."
+    ],
+    [
+      "Lee",
+      "Can't be worse than the mountains up north."
+    ],
+    [
+      "Sam",
+      "Can't be worse than plan B!"
+    ],
+    [
+      "Lee",
+      "I like Plan B. He's charming."
+    ],
+    [
+      "Sam",
+      "He's dangerous."
+    ],
+    [
+      "Lee",
+      "That's what makes it exciting."
+    ],
+    [
+      "Sam",
+      "So. You're in a vent."
+    ],
+    [
+      "Lee",
+      "I was thinking we should split up. Check several routes. Just to be sure.\\nI picked the vents."
+    ],
+    [
+      "Sam",
+      "Great...I'm no fan of tiny spaces."
+    ],
+    [
+      "Lee",
+      "I know."
+    ],
+    [
+      "Sam",
+      "Whew. Why is it so hot down here?"
+    ],
+    [
+      "Sam",
+      "That's a long climb!"
+    ],
+    [
+      "Sam",
+      "Can't go that way."
+    ],
+    [
+      "Sam",
+      "Where is she?"
+    ],
+    [
+      "Sam",
+      "Looks like Lee."
+    ],
+    [
+      "Sam",
+      "Definately Lee."
+    ],
+    [
+      "Sam",
+      "Can't undo this."
+    ],
+    [
+      "Sam",
+      "Do you see this? Someone used to live down here."
+    ],
+    [
+      "Lee",
+      "What? Oh. Yeah."
+    ],
+    [
+      "Sam",
+      "I guess that explains the padlock.\\nI wonder what happened to him. Her."
+    ],
+    [
+      "Lee",
+      "Sure. Whatever. Who cares. Move on."
+    ],
+    [
+      "Sam",
+      "Come on. keep up with your buddy. You can do it."
+    ],
+    [
+      "Lee",
+      "Hey. How did you get here?"
+    ],
+    [
+      "Sam",
+      "I...I don't know."
+    ],
+    [
+      "Lee",
+      "Thought it was someone else. I almost didn't recognize you."
+    ],
+    [
+      "Sam",
+      "I don't even..."
+    ],
+    [
+      "Lee",
+      "Lets move on. I think the next area may be hot."
+    ],
+    [
+      "Sam",
+      "Hot?"
+    ],
+    [
+      "Lee",
+      "Feds...Be careful."
+    ],
+    [
+      "Sam",
+      "I think that may have done it."
+    ],
+    [
+      "Lee",
+      "Awesome. See you in there."
+    ],
+    [
+      "Sam",
+      "No luck."
+    ],
+    [
+      "Lee",
+      "I need your help. There seems to be a filter or whatever.\\nCan you extract it? Somehow?"
+    ],
+    [
+      "Sam",
+      "Let me see..."
+    ],
+    [
+      "Sam",
+      "hmm."
+    ],
+    [
+      "Sam",
+      "There is a door opening here. But it seems...inoperable."
+    ],
+    [
+      "Lee",
+      "I saw some controls back where I crawled into the duct.\\nMaybe...that's...something?"
+    ],
+    [
+      "Lee",
+      "Thanks. What about you? Any progress?"
+    ],
+    [
+      "Sam",
+      "I think I see where I need to go. Two sec..."
+    ],
+    [
+      "Sam",
+      "Are you naked in there?"
+    ],
+    [
+      "Lee",
+      "Well...maybe you can come in here and find out."
+    ],
+    [
+      "Sam",
+      "Erm...I...Wow...Better move on."
+    ],
+    [
+      "Dr. Nielsen",
+      "Please, lie down on the table and we'll get started in just a few minutes."
+    ],
+    [
+      "Lee",
+      "You told me how you looked for what seemed like an eternity.\\nIn the endless halls and corridors of St. Amber Hospital. Like you were stuck. Forever."
+    ],
+    [
+      "Sam",
+      "Samantha Miles. Sounds familiar."
+    ],
+    [
+      "Sam",
+      "Lee are you still there?"
+    ],
+    [
+      "Sam",
+      "Tell me about the device. The box."
+    ],
+    [
+      "Lee",
+      "It's a key. Our only chance to get out."
+    ],
+    [
+      "Sam",
+      "Shit!"
+    ],
+    [
+      "Lee",
+      "Let it burn."
+    ],
+    [
+      "Sam",
+      "Lee. I've uhm. I've been meaning to ask you.\\nAll this breaking out of the valley stuff?"
+    ],
+    [
+      "Sam",
+      "It's been really fun. It's been exhilarating even.\\nBut...is...are we being serious here?"
+    ],
+    [
+      "Sam",
+      "I know we've been working on it for so long, but think of all the fun we've had.\\nIn the valley. Do we really have it so bad? "
+    ],
+    [
+      "Sam",
+      "I guess what I'm saying is...if this attempt fails, do we need to keep going?\\nIt kinda feels like we're running..."
+    ],
+    [
+      "Lee",
+      "Running?"
+    ],
+    [
+      "Sam",
+      "Yeah. Running away. It's just. I don't mean to.\\nI'm sorry, but..."
+    ],
+    [
+      "Sam",
+      "I know we've always talked about going out and seeing the world together."
+    ],
+    [
+      "Sam",
+      "But ever since you lost your mom\\nyou've been really dead set on leaving the valley."
+    ],
+    [
+      "Sam",
+      "Leaving home. Why are we running?"
+    ],
+    [
+      "Lee",
+      "I...I just want something better.\\nThis place gives me the creeps. It's so constricted."
+    ],
+    [
+      "Lee",
+      "My dad? Yeah, I guess I never really told you about him.\\nLet me tell you about my dad."
+    ],
+    [
+      "Lee",
+      "My dad stopped existing right around when my mom died.\\nActually, probably somewhere in the last couple of weeks of her life."
+    ],
+    [
+      "Lee",
+      "My dad is gone, Sam. He drinks all day and is gone all night\\nWhen he isn't unconscious."
+    ],
+    [
+      "Lee",
+      "Remember my camping trip with him last fall?\\nYeah. That wasn't a camping trip. That was another trip to the clinic."
+    ],
+    [
+      "Lee",
+      "Trying to help him. I...I can't deal with it anymore. I need to get out."
+    ],
+    [
+      "Sam",
+      "Yeah, but why? I'm still around. You still have your dad..."
+    ],
+    [
+      "Sam",
+      "I'm sorry. The valley is big, though. Can't we just find some other place?\\nDoes it have to be outside the walls?"
+    ],
+    [
+      "Lee",
+      "I...can't believe you're bringing this up now.\\nAre you with me on this or not?"
+    ]
+  ],
+  "script/map_e1m4_1.script": [
+    [
+      "Sam",
+      "What's that sound?"
+    ],
+    [
+      "Calloway",
+      "Samantha. I have been a terrible friend, I know,\\nbut it has not been without reason."
+    ],
+    [
+      "Calloway",
+      "I...I think I may have been right after all."
+    ],
+    [
+      "Calloway",
+      "Kaylee...Kaylee may still be alive."
+    ],
+    [
+      "Calloway",
+      "As we both know the official records state that Kaylee died in the fire.\\nHer body identified by DNA."
+    ],
+    [
+      "Calloway",
+      "What tipped me off back then was the sheer amount of security surrounding the incident."
+    ],
+    [
+      "Calloway",
+      "Local fires usually aren't locked down like this with soldiers,\\nscientists in hazmat suits and higher ups being alerted."
+    ],
+    [
+      "Calloway",
+      "And you know what? The hazmat guys came from here. From Mars.\\nSo I went to investigate."
+    ],
+    [
+      "Calloway",
+      "Being a fully initiated member of Receptacle base.\\nAnd a high ranking officer at the Bulwark."
+    ],
+    [
+      "Calloway",
+      "I have access to many places and heaps of information."
+    ],
+    [
+      "Calloway",
+      "The records of the federal police is out of my reach.\\nBut knowing the right people and a little sneakiness goes a long way."
+    ],
+    [
+      "Calloway",
+      "I've finally obtained access to the unofficial records for the fire that supposedly claimed her life."
+    ],
+    [
+      "Calloway",
+      "I haven't seen many records of the sort.\\nBut I'm sure they're not supposed to be this brief."
+    ],
+    [
+      "Calloway",
+      "They called in the higher ups.\\nAnd the Mars division really early in the process."
+    ],
+    [
+      "Calloway",
+      "Yes, they did find the blood and DNA of Kaylee, but Samantha, they never found a body!"
+    ],
+    [
+      "Calloway",
+      "So why did they claim otherwise?\\nAnd why did they need to reinforce and lock down the investigation?"
+    ],
+    [
+      "Calloway",
+      "They found something else at the site. Something that wasn't supposed to be there.\\nSomething from Mars."
+    ],
+    [
+      "Calloway",
+      "This linked her to an old case about theft of federal property and it linked her to federal personnel."
+    ],
+    [
+      "Calloway",
+      "But before they came knocking on my door.\\nFor reasons unknown."
+    ],
+    [
+      "Calloway",
+      "The investigation was cut short and the item was reclaimed and returned to Mars."
+    ],
+    [
+      "Calloway",
+      "Guess who was the ranking officer on the case? Benson.\\nBenson, Benson, Benson. It's always him."
+    ],
+    [
+      "Calloway",
+      "I think my curiosity may have caught the interest of the wrong people."
+    ],
+    [
+      "Calloway",
+      "I am quite sure I'm being watched and my time here may be cut short.\\nSo I'm reaching out to you. For Kaylee."
+    ],
+    [
+      "Calloway",
+      "I know this is a lot to take in after all these years, but I need your help.\\nCome to the Bulwark, Samantha. Quickly!"
+    ],
+    [
+      "Miles",
+      "Exactly! I can't just go wherever I please.\\nI have orders. Superiors I have to answer to."
+    ],
+    [
+      "Miles",
+      "It's fair if you don't trust me, an apparent complete stranger to you."
+    ],
+    [
+      "Miles",
+      "But in this current situation, your best bet is to reach the Bulwark."
+    ],
+    [
+      "Miles",
+      "For your own safety. Calloway or not."
+    ],
+    [
+      "Miles",
+      "That's all I have...but I can't get in touch with him now.\\nI just hope they didn't get to him."
+    ],
+    [
+      "Sam",
+      "So, this Benson fellow. Is that the same guy I found burning to a crisp?"
+    ],
+    [
+      "Miles",
+      "The very same."
+    ],
+    [
+      "Sam",
+      "That's...kinda suspicious.\\nWhy was it you didn't go find Calloway yourself?"
+    ],
+    [
+      "Miles",
+      "I know this must all be really confusing to you, but let's not jump to conclusions.\\nI can't go because I have duties."
+    ],
+    [
+      "Sam",
+      "On Phobos..."
+    ],
+    [
+      "Miles",
+      "Sam. Something I noticed. Right at the beginning of this call, you mentioned you don't remember much\\nSo you remember something?"
+    ],
+    [
+      "Sam",
+      "I do.\\nI'm starting to remember small things."
+    ],
+    [
+      "Sam",
+      "From when I was a kid."
+    ],
+    [
+      "Sam",
+      "Like my room."
+    ],
+    [
+      "Miles",
+      "That's great. Tell me about it."
+    ],
+    [
+      "Sam",
+      "I remember I had a desk close to the windows.\\nI could see the stars from there. And trees."
+    ],
+    [
+      "Miles",
+      "Anything else?"
+    ],
+    [
+      "Sam",
+      "There was someone.\\nA girl."
+    ],
+    [
+      "Miles",
+      "Well, I...I care about you, Sam."
+    ],
+    [
+      "Miles",
+      "Look. Calm down. I've known Calloway for some time now. We're good friends.\\nBack on Earth, we lost someone. Someone real close."
+    ],
+    [
+      "Miles",
+      "But according to Calloway she may not be gone after all."
+    ],
+    [
+      "Miles",
+      "Here, let me show you. This is the last I heard from him."
+    ],
+    [
+      "Miles",
+      "Did you find it?"
+    ],
+    [
+      "Miles",
+      "Sam? Can you turn on the display?"
+    ],
+    [
+      "Miles",
+      "What are you waiting for?"
+    ],
+    [
+      "Sam",
+      "It's just...this is bullshit.\\nI wake up in this hellhole and...and everything is fucked."
+    ],
+    [
+      "Sam",
+      "I don't remember much about my past. I don't know anyone. "
+    ],
+    [
+      "Sam",
+      "The only living things I see are those...fuckers! "
+    ],
+    [
+      "Sam",
+      "The only contact out of this place I have is to a soft-voiced drill sergeant that might as well be a robot..."
+    ],
+    [
+      "Miles",
+      "Hey Sam. Did you get to The Bulwark yet?"
+    ],
+    [
+      "Sam",
+      "What? No. I was going in the right direction and then things kind of...curved off.\\nI'm stuck in a stupid cargo line."
+    ],
+    [
+      "Miles",
+      "A conga line? Sounds fun."
+    ],
+    [
+      "Miles",
+      "Look. I'm sure you'll get there. I trust you, Sam.\\nWhat do you need?"
+    ],
+    [
+      "Miles",
+      "Hey!?"
+    ],
+    [
+      "Sam",
+      "I want out. I don't want to do this..."
+    ],
+    [
+      "Miles",
+      "I'm not a robot."
+    ],
+    [
+      "Sam",
+      "Why is it so important we find this Calloway guy anyway?\\nIt can't all be for my memory. What is it to you?"
+    ],
+    [
+      "Miles",
+      "I'm trying to help you Sam! It's not my fault you ended up in this situation.\\nI even arranged for your escape!"
+    ],
+    [
+      "Sam",
+      "Yeah that went well! Come on. I'm doing all the legwork.\\nSwimming through fuel and...and...riding platforms. Why do you care?"
+    ],
+    [
+      "Miles",
+      "Do you see it?"
+    ],
+    [
+      "Sam",
+      "What?"
+    ],
+    [
+      "Miles",
+      "Oh, right. I'm such an idiot. The display is off. Could you turn it on?\\nIt should be right next to the communications device."
+    ],
+    [
+      "Sam",
+      "There! Should be on."
+    ],
+    [
+      "Miles",
+      "Perfect. It should stream now."
+    ],
+    [
+      "Sam",
+      "Seems to be broken."
+    ],
+    [
+      "Sam",
+      "So...There's no way.\\nThere are some really thick bars, like we suspected."
+    ],
+    [
+      "Sam",
+      "Even if we snuck in the equipment necessary to break them, we would face a huge drop."
+    ],
+    [
+      "Sam",
+      "Could we rappel down using some rope, the stationed guards would find us in no time."
+    ],
+    [
+      "Sam",
+      "I'm here."
+    ],
+    [
+      "Lee",
+      "Wait. Say something again. Louder."
+    ],
+    [
+      "Sam",
+      "I'm here! By the exit..."
+    ],
+    [
+      "Lee",
+      "I think I can hear you. Two sec..."
+    ],
+    [
+      "Lee",
+      "The ventilation route is a complete bust. No way through. So...?"
+    ],
+    [
+      "Lee",
+      "There are guards?"
+    ],
+    [
+      "Sam",
+      "Yup. And a searchlight.\\nThis is the mountains all over again."
+    ],
+    [
+      "Lee",
+      "Ugh...don't remind me.\\nI'm sorry."
+    ],
+    [
+      "Sam",
+      "Me too."
+    ],
+    [
+      "Lee",
+      "Sam...could you sit down for a minute? I have something to say."
+    ],
+    [
+      "Sam",
+      "Miles? I'll find him for you."
+    ],
+    [
+      "Sam",
+      "Miles? I'll find him for you."
+    ],
+    [
+      "Lee",
+      "You asked me why we're running...there's something I've been meaning to tell you.\\nBut I've never found a way to say it."
+    ],
+    [
+      "Lee",
+      "Do you remember back at the hospital? In the last few weeks?"
+    ],
+    [
+      "Lee",
+      "Do you remember what kind of state mom was in?\\nAll she could do was lie in bed."
+    ],
+    [
+      "Lee",
+      "She couldn't talk, she couldn't even move her arms.\\nThe staff had to turn her on her side."
+    ],
+    [
+      "Lee",
+      "She was fed through a tube. Whenever she wasn't numbed by morphine she was in pain.\\nShe was trapped in her mind."
+    ],
+    [
+      "Lee",
+      "Well, She wasn't living any kind of life worth living.\\nShe literally couldn't do anything."
+    ],
+    [
+      "Lee",
+      "Dad was gone most of the time. My brother, the fuck, didn't visit her.\\nAll she did was lie in bed, looking at me."
+    ],
+    [
+      "Lee",
+      "And there I was, looking back at her, hoping it was a smile behind those eyes.\\nHoping she wasn't in pain."
+    ],
+    [
+      "Lee",
+      "Hoping she didn't think of me as a complete failure.\\nThat her family hadn't abandoned her in her worst hour."
+    ],
+    [
+      "Lee",
+      "So...but...every day the staff would come in.\\nI saw exactly what they gave her for her pain and how they did it."
+    ],
+    [
+      "Lee",
+      "60 milligrams of morphine, 4 times a day. Sometimes I sat there.\\nWishing they would give her more and end it all right there."
+    ],
+    [
+      "Lee",
+      "But they didn't. Every time, 60 milligrams. Without fault."
+    ],
+    [
+      "Lee",
+      "So...one day I followed one of the nurses as she stashed the meds back into a room."
+    ],
+    [
+      "Lee",
+      "And I thought nothing of it at first.\\nBut...as time went on."
+    ],
+    [
+      "Lee",
+      "Days of me looking into her eyes, trying to read them I felt a sudden connection to her."
+    ],
+    [
+      "Lee",
+      "As if I felt what she felt...so I made up my mind."
+    ],
+    [
+      "Lee",
+      "The next day after they had given her her injections, I snuck into the storage place and grabbed a little extra."
+    ],
+    [
+      "Lee",
+      "I went back and gave mom just a little more, looking into her eyes as I filled her body with painkiller."
+    ],
+    [
+      "Lee",
+      "With poison. I couldn't read her."
+    ],
+    [
+      "Lee",
+      "But it made no difference. So the next day I gave her a little more.\\nThen a little more. And a little more. Until."
+    ],
+    [
+      "Lee",
+      "The day that it happened.\\nI was looking into her eyes, stroking her hair."
+    ],
+    [
+      "Lee",
+      "After giving her the injection, I kissed her on the forehead and said goodbye.\\nFor the last time."
+    ],
+    [
+      "Lee",
+      "And I watched as life slowly left her eyes.\\nI saw her glide away into nothing before I realized what I had done."
+    ],
+    [
+      "Lee",
+      "I took the life of the woman who gave me mine."
+    ],
+    [
+      "Lee",
+      "I...killed her. I killed my own mom..."
+    ],
+    [
+      "Sam",
+      "Yeah?"
+    ],
+    [
+      "Sam",
+      "I remember."
+    ],
+    [
+      "Sam",
+      "I'm sorry, Lee..."
+    ],
+    [
+      "Sam",
+      "Lee..."
+    ]
+  ],
+  "script/map_e1m4_2.script": [
+    [
+      "Sam",
+      "What the fuck?"
+    ],
+    [
+      "Sam",
+      "Right..."
+    ]
+  ],
+  "script/map_e1m4_3.script": [
+    [
+      "Lee",
+      "I remember the late summer evenings we spent together."
+    ],
+    [
+      "Lee",
+      "Looking at the stars. Feeling the warm breeze against my skin.\\nYour hand in mine. I thought it would last forever."
+    ],
+    [
+      "Lee",
+      "But after mom died I always knew my life in this world would be short."
+    ],
+    [
+      "Sam",
+      "Samantha. I found a bomb! Maybe I can blow my way in?!"
+    ],
+    [
+      "Miles",
+      "Boom."
+    ],
+    [
+      "Sam",
+      "Boom."
+    ],
+    [
+      "Sam",
+      "Review settings before use...gotcha."
+    ],
+    [
+      "Sam",
+      "Hmm."
+    ],
+    [
+      "Miles",
+      "Hmm?"
+    ],
+    [
+      "Sam",
+      "You mentioned a pipeline leading to the Bulwark!?\\nI think I found it a couple of steps back. Blown out. Impassable."
+    ],
+    [
+      "Miles",
+      "You've got to be fucking kidding me...Where are you?"
+    ],
+    [
+      "Sam",
+      "In some sort of communication room. Well obviously\\nclose to the...you know, I...I'm not sure at this point."
+    ],
+    [
+      "Miles",
+      "Mmm...can you give me the CMID? It's a unique ID that designates any Comm. Room.\\nStarts with a CM dash."
+    ],
+    [
+      "Sam",
+      "Mmm. Sure. Let's see.\\nCM dash. CM dash."
+    ],
+    [
+      "Miles",
+      "Okay."
+    ],
+    [
+      "Sam",
+      "Hmm."
+    ],
+    [
+      "Miles",
+      "No."
+    ],
+    [
+      "Sam",
+      "No."
+    ],
+    [
+      "Miles",
+      "No."
+    ],
+    [
+      "Sam",
+      "No."
+    ],
+    [
+      "Miles",
+      "Nope."
+    ],
+    [
+      "Sam",
+      "Damn."
+    ],
+    [
+      "Miles",
+      "Refinery...Interesting."
+    ],
+    [
+      "Sam",
+      "Yes!"
+    ],
+    [
+      "Miles",
+      "You know...that old thing is also connected to the Bulwark."
+    ],
+    [
+      "Miles",
+      "It should be pretty close to where you are now."
+    ],
+    [
+      "Miles",
+      "I'm not sure it's directly accessible from the Fuel Station,\\nwhich is your location."
+    ],
+    [
+      "Miles",
+      "but there's got to be a way in! Somehow."
+    ],
+    [
+      "Miles",
+      "Yeah."
+    ],
+    [
+      "Miles",
+      "Wait! You could use the Comm device as a relay.\\nIt will only work for short ranges."
+    ],
+    [
+      "Miles",
+      "But at least we can talk while you look around."
+    ],
+    [
+      "Sam",
+      "Found it! It's CM. Dash. AA. Dash. 23."
+    ],
+    [
+      "Miles",
+      "Hmm?"
+    ],
+    [
+      "Sam",
+      "Okay. I'll see what I can find. Thanks Miley."
+    ],
+    [
+      "Sam",
+      "Yeah. Earth. You know.\\nThis is the first time I've thought about it."
+    ],
+    [
+      "Sam",
+      "We really are on Mars, aren't we? Well, I am.\\nIt doesn't feel like I belong here..."
+    ],
+    [
+      "Sam",
+      "I wonder if I still have a place back on Earth.\\nI guess that's why I need to find your friend..."
+    ],
+    [
+      "Sam",
+      "...so you can find that other friend.\\nMore than a friend?"
+    ],
+    [
+      "Miles",
+      "Well. Everything, I guess. I had a normal upbringing...more or less.\\nWe had a regular house in an uneventful neighborhood."
+    ],
+    [
+      "Miles",
+      "My parents were strict, but loving.\\nWe actually used to live outside federal soil."
+    ],
+    [
+      "Miles",
+      "But jobs were hard to come by so we eventually decided to migrate."
+    ],
+    [
+      "Miles",
+      "Life in the FCE controlled areas was much easier."
+    ],
+    [
+      "Miles",
+      "The universal basic income gave us a steady base and dad soon found a job...\\nAnd then another."
+    ],
+    [
+      "Miles",
+      "He pulled double shifts for years to give us the best possible outlook.\\nRight up until he..."
+    ],
+    [
+      "Miles",
+      "Later on I joined the academy and now I'm here."
+    ],
+    [
+      "Miles",
+      "You ask him about your identity, grab a cold one and relax behind the fortified walls of safety.\\n...Obviously. "
+    ],
+    [
+      "Miles",
+      "All I ask of you is...contact me and tell me he's safe.\\nEven if it means going beyond those walls. Please."
+    ],
+    [
+      "Sam",
+      "Samantha. I was wondering. About you.\\nWhat do you remember from back home?"
+    ],
+    [
+      "Sam",
+      "Do you miss it? Life on earth?"
+    ],
+    [
+      "Miles",
+      "Do I miss it? Hmm, well. I miss mom. I miss the late summer evenings.\\nI miss...you know how it is."
+    ],
+    [
+      "Miles",
+      "What? Like sitting in a tree?"
+    ],
+    [
+      "Sam",
+      "K-I-S-S-I-N-G..."
+    ],
+    [
+      "Miles",
+      "Just get there you imbecile."
+    ],
+    [
+      "Sam",
+      "I would kill to see a tree right now."
+    ],
+    [
+      "Miles",
+      "Well...you may just have to."
+    ],
+    [
+      "Sam",
+      "Yeah...So when I find him, what do I do?"
+    ],
+    [
+      "Sam",
+      "I will."
+    ],
+    [
+      "Sam",
+      "So I guess I'm going to the refinery.\\nThe Marines left a bomb. Maybe I could blow my way in."
+    ],
+    [
+      "Miles",
+      "Boom."
+    ],
+    [
+      "Sam",
+      "Boom."
+    ],
+    [
+      "Sam",
+      "Shit! What happened here? Looks like a bomb went off."
+    ],
+    [
+      "Sam",
+      "Guess I'm not going that way."
+    ],
+    [
+      "Sam",
+      "Dead. By accident...or?"
+    ],
+    [
+      "Sam",
+      "Hello?"
+    ],
+    [
+      "Sam",
+      "Come on...Pick up pick up pick up."
+    ],
+    [
+      "Sam",
+      "Point taken."
+    ],
+    [
+      "Sam",
+      "I guess as darkness falls and you begin to let go, time stretches toward infinity.\\nLeaving you behind in an eternal state."
+    ],
+    [
+      "Sam",
+      "The last thoughts you had. Your final regrets.\\nAnd it would go on forever."
+    ],
+    [
+      "Sam",
+      "But your memories would warp and the people you loved would fade away.\\nOnly to haunt you as fleeting voices in your mind."
+    ],
+    [
+      "Lee",
+      "It's like drowning. Your body becomes cold and numb as the water engulfs you.\\nBut you don't stay afloat. You sink. Like a stone. "
+    ],
+    [
+      "Lee",
+      "You get further and further away from the surface.\\nDown into the darkness."
+    ],
+    [
+      "Lee",
+      "As you go deeper and deeper the pain will leave your body and your thoughts become clear."
+    ],
+    [
+      "Lee",
+      "The only thing left is your own voice in the back of your mind, desperately trying to escape. "
+    ],
+    [
+      "Lee",
+      "Until even that is gone and for a while you almost don't exist and then..."
+    ],
+    [
+      "Lee",
+      "Sam. What do you think happens when we die?"
+    ],
+    [
+      "Sam",
+      "Is it a good or a bad death?"
+    ],
+    [
+      "Lee",
+      "Are there good deaths?"
+    ],
+    [
+      "Lee",
+      "So when does it end?"
+    ],
+    [
+      "Sam",
+      "I don't know. Maybe it doesn't.\\nWhat do you think happens?"
+    ],
+    [
+      "Sam",
+      "And then what?"
+    ],
+    [
+      "Lee",
+      "Nothing. It's all gone."
+    ]
+  ],
+  "script/map_e1m4_4.script": [
+    [
+      "Miles",
+      "Sam..."
+    ],
+    [
+      "Miles",
+      "You're moving out of range. Get to...Bulwark..."
+    ],
+    [
+      "Sam",
+      "Miles? Are you there?"
+    ],
+    [
+      "Sam",
+      "I left the..."
+    ],
+    [
+      "Sam",
+      "Comm device..."
+    ]
+  ],
+  "script/map_e1m4_4_intro.script": [
+    [
+      "Sam",
+      "What is this place?"
+    ],
+    [
+      "Lee",
+      "I don't know."
+    ],
+    [
+      "Sam",
+      "How long have you been here?"
+    ],
+    [
+      "Lee",
+      "A long time...I guess.\\nIt's hard to tell."
+    ],
+    [
+      "Sam",
+      "How did you end up here?"
+    ],
+    [
+      "Lee",
+      "I remember...\\nThe smell of gasoline and burnt wood."
+    ],
+    [
+      "Sam",
+      "Well I had to do something while you were out and about - running late!"
+    ],
+    [
+      "Sam",
+      "Wait! Did you just italicise 'researching'?"
+    ],
+    [
+      "Lee",
+      "Hey! Oh wow. You're still\\n'researching'."
+    ],
+    [
+      "Lee",
+      "I know what you research when you're all alone!"
+    ],
+    [
+      "Sam",
+      "Says you..."
+    ],
+    [
+      "Lee",
+      "Anyway. Any luck with the box angle?"
+    ],
+    [
+      "Sam",
+      "Well maybe.\\nWhat about your angle?"
+    ],
+    [
+      "Lee",
+      "James? Yeah. Oh. Maybe. He wanted to go out for some dinner.\\nSo we...did!"
+    ],
+    [
+      "Sam",
+      "That's not all he wants..."
+    ],
+    [
+      "Miles",
+      "Sam? Sam....Sam?....Saaam!"
+    ],
+    [
+      "Lee",
+      "I didn't, but we spoke briefly about his associates.\\nHis connections."
+    ],
+    [
+      "Lee",
+      "I'm sure we'll get it back. I just need to...He's..."
+    ],
+    [
+      "Lee",
+      "Things take time."
+    ],
+    [
+      "Lee",
+      "He's not like that. He's sweet."
+    ],
+    [
+      "Lee",
+      "To be honest I think he needs me as much as I need him."
+    ],
+    [
+      "Lee",
+      "We! as much as we need him."
+    ],
+    [
+      "Sam",
+      "Just now. The guy next door deals in all sorts of things.\\nHe has helped others across the border."
+    ],
+    [
+      "Sam",
+      "I need to call him later,\\nbut it all sounded super promising!"
+    ],
+    [
+      "Sam",
+      "Are you sure? You seem pretty into this guy."
+    ],
+    [
+      "Sam",
+      "I know the two of us are just friends..."
+    ],
+    [
+      "Sam",
+      "but I miss being just...us. You know?"
+    ],
+    [
+      "Sam",
+      "You're in a good mood.\\nI take it Plan B went well?"
+    ],
+    [
+      "Lee",
+      "So well!"
+    ],
+    [
+      "Sam",
+      "Well that's good I guess.\\nDid you get the box back?"
+    ],
+    [
+      "Sam",
+      "Apparently so.\\nI'm working on a lead."
+    ],
+    [
+      "Lee",
+      "A lead? You get leads?"
+    ],
+    [
+      "Sam",
+      "I can get leads..."
+    ],
+    [
+      "Lee",
+      "When??"
+    ],
+    [
+      "Lee",
+      "The guy next door? That sounds super sketchy, Sam..."
+    ],
+    [
+      "Sam",
+      "What? Because 'Plan B' isn't sketchy?"
+    ],
+    [
+      "Sam",
+      "Yeah...So when is he going to join you here?\\nHe booked this room for the two of you, right?"
+    ],
+    [
+      "Lee",
+      "I don't know, actually. He doesn't live that far away.\\nMaybe he's being a gentleman about things."
+    ],
+    [
+      "Sam",
+      "Why am I here then?"
+    ],
+    [
+      "Lee",
+      "Because...Well because...you're you."
+    ],
+    [
+      "Sam",
+      "I feel like I'm getting in your way."
+    ],
+    [
+      "Lee",
+      "You could never do that."
+    ],
+    [
+      "Lee",
+      "Just us?"
+    ],
+    [
+      "Lee",
+      "Wake up."
+    ],
+    [
+      "Sam",
+      "What are you doing with this guy?"
+    ],
+    [
+      "Samantha",
+      "We always wanted to go to Europe together once we were old enough."
+    ],
+    [
+      "Samantha",
+      "Lily...\\nI miss you so much."
+    ],
+    [
+      "Samantha",
+      "You were too good for this world."
+    ],
+    [
+      "Samantha",
+      "I guess it really was just a phase."
+    ],
+    [
+      "Samantha",
+      "Don't want to wake up mom and dad.\\nAgain..."
+    ],
+    [
+      "Sam",
+      "I wonder what he expects in return."
+    ],
+    [
+      "Sam",
+      "Maybe James isn't her type...after all."
+    ],
+    [
+      "Sam",
+      "I don't know whether this is charming or cheesy."
+    ],
+    [
+      "Sam",
+      "Wow. James has really put himself out."
+    ],
+    [
+      "?",
+      "*knocking*"
+    ],
+    [
+      "?",
+      "Hey? Hello? You there?"
+    ],
+    [
+      "?",
+      "*knocking*"
+    ],
+    [
+      "?",
+      "*knocking*"
+    ],
+    [
+      "?",
+      "I stay in the apartment next to you.\\nI don't mean to be putting my nose where it doesn't belong."
+    ],
+    [
+      "?",
+      "But I overheard you and that other girl earlier."
+    ],
+    [
+      "Karl",
+      "I heard about your whole situation with the borders."
+    ],
+    [
+      "Karl",
+      "I heard you're trying to get out.\\nAnd I heard that you have failed spectacularly so far."
+    ],
+    [
+      "Karl",
+      "You do that. Don't let people hear you. People are crazy!"
+    ],
+    [
+      "Karl",
+      "Hey. I don't know why you want to get out. Most people are trying to get in."
+    ],
+    [
+      "Karl",
+      "BUT, that is none of my business. Fact is you want to get out.\\nFact is I have helped people achieve that goal in the past."
+    ],
+    [
+      "Karl",
+      "Allegedly."
+    ],
+    [
+      "Karl",
+      "It's a pretty involved process with many intricate steps."
+    ],
+    [
+      "Karl",
+      "You don't need to worry about that, just leave it to the pros."
+    ],
+    [
+      "Karl",
+      "You don't need to know how the hotdog is made.\\nYou get what I'm saying?"
+    ],
+    [
+      "Karl",
+      "Hey, I can do it. I can do it, no question.\\nBut I just have to warn you."
+    ],
+    [
+      "Karl",
+      "Getting out is the easy part.\\nGetting back in, that's where it gets tricky."
+    ],
+    [
+      "Karl",
+      "If we're going through with this you better be sure.\\nYou better be damn sure."
+    ],
+    [
+      "Karl",
+      "Of course, the federacy is spreading like cancer.\\nLike cancer!"
+    ],
+    [
+      "Karl",
+      "And eventually it will consume everything."
+    ],
+    [
+      "Karl",
+      "They're literally the materialized...\\nmanifestation...of the heat death of the universe."
+    ],
+    [
+      "Karl",
+      "Point is you may automatically find yourself\\nback in federal land because there is nowhere left to go on this planet."
+    ],
+    [
+      "Karl",
+      "Yeah okay, so. Okay, so unfortunately.\\nUnfortunately it's not a cheap thing to do."
+    ],
+    [
+      "Karl",
+      "In fact, it's a pretty expensive process we're talking about here.\\nI take my cut of the money."
+    ],
+    [
+      "Karl",
+      "It's a totally symbolic and miniscule amount of money of course.\\nYou get that."
+    ],
+    [
+      "Karl",
+      "Hey hey hey. I think you're nice and all.\\nYou have a smooth voice, but."
+    ],
+    [
+      "Karl",
+      "I like to keep my identity anonymous.\\nYou know what I'm getting at?"
+    ],
+    [
+      "Karl",
+      "I don't want to wake up one day not waking up, you know?"
+    ],
+    [
+      "Karl",
+      "I know the people you're dealing with and I am staying well away from that."
+    ],
+    [
+      "Karl",
+      "I'm already running a giant risk here. You get that."
+    ],
+    [
+      "Karl",
+      "Look. The two of you talk it out once whatshername\\ngets her pretty little thing back to the motel."
+    ],
+    [
+      "Karl",
+      "I like her. She's..."
+    ],
+    [
+      "Karl",
+      "Anyway should you decide to seek my expertise, I will be in this apartment the rest of the week.\\nAfter that, I'm gone."
+    ],
+    [
+      "Karl",
+      "And I'm hard to find.\\n Think about it. Call me."
+    ],
+    [
+      "?",
+      "Hey? You there?"
+    ],
+    [
+      "Sam",
+      "Uhm...yeah? Who's there?"
+    ],
+    [
+      "Sam",
+      "Overheard what?"
+    ],
+    [
+      "?",
+      "I think I can help you. No, I know I can help you. Head inside.\\nCall my room. It's number 10. Use the motel line."
+    ],
+    [
+      "Sam",
+      "Yeah..."
+    ],
+    [
+      "?",
+      "Great. So. You're a man of business I see.\\nLet's get to the nitty gritty."
+    ],
+    [
+      "Sam",
+      "Hey, hey. Hold on.\\nWhat's your name?"
+    ],
+    [
+      "?",
+      "You can call me Karl."
+    ],
+    [
+      "Sam",
+      "Okay Karl, what did you 'overhear'?"
+    ],
+    [
+      "Sam",
+      "You have good ears."
+    ],
+    [
+      "Karl",
+      "You have thin walls."
+    ],
+    [
+      "Sam",
+      "I will DEFINITELY keep that in mind."
+    ],
+    [
+      "Sam",
+      "Well. How would you, allegedly, help us?"
+    ],
+    [
+      "Sam",
+      "Yeah, I don't think we're going back."
+    ],
+    [
+      "Sam",
+      "Okay, so if we were to acquire your...services.\\nWhat would you need from us? What do you need us to do?"
+    ],
+    [
+      "Sam",
+      "Of course..."
+    ],
+    [
+      "Karl",
+      "Yeah it's dwarfed by the operational costs. Dwarfed!"
+    ],
+    [
+      "Sam",
+      "All right. If we proceed...How do we go about this?\\n Should we meet?"
+    ],
+    [
+      "Sam",
+      "It's always so quiet here at night.\\nI don't know if its soothing or unsettling."
+    ],
+    [
+      "Samantha",
+      "One..."
+    ],
+    [
+      "Samantha",
+      "Two..."
+    ],
+    [
+      "Samantha",
+      "Three..."
+    ],
+    [
+      "Kaylee",
+      "Hey! Are you there? Come on. I'm here."
+    ],
+    [
+      "Kaylee",
+      "Come here."
+    ],
+    [
+      "Kaylee",
+      "Hey dickwad."
+    ],
+    [
+      "Kaylee",
+      "Hello?"
+    ],
+    [
+      "Samantha",
+      "Not again! What does it want this time?"
+    ],
+    [
+      "Kaylee",
+      "Wow a year? Let's stay out here for an hour. And make it two."
+    ],
+    [
+      "Kaylee",
+      "I totally want to see you grounded in room prison.\\nStripes look good on you."
+    ],
+    [
+      "Kaylee",
+      "Took your sweet time girl."
+    ],
+    [
+      "Samantha",
+      "Hey I'm not your girl."
+    ],
+    [
+      "Kaylee",
+      "You are so my girl."
+    ],
+    [
+      "Samantha",
+      "Whatever man. So what did you want?"
+    ],
+    [
+      "Kaylee",
+      "I desperately wanted your company.\\nIn fact. I need it."
+    ],
+    [
+      "Samantha",
+      "Now? It's almost midnight.\\nThey're gonna ground me for a year if they find out."
+    ],
+    [
+      "Samantha",
+      "Stripes don't look good on anybody.\\nBut you can be my prison wife."
+    ],
+    [
+      "Kaylee",
+      "Yeah, no. I'm gonna be out here, free as a bird.\\nLiving next door to a criminal mastermind weirdo."
+    ],
+    [
+      "Samantha",
+      "You're the weirdo."
+    ],
+    [
+      "Kaylee",
+      "Look. Samuel got his letter today.\\nOf acceptance. You know?"
+    ],
+    [
+      "Kaylee",
+      "He'll be going away. Soon."
+    ],
+    [
+      "Samantha",
+      "He'll come back."
+    ],
+    [
+      "Kaylee",
+      "That's what he tells me too.\\nBut I know it's just a lie."
+    ],
+    [
+      "Samantha",
+      "He would never lie to you."
+    ],
+    [
+      "Kaylee",
+      "Everybody lies."
+    ],
+    [
+      "Samantha",
+      "But he's your brother."
+    ],
+    [
+      "Kaylee",
+      "But he's leaving."
+    ],
+    [
+      "Samantha",
+      "I will still be here."
+    ],
+    [
+      "Kaylee",
+      "Yeah I don't know.\\nDoes your prison allow visitors?"
+    ],
+    [
+      "Samantha",
+      "Come on. They're not that bad..."
+    ],
+    [
+      "Kaylee",
+      "Shit shit shit. Your parents.\\nYou. Me. Our place. Tomorrow."
+    ],
+    [
+      "Samantha",
+      "I can't go back there.\\nI'm not sure I want to either..."
+    ],
+    [
+      "???",
+      "Samantha Miles"
+    ],
+    [
+      "???",
+      "We are one. We are many.\\nWe are the Praeleanthor."
+    ],
+    [
+      "Samantha",
+      "The rooms keep changing. It's hard to...\\nI came as fast as I could."
+    ],
+    [
+      "Praeleanthor",
+      "You forget yourself.\\nYour excuses are of no concern to me."
+    ],
+    [
+      "Samantha",
+      "I did what you asked.\\nHe should be on the way to the device."
+    ],
+    [
+      "Praeleanthor",
+      "Your tone betrays you."
+    ],
+    [
+      "Samantha",
+      "There's nothing more I can do.\\nPlease..."
+    ],
+    [
+      "Praeleanthor",
+      "That is not for you to decide."
+    ],
+    [
+      "Samantha",
+      "But he's on his way..."
+    ],
+    [
+      "Praeleanthor",
+      "Do you see the crystal on the floor?"
+    ],
+    [
+      "Samantha",
+      "Yes."
+    ],
+    [
+      "Praeleanthor",
+      "What is its color?"
+    ],
+    [
+      "Samantha",
+      "It's blue."
+    ],
+    [
+      "Praeleanthor",
+      "No."
+    ],
+    [
+      "Praeleanthor",
+      "Your construct has been instanced.\\nLeave us."
+    ],
+    [
+      "Samantha",
+      "Something's missing...I think I've seen this before."
+    ]
+  ],
+  "script/map_e1m5.script": [
+    [
+      "PA",
+      "Drain closed."
+    ],
+    [
+      "PA",
+      "A1 Open."
+    ],
+    [
+      "PA",
+      "A2 Open."
+    ],
+    [
+      "PA",
+      "A3 Open."
+    ],
+    [
+      "PA",
+      "Bridge in Silo 1 is locked."
+    ],
+    [
+      "PA",
+      "Bridge in Silo 2 is locked."
+    ],
+    [
+      "PA",
+      "Bridge in Silo 3 is locked."
+    ],
+    [
+      "PA",
+      "Bridge in Silo 4 is locked."
+    ],
+    [
+      "PA",
+      "Initiating pump 3."
+    ],
+    [
+      "PA",
+      "Pump 3 started."
+    ],
+    [
+      "Sam",
+      "Could lead to something so awkward."
+    ],
+    [
+      "Lee",
+      "It was a really dark night."
+    ],
+    [
+      "Lee",
+      "I was alone on the train, the train leaving my home.\\nHeaded to the valley, to here, looking out at the world going by."
+    ],
+    [
+      "Lee",
+      "My closest friends had organized a farewell party, going late into the evening."
+    ],
+    [
+      "Lee",
+      "My family and I were leaving on that day,\\nbut my mom arranged for a later departure. Just for me."
+    ],
+    [
+      "Lee",
+      "So I could have one last evening with my friends."
+    ],
+    [
+      "Lee",
+      "And I did."
+    ],
+    [
+      "James Benson",
+      "It's been great, Lee.\\nI know it's a bit...off...to get you a room at a motel."
+    ],
+    [
+      "James Benson",
+      "But I didn't want to pressure you by inviting you to stay at my house."
+    ],
+    [
+      "Lee",
+      "Leaving my previous life and my friends behind.\\nIt felt like the end."
+    ],
+    [
+      "Lee",
+      "Like the hills, houses and people flying by were the end credits of my life."
+    ],
+    [
+      "Lee",
+      "No matter how hard I tried to keep water towers,\\ntrees or landmarks in view they would always disappear over the horizon."
+    ],
+    [
+      "Lee",
+      "Eventually.\\nJust like all the people I knew."
+    ],
+    [
+      "Sam",
+      "Then let's act!\\nLet's get the box back."
+    ],
+    [
+      "Sam",
+      "Let's sell it to Karl or whoever and use the cash to get out."
+    ],
+    [
+      "Sam",
+      "It's not just you. I've seen what there is to see here."
+    ],
+    [
+      "Lee",
+      "Are you sure?"
+    ],
+    [
+      "Sam",
+      "I am."
+    ],
+    [
+      "Lee",
+      "I was thinking. What do you think happens when we die?"
+    ],
+    [
+      "Lee",
+      "While I didn't know that at the time, I felt it."
+    ],
+    [
+      "Lee",
+      "The overwhelming dark feeling that something had changed.\\nFundamentally."
+    ],
+    [
+      "Lee",
+      "The sound of the lonely horn of the train haunted me.\\nI can sometimes still hear it."
+    ],
+    [
+      "Lee",
+      "At that moment in time I swore that I would not give in.\\nI would return. Some day."
+    ],
+    [
+      "Lee",
+      "And I thought that moment would be now."
+    ],
+    [
+      "Lee",
+      "But...it isn't...and it won't."
+    ],
+    [
+      "Lee",
+      "James used me!\\nI allowed myself to trust him."
+    ],
+    [
+      "Lee",
+      "He now has the only thing I have left from my brother."
+    ],
+    [
+      "Lee",
+      "He never answered my letters."
+    ],
+    [
+      "Lee",
+      "I haven't heard from him in years."
+    ],
+    [
+      "Lee",
+      "So it's not much."
+    ],
+    [
+      "Lee",
+      "But it's all I had."
+    ],
+    [
+      "Lee",
+      "Now that's gone too,\\njust like James Benson."
+    ],
+    [
+      "Lee",
+      "But you know. I was wrong and I have been wrong for a long time."
+    ],
+    [
+      "Lee",
+      "You were here when I arrived in the valley."
+    ],
+    [
+      "Lee",
+      "You were there before my family exploded."
+    ],
+    [
+      "Lee",
+      "You were there before James and you are here now."
+    ],
+    [
+      "Lee",
+      "And that's all that matters."
+    ],
+    [
+      "Lee",
+      "So you know. Maybe I'm repeating my mistakes."
+    ],
+    [
+      "Lee",
+      "I just..for once..wanted to act upon life instead of having it act upon me."
+    ],
+    [
+      "Lee",
+      "But if leaving this place in any way means losing you or what we have, I do not want it."
+    ],
+    [
+      "Lee",
+      "I choose you."
+    ],
+    [
+      "James Benson",
+      "I hate to say it, but I think - for the time being - you will have to learn to live with it."
+    ],
+    [
+      "James Benson",
+      "Look, getting out of a federal zone is a hot button issue right now.\\nI can take you anywhere within the zone, though."
+    ],
+    [
+      "James Benson",
+      "It doesn't mean we can't have fun."
+    ],
+    [
+      "James Benson",
+      "I know it's not exactly 'outside the zone'."
+    ],
+    [
+      "James Benson",
+      "But I hope it's been a - you know - a breath of fresh air or something."
+    ],
+    [
+      "Sam",
+      "Lee, I'm...I'm sorry..."
+    ],
+    [
+      "Sam",
+      "I overheard James, just now...he was on the phone..."
+    ],
+    [
+      "Sam",
+      "I...He's planning to sell the box. To someone. He's using you."
+    ],
+    [
+      "Sam",
+      "Where do we go from here?"
+    ],
+    [
+      "Lee",
+      "Well. We're here...\\nThanks for following me up."
+    ],
+    [
+      "James Benson",
+      "My Pleasure.\\nHow do you like the room?"
+    ],
+    [
+      "Lee",
+      "Erm...I'm...it's a fine room."
+    ],
+    [
+      "Lee",
+      "Or something?"
+    ],
+    [
+      "James Benson",
+      "I just hope you've enjoyed yourself these past few days."
+    ],
+    [
+      "Lee",
+      "I have."
+    ],
+    [
+      "Lee",
+      "Well I, erm, I appreciate that.\\nI'm still bummed about your contact though."
+    ],
+    [
+      "Lee",
+      "I'm just disappointed. It's not your fault.\\nI'm SO tired..."
+    ],
+    [
+      "James Benson",
+      "Lee, I'd like to stay for a bit.\\nIf you don't mind."
+    ],
+    [
+      "Lee",
+      "Oh...erm...I'll be right back."
+    ],
+    [
+      "James Benson",
+      "Where have you been?\\nI've tried to get a hold of you for the better part of a week."
+    ],
+    [
+      "James Benson",
+      "I can't talk here. Not for long anyway.\\nDid you get my message?"
+    ],
+    [
+      "James Benson",
+      "A week back.\\nAbout the...Artifact..."
+    ],
+    [
+      "James Benson",
+      "Yes and yes."
+    ],
+    [
+      "James Benson",
+      "I know the going rate for these artifacts. This one came all the way from Mars.\\nIt was not easy getting it here."
+    ],
+    [
+      "James Benson",
+      "I'm thinking at least 4 million."
+    ],
+    [
+      "James Benson",
+      "Right now? Don't have it with me and I wouldn't meet you if I had.\\nBut I have pictures. See you soon."
+    ],
+    [
+      "James Benson",
+      "Lee...I have to go. Business. I'm sorry.\\nI hope we can continue this again soon."
+    ],
+    [
+      "Lee",
+      "Sure. Have a fine evening."
+    ],
+    [
+      "Sam",
+      "Are you okay?"
+    ],
+    [
+      "Lee",
+      "Have I ever told you about my last day outside the valley?"
+    ],
+    [
+      "Sam",
+      "They might go outside."
+    ],
+    [
+      "Sam",
+      "Great hiding place until he decides to take a dump."
+    ],
+    [
+      "Sam",
+      "I wonder if Karl is home."
+    ],
+    [
+      "Karl",
+      "Hello thanks for calling. This is Karl's shovels and digging equipment.\\nHow may I help you today?"
+    ],
+    [
+      "Sam",
+      "Wait, what?"
+    ],
+    [
+      "Karl",
+      "Oh it's you."
+    ],
+    [
+      "Sam",
+      "Shovels and digging equipment?"
+    ],
+    [
+      "Karl",
+      "Don't worry about it. A little side business.\\nIt's a little...boring...you know."
+    ],
+    [
+      "Sam",
+      "Was that a joke?"
+    ],
+    [
+      "Karl",
+      "So did you talk to hot stuff? I'm a busy man, you know.\\nCan't wait forever for you guys."
+    ],
+    [
+      "Sam",
+      "Right. I'm sure the shovel game is intense."
+    ],
+    [
+      "Karl",
+      "Something like that. You get it!\\nHot stuff. Talk to her?"
+    ],
+    [
+      "Sam",
+      "Well..."
+    ],
+    [
+      "Karl",
+      "Want me to talk to her?\\nI'll bring my A game."
+    ],
+    [
+      "Sam",
+      "Oh...dear...no\\n...making me sick. I'll handle it."
+    ],
+    [
+      "Karl",
+      "So why are you calling? Come on, man. Busy busy busy.\\nGrab the girl. Say the things. Move the stuff. What are you waiting for?"
+    ],
+    [
+      "Sam",
+      "It's complicated. I just..."
+    ],
+    [
+      "Karl",
+      "Complicated schmartulated. Come on...just...why are you calling?"
+    ],
+    [
+      "Sam",
+      "I'm looking into it.Your payment.\\nI have to know if it's even possible."
+    ],
+    [
+      "Karl",
+      "The money? The money. That minuscule tiny weeny amount?"
+    ],
+    [
+      "Sam",
+      "It's not minuscule to us.\\nI just wanted to tell you we're interested."
+    ],
+    [
+      "Karl",
+      "Can you get the cash or no?\\nI keep telling you. Busy man."
+    ],
+    [
+      "Sam",
+      "Is that why there's constantly game show tv noise coming from your room?"
+    ],
+    [
+      "Karl",
+      "It's REALLY inappropriate to listen in on your neighbours."
+    ],
+    [
+      "Sam",
+      "Oh. I gotta go.\\nI'll be back with more, soon."
+    ],
+    [
+      "Sam",
+      "Shit! Gotta find a place to hide!"
+    ],
+    [
+      "Sam",
+      "Lee is in a really dark place right now.\\nI guess we both are."
+    ],
+    [
+      "Lee",
+      "Hey."
+    ],
+    [
+      "Sam",
+      "Are you okay?"
+    ],
+    [
+      "Lee",
+      "Have I ever told you about my last day outside the valley?"
+    ],
+    [
+      "Sam",
+      "Hmmm."
+    ],
+    [
+      "Sam",
+      "Storm's getting closer."
+    ],
+    [
+      "Sam",
+      "Storm's getting closer."
+    ]
+  ],
+  "script/map_e1m5_2.script": [
+    [
+      "Miles",
+      "I guess, technically, but he hasn't checked in for a long time."
+    ],
+    [
+      "Miles",
+      "Oh, right, speaking of the Bulwark.\\nI think things have changed a bit."
+    ],
+    [
+      "Miles",
+      "They may have had to retreat further back into the complex.\\nIt's not as safe as we initially thought."
+    ],
+    [
+      "Miles",
+      "Yes! Well we've been orbiting the base for a couple of hours now.\\nWe're just about to depart for the surface."
+    ],
+    [
+      "Miles",
+      "I hope it's not too bad down there."
+    ],
+    [
+      "Miles",
+      "Sort of. Personnel on the different bases mostly work in shifts."
+    ],
+    [
+      "Miles",
+      "They rarely live at their workplace\\nunless of course they work at the Bulwark itself."
+    ],
+    [
+      "Miles",
+      "I wish I knew. With all that's been going on,\\nI don't know what to hope for."
+    ],
+    [
+      "Miles",
+      "If they got to him, he could have been detained.\\nIf not, he may be in hiding."
+    ],
+    [
+      "Miles",
+      "I can't tell you exactly where to go,\\nbut I'm sure there are clues as to what happened to him."
+    ],
+    [
+      "Miles",
+      "I hope not, but he's been silent for so long and with all of this going on,\\nit's hard to say."
+    ],
+    [
+      "Miles",
+      "I...I'm sorry...\\nI don't know what to say."
+    ],
+    [
+      "Miles",
+      "Sam? Are you there?"
+    ],
+    [
+      "Sam",
+      "Miles? How did you...?"
+    ],
+    [
+      "Miles",
+      "It wasn't me. The radio indicated that you were in range.\\nYou must be close to federal equipment!"
+    ],
+    [
+      "Sam",
+      "Yeah I think I'm getting close!"
+    ],
+    [
+      "Miles",
+      "I'm so glad you're safe.\\nYou ARE safe, right?"
+    ],
+    [
+      "Sam",
+      "I think so.\\nWell, yes. All things considered."
+    ],
+    [
+      "Miles",
+      "So what happened back there?"
+    ],
+    [
+      "Sam",
+      "The bomb? Yeah. I forgot to review the settings...\\nhad 3 seconds to get out of there."
+    ],
+    [
+      "Miles",
+      "Ooof."
+    ],
+    [
+      "Sam",
+      "I woke up on the other side of the room with ringing in my ears.\\n...But I'm okay. It subsided."
+    ],
+    [
+      "Miles",
+      "Having fun without me I see.\\nI wish I could help you more directly..."
+    ],
+    [
+      "Sam",
+      "So do I.\\nDid you ever reach Phobos?"
+    ],
+    [
+      "Sam",
+      "What are you going to do once you get there?"
+    ],
+    [
+      "Miles",
+      "Almost all personnel has been drawn back to Phobos to secure some important assets.\\nI'm part of the task force."
+    ],
+    [
+      "Sam",
+      "Assets on Phobos?"
+    ],
+    [
+      "Miles",
+      "Yeah. Our most prized research is located on Phobos.\\nTeleportation. Receptacle base."
+    ],
+    [
+      "Sam",
+      "Calloway is usually stationed on that base, right?\\nI think he mentioned that in his message to you."
+    ],
+    [
+      "Miles",
+      "Yup. Exactly.\\nIt's where he works."
+    ],
+    [
+      "Sam",
+      "Right. But then he lives on Mars? In the Bulwark?\\nOr how does that work?"
+    ],
+    [
+      "Sam",
+      "So there's a chance he may still be there?\\nOn Phobos?"
+    ],
+    [
+      "Sam",
+      "What, so I can't grab a cold one and relax?"
+    ],
+    [
+      "Miles",
+      "That may have to wait."
+    ],
+    [
+      "Sam",
+      "I had it all planned out, too...\\nSo where do I find Calloway?"
+    ],
+    [
+      "Sam",
+      "Sounds reassuring.\\nSo you think something bad happened to him?"
+    ],
+    [
+      "Miles",
+      "Does it really matter all that much?"
+    ],
+    [
+      "Miles",
+      "We have a tendency to shape our identity way too much by what we have done."
+    ],
+    [
+      "Miles",
+      "And not enough by what we want to do and what we want to accomplish.\\nWho we want to be."
+    ],
+    [
+      "Miles",
+      "You have been given a clean slate.\\nYou're a free man!"
+    ],
+    [
+      "Miles",
+      "What about all the bad memories? Getting bullied at school.\\nThe first time you lost a pet."
+    ],
+    [
+      "Miles",
+      "Family members getting sick, dying? Losing your job. The love of your life leaving you?\\nDo you really need all that baggage?"
+    ],
+    [
+      "Miles",
+      "To be honest, sometimes I wish I could forget everything."
+    ],
+    [
+      "Miles",
+      "That's true, but there will never be a shortage of possibilities for failure."
+    ],
+    [
+      "Miles",
+      "I mean you'll make new mistakes, but you'll have the luxury of forgetting the old."
+    ],
+    [
+      "Miles",
+      "Think of it this way. About every two weeks, most of your skin cells have been replaced."
+    ],
+    [
+      "Miles",
+      "Going 7 years, every atom in your body has been exchanged for another."
+    ],
+    [
+      "Miles",
+      "None of what you are made up of is the same as the you from 7 years ago."
+    ],
+    [
+      "Miles",
+      "So why do we have to act as if we're still the same person?"
+    ],
+    [
+      "Miles",
+      "And vice versa. Look. I'm not telling you how to feel or what to think."
+    ],
+    [
+      "Miles",
+      "I'm sure you'll recover your memory, but even if you don't."
+    ],
+    [
+      "Miles",
+      "Something good could come of it.\\nYou're a good person, Sam. I wish I had met you sooner."
+    ],
+    [
+      "Miles",
+      "Don't say anything."
+    ],
+    [
+      "Miles",
+      "I have to leave. We're departing for the surface soon,\\nbut I just wanted to reconnect with you."
+    ],
+    [
+      "Miles",
+      "I'm so glad you're still with me.\\nI'm sorry for all of this."
+    ],
+    [
+      "Miles",
+      "Be careful, okay?"
+    ],
+    [
+      "Sam",
+      "But, aren't those the memories that shape who you are the most?"
+    ],
+    [
+      "Sam",
+      "Would you be the same Samantha Miles if you had not experienced all those bad times?"
+    ],
+    [
+      "Sam",
+      "Samantha? I was thinking. What if I never recover my memory?"
+    ],
+    [
+      "Miles",
+      "I'm sure you will, but even if you don't...\\nWould that be so bad?"
+    ],
+    [
+      "Sam",
+      "But if I don't, how will I know who I was?\\nWho I am?"
+    ],
+    [
+      "Sam",
+      "What about all the good memories?\\nI must be missing out on a few great times."
+    ],
+    [
+      "Sam",
+      "Sure, that's easy to say when you don't lack an identity."
+    ],
+    [
+      "Sam",
+      "Thanks. Now I don't know what to say."
+    ],
+    [
+      "Sam",
+      "You too, Smiles."
+    ]
+  ],
+  "script/map_e1m5_3.script": [
+    [
+      "PA",
+      "Purification process initiated."
+    ],
+    [
+      "PA",
+      "Purification complete."
+    ],
+    [
+      "PA",
+      "Surface access offline."
+    ]
+  ],
+  "script/map_e1m5_3b.script": [
+    [
+      "Sam",
+      "Critical journalism takes a nosedive. Maybe he planted those drugs."
+    ],
+    [
+      "Sam",
+      "Okay..."
+    ],
+    [
+      "Sam",
+      "That was a first..."
+    ],
+    [
+      "Sam",
+      "We're finally getting out of here.\\nLee really needs this...so do I."
+    ],
+    [
+      "Sam",
+      "I really hope Karl can come through with all this.\\nIt all hinges on him."
+    ],
+    [
+      "Sam",
+      "I don't trust him, but it's better than Benson.\\nAnything is."
+    ],
+    [
+      "Sam",
+      "Benson was a mistake, but we have to move on."
+    ],
+    [
+      "Sam",
+      "Hmm. There's got to be more to this than just wine."
+    ],
+    [
+      "Sam",
+      "I think we're getting closer."
+    ],
+    [
+      "Sam",
+      "I really hope this doesn't belong to Lee."
+    ],
+    [
+      "Sam",
+      "I never imagined James would have a swingset and a castle. Creepy."
+    ],
+    [
+      "Sam",
+      "Locked. Maybe James has something that can pry it open."
+    ],
+    [
+      "Sam",
+      "Ssshhh...."
+    ],
+    [
+      "Sam",
+      "Strange. Did someone live in this room?"
+    ],
+    [
+      "Sam",
+      "What did you do to her James?"
+    ],
+    [
+      "Sam",
+      "I love this show."
+    ],
+    [
+      "Sam",
+      "Fancy. The feds take care of their own..."
+    ],
+    [
+      "Sam",
+      "What are you hiding down here James?"
+    ],
+    [
+      "Lee",
+      "You're amazing!! We can't talk for long, I made up an excuse.\\nHow much time do you need?"
+    ],
+    [
+      "Lee",
+      "To cover your tracks and get out of there I mean.\\nI can't wait to get out of here and back to you."
+    ],
+    [
+      "Lee",
+      "Kara? I think that's his daughter's friend.\\nShe went missing some time ago, I know they're still looking for her."
+    ],
+    [
+      "Lee",
+      "Ugh. How could I have been so blind?\\nWe really need to make a clean getaway."
+    ],
+    [
+      "Lee",
+      "So, the plan. You stash the box back at our place."
+    ],
+    [
+      "Lee",
+      "Once I've told him off I'll go back to the motel,\\ngrab all of our stuff and meet you at the barn."
+    ],
+    [
+      "Lee",
+      "I appreciate that, but if things go sour, the box is our bargaining chip.\\nWe can do this. We need to do this!"
+    ],
+    [
+      "Lee",
+      "This is the end of the beginning!\\nI really have to go. Thanks for..."
+    ],
+    [
+      "Lee",
+      "...well you know."
+    ],
+    [
+      "Sam",
+      "I think James has something to do with it."
+    ],
+    [
+      "Sam",
+      "I found a creepy box with her name on it and his wife mentioned something about her in an email."
+    ],
+    [
+      "Sam",
+      "This guy is bad news. Worse news. Please be careful!"
+    ],
+    [
+      "Sam",
+      "Cover my tracks? Sadly, some of them can't be covered.\\nI'll try to hurry. Be careful."
+    ],
+    [
+      "Sam",
+      "Erm.\\nDoes the name Kara mean anything to you?"
+    ],
+    [
+      "Sam",
+      "You've done enough damage with this."
+    ],
+    [
+      "Sam",
+      "Yeah..."
+    ],
+    [
+      "Sam",
+      "Are you sure you don't need any help?\\nI can swing by the motel first."
+    ],
+    [
+      "Sam",
+      "You too, Lee."
+    ],
+    [
+      "Sam",
+      "Hmmm."
+    ],
+    [
+      "Sam",
+      "That would have been too easy."
+    ],
+    [
+      "Sam",
+      "Nope."
+    ],
+    [
+      "Sam",
+      "Gotcha!"
+    ],
+    [
+      "Sam",
+      "That did something."
+    ],
+    [
+      "Sam",
+      "What's this?"
+    ],
+    [
+      "Sam",
+      "Hmm."
+    ],
+    [
+      "Sam",
+      "Lift the dead."
+    ],
+    [
+      "Sam",
+      "Follow the line of light."
+    ],
+    [
+      "Lee",
+      "Okay so Benson is bad news and a complete and total dead end."
+    ],
+    [
+      "Lee",
+      "We tried to get out of the valley with his help.\\nBut turns out he is a creeper and stole our most valuable asset; The box."
+    ],
+    [
+      "Lee",
+      "James Benson has it and he wants to sell it."
+    ],
+    [
+      "Lee",
+      "Now, *we* want to get out of this place.\\nWe tried all sorts of things. All sorts of places. No dice."
+    ],
+    [
+      "Lee",
+      "We even tried Benson...who's trying to swindle us."
+    ],
+    [
+      "Lee",
+      "As suspected, the box is our ticket out of here.\\nAnd this is where our next door neighbor, Karl, can help us."
+    ],
+    [
+      "Lee",
+      "This is plan C."
+    ],
+    [
+      "Lee",
+      "In exchange for an absurd amount of money,\\nhe will provide us with a way out."
+    ],
+    [
+      "Lee",
+      "We have no cash, but, the box is worth at least 4 million,\\naccording to Benson."
+    ],
+    [
+      "Lee",
+      "We can use the box to pay Karl for his services,\\nwhich means we can finally get out."
+    ],
+    [
+      "Lee",
+      "But, we don't have the box. Benson does."
+    ],
+    [
+      "Lee",
+      "In conclusion we need to steal it back."
+    ],
+    [
+      "Lee",
+      "To re-steal it. Tonight.\\nAnd how do we do that?"
+    ],
+    [
+      "Lee",
+      "We are here.\\nThe Old Oak Motel."
+    ],
+    [
+      "Lee",
+      "Benson, going from his home, will pick me up at 8 and take us to our last date, somewhere in town."
+    ],
+    [
+      "Lee",
+      "Meanwhile, you take the bus from right around the corner and go here, where Benson lives."
+    ],
+    [
+      "Lee",
+      "Here."
+    ],
+    [
+      "Lee",
+      "While I distract Benson and drag out the evening for as long as you need."
+    ],
+    [
+      "Lee",
+      "You find a way inside his house where you locate the box and reacquire it."
+    ],
+    [
+      "Lee",
+      "Once the box is back in your hands,\\nyou message me and we meet at the barn."
+    ],
+    [
+      "Lee",
+      "Here."
+    ],
+    [
+      "Lee",
+      "So how do we find this box?"
+    ],
+    [
+      "Lee",
+      "Okay, so first we need to get in."
+    ],
+    [
+      "Lee",
+      "You could of course try the front door or the garage door, but they are probably locked."
+    ],
+    [
+      "Lee",
+      "Look around for a key."
+    ],
+    [
+      "Lee",
+      "Alternatively, out back there is an old shed.\\nMaybe there is something in there."
+    ],
+    [
+      "Lee",
+      "Once inside, we need to search the most likely hiding spots."
+    ],
+    [
+      "Lee",
+      "I have only ever been downstairs and the most interesting room here would be this elongated thing."
+    ],
+    [
+      "Lee",
+      "I think it's an office, but I'm not sure.\\nI haven't been inside."
+    ],
+    [
+      "Lee",
+      "It's a two-story building though.\\nThere could even be an attic."
+    ],
+    [
+      "Lee",
+      "What's upstairs? I don't know exactly, but I know Benson sleeps up there.\\nAnd there's bound to be other rooms as well."
+    ],
+    [
+      "Lee",
+      "Once you have the box, go back, take the bus all the way back to our place.\\nHide it in the safe spot and wait for me there."
+    ],
+    [
+      "Lee",
+      "Look. I know you have received the short end of the stick for this plan,\\nbut it's the only way to do it safely."
+    ],
+    [
+      "Lee",
+      "Hopefully when this day is over, we have the box in our possession,\\nback at the barn and ready to move on with our lives."
+    ],
+    [
+      "Lee",
+      "Benson can go suck it."
+    ]
+  ],
+  "script/map_e1m5_4.script": [
+    [
+      "Miles",
+      "I don't know you.\\nAnd I don't even know if Calloway knows you."
+    ],
+    [
+      "Miles",
+      "I...I was...I had to do something important and I...\\nI couldn't..."
+    ],
+    [
+      "Miles",
+      "I wanted to make sure Calloway was okay...\\nAnd then you came along. No memory. Nowhere to go."
+    ],
+    [
+      "Sam",
+      "Wait. So you lied to me and sent me on a wild goose chase because you had better things to do?"
+    ],
+    [
+      "Sam",
+      "Oh, no, right. There were higher ups. Probably forced you at gunpoint, right?"
+    ],
+    [
+      "Miles",
+      "But where else were you going to go?"
+    ],
+    [
+      "Miles",
+      "You show up in a federal uniform."
+    ],
+    [
+      "Miles",
+      "Naturally you would have the best chances of finding your identity at the Bulwark."
+    ],
+    [
+      "Miles",
+      "So I sent you on your way."
+    ],
+    [
+      "Miles",
+      "But that was after we met and at the time,\\nthe only evacuation that took place was far from you."
+    ],
+    [
+      "Miles",
+      "I even tried to arrange for transportation to the Bulwark.\\nThe shuttle, remember?"
+    ],
+    [
+      "Miles",
+      "I'm sorry I lied. I really wish I hadn't."
+    ],
+    [
+      "Miles",
+      "But in the end I still think we did the right thing; Getting you to safety."
+    ],
+    [
+      "Miles",
+      "Even if it turned out not to be so safe after all."
+    ],
+    [
+      "Miles",
+      "There are no safe places right now."
+    ],
+    [
+      "Miles",
+      "I don't know what to say."
+    ],
+    [
+      "Miles",
+      "Please say something."
+    ],
+    [
+      "Miles",
+      "No...no higher ups.\\nNo orders. No mission."
+    ],
+    [
+      "Miles",
+      "There are some things I need to do.\\nSomething that can't be put off."
+    ],
+    [
+      "Sam",
+      "Ah well that only kind of makes it worse."
+    ],
+    [
+      "Sam",
+      "So you lied of your own volition and sent me through what can only be described as...as..."
+    ],
+    [
+      "AP",
+      "Welcome to the Federal Recreation Area, Ethan Rom.\\nHave a nice day."
+    ],
+    [
+      "Sam",
+      "Ethan? Miles?\\nYou said my name was Sam, right? Just Sam?"
+    ],
+    [
+      "Miles",
+      "Yeah. I don't recall your last name.\\nJust Sam."
+    ],
+    [
+      "Sam",
+      "So Calloway never mentioned it? There's some sort of personnel scanner here.\\nIt says my name is Ethan Rom."
+    ],
+    [
+      "Miles",
+      "Ah."
+    ],
+    [
+      "Sam",
+      "Ah?"
+    ],
+    [
+      "Miles",
+      "Look, I have not been completely truthful.\\nTo put it mildly."
+    ],
+    [
+      "Sam",
+      "To put it mildly?"
+    ],
+    [
+      "Sam",
+      "But I could have been evacuated!?"
+    ],
+    [
+      "Sam",
+      "There's nothing to say."
+    ]
+  ],
+  "script/map_e1m5_5.script": [
+    [
+      "Tour Guide",
+      "Welcome to the official tour of the Federal Commonwealth of Earth,\\non Mars and its surrounding moons."
+    ],
+    [
+      "Tour Guide",
+      "On this tour you will be faced with the overwhelming success of the federacy."
+    ],
+    [
+      "Tour Guide",
+      "And our never ceasing quest for the progress of humanity."
+    ],
+    [
+      "Tour Guide",
+      "You will learn about our endeavors around The Solar System and beyond."
+    ],
+    [
+      "Tour Guide",
+      "The Paragon be praised and have a nice day."
+    ],
+    [
+      "Sam",
+      "I was wondering..."
+    ],
+    [
+      "Sam",
+      "The thing is. I may have come across this Benson person in my, well, previous life."
+    ],
+    [
+      "Sam",
+      "My memory is still fuzzy, but I seem to recall a James Benson."
+    ],
+    [
+      "Sam",
+      "And he was bad news."
+    ],
+    [
+      "Sam",
+      "I'm pretty sure he did.\\nHe had stolen something of ours. Something very valuable."
+    ],
+    [
+      "Sam",
+      "When we stole it back, he did not take it well.\\nAt all."
+    ],
+    [
+      "Miles",
+      "Why are you doing this?\\nIs this your attempt at some sort of revenge?"
+    ],
+    [
+      "Miles",
+      "Who the fuck are you?"
+    ],
+    [
+      "Miles",
+      "That's what I used to call her."
+    ],
+    [
+      "Miles",
+      "Lee."
+    ],
+    [
+      "Miles",
+      "She didn't like it when people called her Kay."
+    ],
+    [
+      "Miles",
+      "It's more than that."
+    ],
+    [
+      "Miles",
+      "Okay, let me guess.\\nYou used to live next to her."
+    ],
+    [
+      "Miles",
+      "You used to signal her after your parents had gone to bed.\\nWith a lamp. 3 times."
+    ],
+    [
+      "Miles",
+      "But then her brother enrolled in the federal academy."
+    ],
+    [
+      "Miles",
+      "Her full name being Kaylee Calloway and her brother's name being Samuel,\\n that makes him Samuel Calloway."
+    ],
+    [
+      "Miles",
+      "The very man you're looking for."
+    ],
+    [
+      "Miles",
+      "And of course, then some time later when her mother died during tragic circumstances."
+    ],
+    [
+      "Miles",
+      "It set the two of you spiraling out into a crazy plan\\nto escape your hometown and general area, the Emerald Valley..."
+    ],
+    [
+      "Miles",
+      "Which of course failed."
+    ],
+    [
+      "Miles",
+      "But then you tried selling that item of yours."
+    ],
+    [
+      "Miles",
+      "But it all failed spectacularly and ended up with\\nJames Benson taking away the only person that ever got you."
+    ],
+    [
+      "Miles",
+      "Because they are my memories, Sam."
+    ],
+    [
+      "Miles",
+      "My memories!"
+    ],
+    [
+      "Miles",
+      "I don't know. Look, if this is some sort of sick joke,\\nplease just let me be."
+    ],
+    [
+      "Miles",
+      "Do your thing. I don't need this."
+    ],
+    [
+      "Miles",
+      "I'm sorry I lied, okay!?\\nIt's in the past now."
+    ],
+    [
+      "Miles",
+      "Oh?"
+    ],
+    [
+      "Sam",
+      "Yeah. I think he abducted someone I knew; The girl."
+    ],
+    [
+      "Miles",
+      "Wait a minute. He abducted her?"
+    ],
+    [
+      "Miles",
+      "Wait. What was her name?"
+    ],
+    [
+      "Sam",
+      "Her name was Lee."
+    ],
+    [
+      "Miles",
+      "Lee, as in L - E - E?"
+    ],
+    [
+      "Sam",
+      "L - E - E yeah."
+    ],
+    [
+      "Miles",
+      "Come on. That's not funny."
+    ],
+    [
+      "Sam",
+      "W...What do you mean?"
+    ],
+    [
+      "Sam",
+      "I...I don't know!? I really don't.\\nWhat are you getting at?"
+    ],
+    [
+      "Miles",
+      "Look. I know I lied to you and I'm sorry.\\nI thought we were past that."
+    ],
+    [
+      "Sam",
+      "We are."
+    ],
+    [
+      "Sam",
+      "Are you saying it's the same person?\\nOr a wild coincidence?"
+    ],
+    [
+      "Sam",
+      "Erm..."
+    ],
+    [
+      "Sam",
+      "Wait..."
+    ],
+    [
+      "Sam",
+      "Look..."
+    ],
+    [
+      "Sam",
+      "But...How do you know all this?"
+    ],
+    [
+      "Sam",
+      "How is that even possible?"
+    ],
+    [
+      "Sam",
+      "I'm not joking, Samantha.\\nThis doesn't make sense to me either, but I remember what I remember."
+    ],
+    [
+      "Miles",
+      "Yeah...I don't know what to say."
+    ],
+    [
+      "Sam",
+      "I don't recall working there.\\nIn fact, I don't recall any of it."
+    ],
+    [
+      "Sam",
+      "It...It has no meaning to me.\\nI don't recognize that person, that...version of me, at all."
+    ],
+    [
+      "Sam",
+      "Just call me Sam."
+    ],
+    [
+      "Sam",
+      "I am going to find Calloway and I think you're right\\nabout baggage; About having a clean slate."
+    ],
+    [
+      "Sam",
+      "Who I was is not as important as where I'm going.\\nFinding Calloway would at least do some good for someone."
+    ],
+    [
+      "Samantha",
+      "Sam?...Ethan?..."
+    ],
+    [
+      "Samantha",
+      "Look...I looked up your real name in our database."
+    ],
+    [
+      "Samantha",
+      "You are Ethan Rom, aged 32, born and raised in Vancouver, British Columbia, Canada."
+    ],
+    [
+      "Samantha",
+      "Where you left your parents to join the FCE at a young age."
+    ],
+    [
+      "Samantha",
+      "You have worked in the listening station on Mars.\\nAnd you have last been seen entering the receptacle."
+    ],
+    [
+      "Samantha",
+      "That's all I have...now that I know your name."
+    ],
+    [
+      "Samantha",
+      "It seems so. That's...really weird."
+    ],
+    [
+      "Samantha",
+      "You know. The doctor's office where we first met\\nis awfully close to the listening station."
+    ],
+    [
+      "Samantha",
+      "You know, the place you worked at."
+    ],
+    [
+      "Sam",
+      "Miles?"
+    ],
+    [
+      "Samantha",
+      "Hmm? Yeah?"
+    ],
+    [
+      "Sam",
+      "I found a way to the detention center...might as well start there."
+    ],
+    [
+      "Samantha",
+      "Good luck! Tell me if you need anything."
+    ],
+    [
+      "Tour Guide",
+      "Mars and its moons used to be the host of a great civilization,\\ninhabited by what is commonly referred to as 'The Ancients'."
+    ],
+    [
+      "Tour Guide",
+      "Further studies into discovered tablets and texts\\nreveal that they were called 'the Praeleanthor'."
+    ],
+    [
+      "Tour Guide",
+      "Their civilization was heavily class-based and successful at that."
+    ],
+    [
+      "Tour Guide",
+      "But according to researchers, at some point in their history."
+    ],
+    [
+      "Tour Guide",
+      "A clash occurred with a resulting divide that fragmented their community."
+    ],
+    [
+      "Tour Guide",
+      "The dissidents were eventually captured by the leaders of the old\\nand banished into a different realm."
+    ],
+    [
+      "Tour Guide",
+      "What is commonly referred to as the Dark Realm.\\nOne of the two realms of the Praeleanthor."
+    ],
+    [
+      "Tour Guide",
+      "The Praeleanthor were a race of duplicity."
+    ],
+    [
+      "Tour Guide",
+      "While they revered their leaders and idols,\\nthey feared and loathed their enemies."
+    ],
+    [
+      "Tour Guide",
+      "This attribute colored their entire existence\\nas is evident in how they viewed the world and their discoveries."
+    ],
+    [
+      "Tour Guide",
+      "The two realms of the Praeleanthor were no exception."
+    ],
+    [
+      "Tour Guide",
+      "Their efforts into scientific discovery yielded promising results\\nwhen they revealed the existence of two extra dimensions."
+    ],
+    [
+      "Tour Guide",
+      "Something they quickly polarized into what is known as\\nthe Light Realm and the Dark Realm."
+    ],
+    [
+      "Tour Guide",
+      "The Dark Realm of the Praeleanthor is referred to as the world\\nwhere bad entities are exiled to live out their lifes."
+    ],
+    [
+      "Tour Guide",
+      "Or even die an early death."
+    ],
+    [
+      "Tour Guide",
+      "Recovered stone tablets show that a particularly malevolent entity\\nwas once banished into the dark."
+    ],
+    [
+      "Tour Guide",
+      "There are no mentions of his fate or records of his crimes."
+    ],
+    [
+      "Tour Guide",
+      "Should we as the human species ever come across the portal to this realm."
+    ],
+    [
+      "Tour Guide",
+      "We should highly consider the risks\\nand consequences of further investigation."
+    ],
+    [
+      "Tour Guide",
+      "The Light Realm of the Praeleanthor\\nwas considered to be a higher plane of existence."
+    ],
+    [
+      "Tour Guide",
+      "That only the best and brightest of their people could enter."
+    ],
+    [
+      "Tour Guide",
+      "It is conjectured that the majority of the Praeleanthor\\nfled into this dimension as a consequence of a cataclysmic event."
+    ],
+    [
+      "Tour Guide",
+      "Some sort of great filter that was destined to wipe out their civilization\\nor at the very least set it back thousands of years."
+    ],
+    [
+      "Tour Guide",
+      "Research into the connection between the two realms is scarce,\\nbut we speculate that an intermediate passage must exist."
+    ],
+    [
+      "Tour Guide",
+      "This artifact was initially found deep within the crust of Mars.\\nBeing a highly prioritized historical finding."
+    ],
+    [
+      "Tour Guide",
+      "It was rushed to be scrutinized by the premiere scientists\\nand archeologists that any human organization has to offer."
+    ],
+    [
+      "Tour Guide",
+      "Interrupting this important work, the artifact was stolen from its place\\nand disappeared for the better part of a decade."
+    ],
+    [
+      "Tour Guide",
+      "After a thorough investigation, it was recovered on Earth\\nand returned to its rightful owner; the glorious federacy."
+    ],
+    [
+      "Tour Guide",
+      "Who stole it and why remains a mystery."
+    ],
+    [
+      "Tour Guide",
+      "Despite the tireless efforts of the best in their field,\\nthe function and purpose of the artifact remains unknown."
+    ],
+    [
+      "Tour Guide",
+      "Experiments and tests show that it draws from an unseen power source,\\nmaintaining a pulsing glow and a constant temperature."
+    ],
+    [
+      "Tour Guide",
+      "Attempts at cutting through the material and opening it up have failed."
+    ],
+    [
+      "Tour Guide",
+      "While the scientific investigation into this artifact has been put on hold."
+    ],
+    [
+      "Tour Guide",
+      "Researchers note that it bears a striking resemblance\\nto the texture and general properties of the receptacle found on Phobos."
+    ],
+    [
+      "Tour Guide",
+      "It is presumed that this is no coincidence."
+    ],
+    [
+      "Tour Guide",
+      "Phobos is the latest venture of the FCE."
+    ],
+    [
+      "Tour Guide",
+      "The artifacts found on the moon of Mars\\nfar outpace those on Mars in terms of scientific value."
+    ],
+    [
+      "Tour Guide",
+      "Not only did the Praeleanthor, surprisingly,\\nalso have a presence on Phobos."
+    ],
+    [
+      "Tour Guide",
+      "It is speculated that they even arrived\\nin our solar system by utilizing so far unknown technology."
+    ],
+    [
+      "Tour Guide",
+      "One of the main attractions is the Phobos Monolith."
+    ],
+    [
+      "Tour Guide",
+      "It is thought that this may very well\\nbe the anchor that tied itself to Mars, figuratively speaking."
+    ],
+    [
+      "Tour Guide",
+      "More recent discoveries include the receptacle\\nat the aptly named receptacle base. "
+    ],
+    [
+      "Tour Guide",
+      "The federal involvement and engagement on Phobos\\nremains a priority to further the lives of everyone."
+    ],
+    [
+      "Tour Guide",
+      "Receptacle base is the crown jewel of any extra-terrestrial endeavor."
+    ],
+    [
+      "Tour Guide",
+      "Our highly advanced and modern facility contains and protects\\nthe most incredible of our discoveries; the receptacle."
+    ],
+    [
+      "Tour Guide",
+      "Initial interpretations of ancient tablets and texts\\nreveal that this is a sort of gateway to another dimension."
+    ],
+    [
+      "Tour Guide",
+      "Incredible as it sounds,\\npreliminary tests have supported this hypothesis."
+    ],
+    [
+      "Tour Guide",
+      "Subjects, both organic and not,\\ndisappear without a trace when the receptacle is engaged."
+    ],
+    [
+      "Tour Guide",
+      "A particular frequency of current will trigger the inner workings of the device."
+    ],
+    [
+      "Tour Guide",
+      "Brave and adventurous volunteers have passed into this realm,\\nbut so far none have returned."
+    ],
+    [
+      "Tour Guide",
+      "More luck has been had with inorganic materials\\nthat have resurfaced into one of our listening stations on Mars."
+    ],
+    [
+      "Tour Guide",
+      "The most prominent of our listening stations is located in Mars City."
+    ],
+    [
+      "Tour Guide",
+      "While the area surrounding the listening station\\nwas initially a mundane apartment for UAC workers on Mars."
+    ],
+    [
+      "Tour Guide",
+      "It is now transformed into a vanguard of scientific research.\\nBeing closely linked to the receptacle."
+    ],
+    [
+      "Tour Guide",
+      "Experiments have shown a metaphysical connection\\nwith our most prized artifact on Phobos."
+    ],
+    [
+      "Tour Guide",
+      "We have still not managed to get a reliable transfer of objects\\ngoing from the receptacle to the listening station."
+    ],
+    [
+      "Tour Guide",
+      "But a host of objects have gone through.\\nMost with notable mutations of either color, texture or form."
+    ],
+    [
+      "Tour Guide",
+      "To the best of our current understanding,\\nsome sort of teleportation is invoked."
+    ],
+    [
+      "Tour Guide",
+      "The link between the receptacle and the listening station is not direct."
+    ],
+    [
+      "Tour Guide",
+      "It is assumed that it goes through a different dimension\\nand its journey depends on factors unknown to us inside the realm."
+    ],
+    [
+      "Tour Guide",
+      "If we could harness this technology,\\nit would be a game changer for humanity."
+    ],
+    [
+      "Tour Guide",
+      "The ability to perform teleportation of objects and people."
+    ],
+    [
+      "Tour Guide",
+      "Would have immense effect on our future development\\nas a race and a collective organism."
+    ],
+    [
+      "Tour Guide",
+      "There is still a long way to go, but the results so far are very promising."
+    ],
+    [
+      "Sam",
+      "What do you mean, last seen?\\nDid I disappear?"
+    ],
+    [
+      "Sam",
+      "Listening station? I erm...\\nThere were a lot of machines and a suspended or floating...cube...of sorts."
+    ],
+    [
+      "Samantha",
+      "Bingo."
+    ],
+    [
+      "Samantha",
+      "So...what are you going to do now?\\n...and...what should I call you? Sam or Ethan?"
+    ],
+    [
+      "Samantha",
+      "So Sam.\\n Are we okay?"
+    ],
+    [
+      "Sam",
+      "Let's see."
+    ],
+    [
+      "Samantha",
+      "I want the best for you.\\nI hope you know that."
+    ],
+    [
+      "Lee",
+      "It's done. It's over.\\nHe didn't take it well."
+    ],
+    [
+      "Lee",
+      "He left me by the roadside...showed his true colors I guess."
+    ],
+    [
+      "Lee",
+      "I just want to leave...\\nI don't know what he'll do when he finds out."
+    ],
+    [
+      "Lee",
+      "Yes. I will leave in a couple of minutes. Just getting our stuff."
+    ],
+    [
+      "Lee",
+      "Ugh. Our neighbor came by. He was impossible to get rid of."
+    ],
+    [
+      "Lee",
+      "Eh. He did his best not to be a middle-aged shovel salesman."
+    ],
+    [
+      "Lee",
+      "He failed."
+    ],
+    [
+      "Lee",
+      "But he's ready to proceed. He will contact us tomorrow with more information."
+    ],
+    [
+      "Sam",
+      "What? No. Must be Karl, right?"
+    ],
+    [
+      "Sam",
+      "It can't be him...can it?"
+    ],
+    [
+      "Sam",
+      "Don't open!"
+    ],
+    [
+      "Sam",
+      "Hey. How did it go?\\nIs it done?"
+    ],
+    [
+      "Sam",
+      "You can't get here fast enough!\\nAre you at the motel?"
+    ],
+    [
+      "Sam",
+      "Oh? Did he have any news?"
+    ],
+    [
+      "Sam",
+      "That's great!"
+    ],
+    [
+      "Sam",
+      "Lee?"
+    ],
+    [
+      "Lee",
+      "Someone's here."
+    ],
+    [
+      "Lee",
+      "It's James...I...I don't."
+    ],
+    [
+      "Sam",
+      "Leave! Crawl out the back!"
+    ],
+    [
+      "Lee",
+      "I'm...I'm sorry."
+    ],
+    [
+      "Lee",
+      "So, the plan. You stash the box back at our place."
+    ],
+    [
+      "Lee",
+      "Once I've told him off I'll go back to the motel,\\ngrab all of our stuff and meet you at the barn."
+    ],
+    [
+      "Lee",
+      "I appreciate that, but if things go sour, the box is our bargaining chip.\\nWe can do this. We need to do this!"
+    ],
+    [
+      "Lee",
+      "This is the end of the beginning!\\nI really have to go. Thanks for..."
+    ],
+    [
+      "Lee",
+      "...well you know."
+    ],
+    [
+      "Sam",
+      "Are you sure you don't need any help?\\nI can swing by the motel first."
+    ],
+    [
+      "Sam",
+      "You too, Lee."
+    ],
+    [
+      "Sam",
+      "Hello?"
+    ]
+  ],
+  "script/map_e1m5_6.script": [
+    [
+      "Sam",
+      "Shit..."
+    ],
+    [
+      "Sam",
+      "Ever since you shared his last message,\\nI wanted to find him for you."
+    ],
+    [
+      "Sam",
+      "I guess what I'm trying to say is that I understand."
+    ],
+    [
+      "Sam",
+      "Are you okay?"
+    ],
+    [
+      "Miles",
+      "Heh. Well. No."
+    ],
+    [
+      "Miles",
+      "I thought I was better prepared for this, but I guess...not\\nIt's just more...baggage."
+    ],
+    [
+      "Miles",
+      "All though it feels so wrong to call him that.\\nThis really leaves you at a d...an impasse."
+    ],
+    [
+      "Miles",
+      "Calloway has...had a hypothesis about it."
+    ],
+    [
+      "Miles",
+      "The receptacle is a door of sorts. To somewhere else.\\nAnother plane of existence."
+    ],
+    [
+      "Miles",
+      "It may be a long shot, but everything points towards this realm.\\nI think she might be in there."
+    ],
+    [
+      "Miles",
+      "Either way, it's the last bullet in the chamber."
+    ],
+    [
+      "Miles",
+      "You're on Mars. I'm on Phobos."
+    ],
+    [
+      "Miles",
+      "This is the end of the line. For me, at least.\\nI have to do this."
+    ],
+    [
+      "Miles",
+      "Look. I don't want to drag you down any further.\\n I have put you through enough."
+    ],
+    [
+      "Miles",
+      "Sam.\\nIt's done."
+    ],
+    [
+      "Miles",
+      "If all goes well, I'll see you again.\\nIf not...thank you...for everything."
+    ],
+    [
+      "Sam",
+      "Samantha...I have bad news...About Calloway.\\nHe didn't make it."
+    ],
+    [
+      "Sam",
+      "Samantha?"
+    ],
+    [
+      "Miles",
+      "I hear you."
+    ],
+    [
+      "Sam",
+      "I'm sorry."
+    ],
+    [
+      "Miles",
+      "He was a good man."
+    ],
+    [
+      "Sam",
+      "You as well."
+    ],
+    [
+      "Miles",
+      "I know what to do."
+    ],
+    [
+      "Sam",
+      "Receptacle base?"
+    ],
+    [
+      "Sam",
+      "And I'm guessing that door may be one-way?"
+    ],
+    [
+      "Miles",
+      "It may very well be."
+    ],
+    [
+      "Sam",
+      "I don't know. Sounds like Russian roulette to me."
+    ],
+    [
+      "Miles",
+      "Well so be it."
+    ],
+    [
+      "Sam",
+      "Wait. Can't we reconvene? Find out a better solution?"
+    ],
+    [
+      "Sam",
+      "You can't go! Where do you want me to go?\\nTo do? You can't leave me here now!"
+    ],
+    [
+      "Miles",
+      "Get to the surface. You can send out an SOS.\\nWe have dropships close by. Maybe they can bring you to safety."
+    ],
+    [
+      "Sam",
+      "But wait...You're my clean slate Samantha.\\nYou're all that I have. I get it now."
+    ],
+    [
+      "Sam",
+      "Are you sure about this?"
+    ],
+    [
+      "Miles",
+      "Go home, Sam. It's not too late for you.\\nGoodbye."
+    ],
+    [
+      "Sam",
+      "Wait...What happened to Kaylee?"
+    ],
+    [
+      "Sam",
+      "Samantha...I have bad news...About Calloway.\\nHe didn't make it."
+    ],
+    [
+      "Sam",
+      "Samantha?"
+    ],
+    [
+      "Miles",
+      "I hear you."
+    ],
+    [
+      "Sam",
+      "I'm sorry."
+    ],
+    [
+      "Miles",
+      "He was a good man."
+    ],
+    [
+      "Sam",
+      "You as well."
+    ],
+    [
+      "Miles",
+      "I know what to do."
+    ],
+    [
+      "Sam",
+      "Receptacle base?"
+    ],
+    [
+      "Sam",
+      "And I'm guessing that door may be one-way?"
+    ],
+    [
+      "Miles",
+      "It may very well be."
+    ],
+    [
+      "Sam",
+      "I don't know. Sounds like Russian roulette to me."
+    ],
+    [
+      "Miles",
+      "Well so be it."
+    ],
+    [
+      "Sam",
+      "Wait. Can't we reconvene? Figure out a better solution?"
+    ],
+    [
+      "Sam",
+      "You can't go! You can't leave me here now!"
+    ],
+    [
+      "Miles",
+      "Get to the surface. You can send out an SOS.\\nWe have dropships close by. Maybe they can bring you to safety."
+    ],
+    [
+      "Sam",
+      "But wait...You're my clean slate Samantha.\\nYou're all that I have. I get it now."
+    ],
+    [
+      "Sam",
+      "Are you sure about this?"
+    ],
+    [
+      "Miles",
+      "Go home, Sam. It's not too late for you.\\nGoodbye."
+    ],
+    [
+      "Sam",
+      "Wait...What happened to Kaylee?"
+    ],
+    [
+      "Sam",
+      "Samantha?"
+    ],
+    [
+      "Miles",
+      "I..I need some time.\\nI have somewhere to be. Something to do. Sorry."
+    ],
+    [
+      "Sam",
+      "Miles, look at it this way."
+    ],
+    [
+      "Sam",
+      "We haven't found him yet,\\nso he may very well be locked inside a cell."
+    ],
+    [
+      "Sam",
+      "But wouldn't a locked cell be the safest place to be in a situation like this?\\nIt may not be so bad after all."
+    ],
+    [
+      "Miles",
+      "I joined the FCE to accomplish two things.\\nNo more, no less."
+    ],
+    [
+      "Miles",
+      "The first thing has been done."
+    ],
+    [
+      "Miles",
+      "The second was to help Calloway find out the truth about Kaylee."
+    ],
+    [
+      "Miles",
+      "For someone who was basically born yesterday,\\nyou sure know what to say."
+    ],
+    [
+      "Sam",
+      "Hey, I'm a good person."
+    ],
+    [
+      "Miles",
+      "I'll miss this you know."
+    ],
+    [
+      "Sam",
+      "I'm not going anywhere."
+    ],
+    [
+      "Miles",
+      "I know."
+    ],
+    [
+      "Sam",
+      "Soo...?"
+    ],
+    [
+      "Miles",
+      "To be perfectly honest, I'm going to Receptacle base and...\\nIt might be a one-way ticket."
+    ],
+    [
+      "Sam",
+      "What? The research station?"
+    ],
+    [
+      "Sam",
+      "What's the first?"
+    ],
+    [
+      "Miles",
+      "The first is burning to a crisp."
+    ],
+    [
+      "Sam",
+      "Oh...Benson...\\nAbout the second...don't do anything rash..."
+    ],
+    [
+      "Miles",
+      "I won't.\\nI will await your findings on Calloway at least."
+    ],
+    [
+      "Sam",
+      "Okay well if I can find myself, I can find him.\\nI'll get back to you."
+    ]
+  ],
+  "script/map_e1m5_6_outro.script": [
+    [
+      "Sam",
+      "Lee? Are you there?\\nLee?!"
+    ],
+    [
+      "?",
+      "Enjoy the fireworks"
+    ],
+    [
+      "Sam",
+      "I wonder if the walkie talkie is around here somewhere?"
+    ],
+    [
+      "Sam",
+      "Come on...Pick up pick up pick up."
+    ],
+    [
+      "Sam",
+      "Lee? Are you there?\\nLee?!"
+    ],
+    [
+      "Sam",
+      "Where are you?"
+    ],
+    [
+      "?",
+      "Enjoy the fireworks..."
+    ],
+    [
+      "Sam",
+      "I wonder if the walkie talkie is around here somewhere?"
+    ],
+    [
+      "Sam",
+      "I wonder if the walkie talkie is around here somewhere?"
+    ]
+  ],
+  "script/map_intro.script": [
+    [
+      "Girl",
+      "We would then crawl out of our rooms, and down to the fence."
+    ],
+    [
+      "Girl",
+      "Hey! Are you there? Come on. I'm here."
+    ],
+    [
+      "Girl",
+      "Come here."
+    ],
+    [
+      "Girl",
+      "Hey dickwad."
+    ],
+    [
+      "Girl",
+      "Hello?"
+    ],
+    [
+      "Girl",
+      "Wow a year? Let's stay out here for an hour. And make it two."
+    ],
+    [
+      "Girl",
+      "I totally want to see you grounded in room prison.\\nStripes look good on you."
+    ],
+    [
+      "Girl",
+      "Took your sweet time girl."
+    ],
+    [
+      "...",
+      "Hey I'm not your girl."
+    ],
+    [
+      "Girl",
+      "You are so my girl."
+    ],
+    [
+      "...",
+      "Whatever man. So what did you want?"
+    ],
+    [
+      "Girl",
+      "I desperately wanted your company.\\nIn fact. I need it."
+    ],
+    [
+      "...",
+      "Now? It's almost midnight.\\nThey're gonna ground me for a year if they find out."
+    ],
+    [
+      "...",
+      "Stripes don't look good on anybody.\\nBut you can be my prison wife."
+    ],
+    [
+      "Girl",
+      "Yeah no. I'm gonna be out here, free as a bird.\\nLiving next door to a criminal mastermind weirdo."
+    ],
+    [
+      "...",
+      "You're the weirdo."
+    ],
+    [
+      "Girl",
+      "Look. Samuel got his letter today.\\nOf acceptance. You know?"
+    ],
+    [
+      "Girl",
+      "He'll be going away. Soon."
+    ],
+    [
+      "...",
+      "He'll come back."
+    ],
+    [
+      "Girl",
+      "That's what he tells me too.\\nBut I know it's just a lie."
+    ],
+    [
+      "...",
+      "He would never lie to you."
+    ],
+    [
+      "Girl",
+      "Everybody lies."
+    ],
+    [
+      "...",
+      "But he's your brother."
+    ],
+    [
+      "Girl",
+      "But he's leaving."
+    ],
+    [
+      "...",
+      "I will still be here."
+    ],
+    [
+      "Girl",
+      "Yeah I don't know.\\nDoes your prison allow visitors?"
+    ],
+    [
+      "...",
+      "Come on. They're not that bad..."
+    ],
+    [
+      "Girl",
+      "Shit shit shit. Your parents.\\nYou. Me. Our place. Tomorrow."
+    ],
+    [
+      "Girl",
+      "I remember how we used to signal to eachother, after our parents had gone to bed."
+    ],
+    [
+      "Girl",
+      "We would turn a lamp.\\nOn and off three times."
+    ],
+    [
+      "Girl",
+      "Hey. How did you get here?\\nI almost didn't recognize you."
+    ],
+    [
+      "...",
+      "I don't even recognize myself.\\nWhere are you?"
+    ],
+    [
+      "Girl",
+      "I'm here."
+    ],
+    [
+      "Girl",
+      "I need your help. Do you remember the last night?\\nBefore everything changed."
+    ]
+  ]
+}

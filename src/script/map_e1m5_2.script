@@ -1,0 +1,1496 @@
+#include "script/map_e1m5_3b.script"
+
+namespace map_e1m5_2
+{	
+	void GooTransPlatformLoop(entity platform, float setup)
+	{
+		while(1 == 1)
+		{
+			float numBarrels = sys.random(3);
+			float spawnPlace = sys.random(4);			
+
+			if( spawnPlace >= 4 )
+				spawnPlace = 0;
+			else if( spawnPlace >= 3)
+				spawnPlace = 2;
+			else if( spawnPlace >= 2)
+				spawnPlace = 1;
+			else
+				spawnPlace = 0;			
+				
+			entity barrelOne;
+			entity barrelTwo;
+			entity spawner;
+
+			entity startE = sys.getEntity("gootransplat" + setup + "_start");
+			platform.setOrigin(startE.getOrigin());
+			
+			if( numBarrels >= 1 )
+			{
+				barrelOne = sys.spawn("moveable_barrel1");
+				spawner = sys.getEntity("gootransplat" + setup + "_barrelspawn" + (spawnPlace + 1));
+				barrelOne.setOrigin(spawner.getOrigin());				
+			}
+			
+			if( numBarrels >= 2 )
+			{
+				barrelTwo = sys.spawn("moveable_barrel1");
+				spawner = sys.getEntity("gootransplat" + setup + "_barrelspawn" + (spawnPlace + 2));
+				barrelTwo.setOrigin(spawner.getOrigin());				
+			}
+				
+			
+			sys.wait(1);
+
+			entity end = sys.getEntity("gootransplat" + setup + "_end");
+
+			platform.moveTo(end);
+
+			sys.waitFor(platform);
+
+			if( numBarrels >= 1 )
+			{
+				barrelOne.remove();
+			}
+			
+			if( numBarrels >= 2 )
+			{
+				barrelTwo.remove();
+			}
+		}
+	}
+
+	void StartGooTransPlat(float max, float del, float setup)
+	{
+		float i = 0;
+		while(i < max)
+		{
+			thread GooTransPlatformLoop(sys.getEntity("gootransplat" + setup + "_0" + (i + 1)), setup);
+			sys.wait(del);
+			i++;
+		}
+	}
+
+	void PlatTest()
+	{
+		sys.trigger($trigger_once_184);
+		
+		$CargoLinesHandle.rotateOnce('-90 0 0');
+		$CargoLinesHandle.startSoundShader("e1m5_3_large_switch", SND_CHANNEL_ANY);
+
+		sys.wait(1);
+		
+		sys.trigger($power_station_speaker_start_1);
+		sys.wait(2.75);		
+		sys.trigger($power_station_speaker_loop_1);
+
+		thread StartGooTransPlat(6, 4, 1);
+		thread StartGooTransPlat(4, 4, 2);
+	}
+	
+	void piston_discs_down() 
+	{
+		$pistondisc_1.time (.4);
+		$pistondisc_1.accelTime (.125);
+		$pistondisc_1.decelTime (.15);
+		$pistondisc_2.time (.4);
+		$pistondisc_2.accelTime (.125);
+		$pistondisc_2.decelTime (.15);
+		$pistondisc_3.time (.4);
+		$pistondisc_3.accelTime (.125);
+		$pistondisc_3.decelTime (.15);
+		$pistondisc_4.time (.4);
+		$pistondisc_4.accelTime (.125);
+		$pistondisc_4.decelTime (.15);
+		$pistondisc_5.time (.4);
+		$pistondisc_5.accelTime (.125);
+		$pistondisc_5.decelTime (.15);
+		
+		while (1) {
+			$pistondisc_1.moveTo($p1u);
+			$pistondisc_2.moveTo($p2d);
+			$pistondisc_3.moveTo($p3u);
+			$pistondisc_4.moveTo($p4u);
+			$pistondisc_5.moveTo($p5d);
+			sys.waitFor($pistondisc_1);
+			
+			$pistondisc_1.moveTo($p1d);
+			$pistondisc_2.moveTo($p2u);
+			$pistondisc_3.moveTo($p3d);
+			$pistondisc_4.moveTo($p4d);
+			$pistondisc_5.moveTo($p5u);
+			sys.waitFor($pistondisc_1);
+		
+		}
+	}
+	
+	void storagecab_surprise()	
+	{
+			$cabinet_swing.accelTime (.4);
+                $cabinet_swing.time (.5);
+                $cabinet_swing.rotateOnce ('0 0 90');
+                sys.waitFor ($cabinet_swing);
+				sys.trigger($cabinet_slam);
+				sys.trigger($cabinet_dust);
+                
+                $cabinet_swing.accelTime (.05);
+                $cabinet_swing.time (.05);
+                $cabinet_swing.rotateOnce ('0 0 -4');
+                sys.waitFor ($cabinet_swing);
+                $cabinet_swing.rotateOnce ('0 0 4');
+                sys.waitFor ($cabinet_swing);
+
+                $cabinet_swing.time (.05);
+                $cabinet_swing.rotateOnce ('0 0 -2');
+                sys.waitFor ($cabinet_swing);
+                $cabinet_swing.rotateOnce ('0 0 2');
+	}
+	
+	void storagecab_surprise2()	
+	{
+			$cabinet_swing2.accelTime (.4);
+                $cabinet_swing2.time (.5);
+                $cabinet_swing2.rotateOnce ('-90 0 0');
+                sys.waitFor ($cabinet_swing2);
+				sys.trigger($cabinet_slam2);
+				sys.trigger($cabinet_dust2);
+                
+                $cabinet_swing2.accelTime (.05);
+                $cabinet_swing2.time (.05);
+                $cabinet_swing2.rotateOnce ('4 0 0');
+                sys.waitFor ($cabinet_swing2);
+                $cabinet_swing2.rotateOnce ('-4 0 0');
+                sys.waitFor ($cabinet_swing2);
+
+                $cabinet_swing2.time (.05);
+                $cabinet_swing2.rotateOnce ('2 0 0');
+                sys.waitFor ($cabinet_swing2);
+                $cabinet_swing2.rotateOnce ('-2 0 0');
+	}
+	
+	void trite_vent()	
+	{
+		$vent_swing.rotateOnce ('-90 0 0');
+	}
+	
+	
+	void objects_setup()	
+	{		
+		$tube1.bind($tube_extracter);
+		$tube_extracter.moveTo($extracter_outside);
+		sys.trigger($tube_compartment);
+		$tube1.show();
+		$tube1_tipa.show();
+		$tube1_tipb.show();
+		sys.trigger($tlight1);
+		$tube1b.show();
+		$tube1_tipa2.show();
+		$tube1_tipb2.show();
+		sys.trigger($tlight1b);
+		sys.waitFor($tube_extracter);
+		
+		$orange_pumpcyl_master.rotateOnce ('-45 0 0');
+		
+		$pist1.bind($pistbase);
+		$pistcasing.bind($pistbase);
+		$pistlight1.bind($pistbase);
+		$pistlight2.bind($pistbase);
+		$pistbase.rotateOnce ( '-45 0 0' );
+		
+		$pist2.bind($pistbase2);
+		$pistcasing2.bind($pistbase2);
+		$pistlight3.bind($pistbase2);
+		$pistlight4.bind($pistbase2);
+		$pistbase2.rotateOnce ( '0 0 -45' );
+		
+		$func_mover_112.bind($crank_master);
+		$func_mover_116.bind($crank_master);
+		$crank_master.move(0, 640);
+		sys.waitFor($crank_master);
+		$crank_master.rotateOnce ('0 -45 0');
+		sys.waitFor($crank_master);
+		
+		$func_mover_112.unbind();
+		$func_mover_116.unbind();
+		$pistrod1.unbind();
+		$pistrod2.unbind();
+
+		sys.wait(.1);
+		
+		$func_mover_112.bind($piston1);
+		$func_mover_116.bind($piston2);
+		$pistrod1.bind($piston1);
+		$pistrod2.bind($piston2);
+	}
+
+	void copier_light_start ()		
+	{
+		sys.trigger($copier_light_fadein_1);
+		sys.trigger($copier_light_fadein_2);
+		sys.trigger($spkr_copier_light_hum);
+		$tube_copier_light_mover.time (1.2);
+		$tube_copier_light_mover.moveTo($tube_copier_light_end);
+	}
+	
+	void extract_tubes() {
+	while(1)
+	{	
+		$hookset1.moveTo($conveyor_hook_end);
+		sys.wait(3);
+		sys.trigger($hookset1_relay);
+		$tube1.unbind();
+		$tube1.bind($hookset1);
+		sys.trigger($spkr_tubecatch);
+		sys.wait(.5);
+		$tube_extracter.moveTo($extracter_inside);
+		sys.waitFor($tube_extracter);
+		sys.trigger($tube_compartment);
+		
+		copier_light_start();
+		sys.wait(1.5);
+		$tube2.bind($tube_extracter);
+		$tube_extracter.moveTo($extracter_outside);
+		sys.trigger($tube_compartment);
+		$tube2.show();
+		$tube2_tipa.show();
+		$tube2_tipb.show();
+		sys.trigger($tlight2);
+		$tube2b.show();
+		$tube2_tipa2.show();
+		$tube2_tipb2.show();
+		sys.trigger($tlight2b);
+		$hookset2.moveTo($conveyor_hook_end);
+		sys.wait(3);
+		sys.trigger($hookset2_relay);
+		$tube2.unbind();
+		$tube2.bind($hookset2);
+		sys.trigger($spkr_tubecatch);
+		sys.wait(.5);
+		$tube_extracter.moveTo($extracter_inside);
+		sys.waitFor($tube_extracter);
+		sys.trigger($tube_compartment);
+		
+		copier_light_start();
+		sys.wait(1.5);
+		$tube3.bind($tube_extracter);
+		$tube_extracter.moveTo($extracter_outside);
+		sys.trigger($tube_compartment);
+		$tube3.show();
+		$tube3_tipa.show();
+		$tube3_tipb.show();
+		sys.trigger($tlight3);
+		$tube3b.show();
+		$tube3_tipa2.show();
+		$tube3_tipb2.show();
+		sys.trigger($tlight3b);
+		sys.waitFor($tube_extracter);
+		$hookset3.moveTo($conveyor_hook_end);
+		sys.wait(3);
+		sys.trigger($hookset3_relay);
+		$tube3.unbind();
+		$tube3.bind($hookset3);
+		sys.trigger($spkr_tubecatch);
+		sys.wait(.5);
+		$tube_extracter.moveTo($extracter_inside);
+		sys.waitFor($tube_extracter);
+		sys.trigger($tube_compartment);
+		
+		copier_light_start();
+		sys.wait(1.5);
+		$tube1.bind($tube_extracter);
+		$tube_extracter.moveTo($extracter_outside);
+		sys.trigger($tube_compartment);
+		$tube1.show();
+		$tube1_tipa.show();
+		$tube1_tipb.show();
+		sys.trigger($tlight1);
+		$tube1b.show();
+		$tube1_tipa2.show();
+		$tube1_tipb2.show();
+		sys.trigger($tlight1b);
+		sys.waitFor($tube_extracter);
+		}
+	}
+	
+	void replace_hookset1()
+	{	
+		$tube1.unbind();
+		$tube1.hide();
+		$tube1_tipa.hide();
+		$tube1_tipb.hide();
+		sys.trigger($tlight1);
+		$tube1b.hide();
+		$tube1_tipa2.hide();
+		$tube1_tipb2.hide();
+		sys.trigger($tlight1b);
+		$tube1.restorePosition();
+		$hookset1.restorePosition();		
+	}
+	
+	void replace_hookset2() 
+	{	
+		$tube2.unbind();
+		$tube2.hide();
+		$tube2_tipa.hide();
+		$tube2_tipb.hide();
+		sys.trigger($tlight2);
+		$tube2b.hide();
+		$tube2_tipa2.hide();
+		$tube2_tipb2.hide();
+		sys.trigger($tlight2b);
+		$tube2.restorePosition();
+		$hookset2.restorePosition();		
+	}
+	
+	void replace_hookset3() 
+	{	
+		$tube3.unbind();
+		$tube3.hide();
+		$tube3_tipa.hide();
+		$tube3_tipb.hide();
+		sys.trigger($tlight3);
+		$tube3b.hide();
+		$tube3_tipa2.hide();
+		$tube3_tipb2.hide();
+		sys.trigger($tlight3b);
+		$tube3.restorePosition();
+		$hookset3.restorePosition();		
+	}
+	
+	void copier_light_reset ()		
+	{
+		$tube_copier_light_mover.time (.3);
+		$tube_copier_light_mover.moveTo($tube_copier_light_start);
+	}	
+	
+	void mover_startsound (entity ent) {
+		ent.startSoundShader ("m1_start", SND_CHANNEL_VOICE);
+		sys.wait (0.75);
+		ent.startSoundShader ("m1_loop", SND_CHANNEL_VOICE2);
+	}
+
+	void mover_stopsound (entity ent) {
+		ent.startSoundShader ("m1_stop", SND_CHANNEL_VOICE2);
+		ent.startSoundShader ("rec1_pump_endclack_01", SND_CHANNEL_ITEM );
+	}
+	
+	float PUMPS_RUNNING = 1;
+	
+	void cycle_pump3() {
+		sys.wait(1);
+		while( PUMPS_RUNNING ) {
+			$slime_pump_01.time(3);
+			$slime_pump_01.move( UP, 96 );
+			sys.waitFor( $slime_pump_01 );
+			sys.trigger($speaker_pump3);
+			$slime_pump_01.time(1);
+			$slime_pump_01.move( DOWN, 96 );
+			sys.waitFor( $slime_pump_01 );
+		}
+	}
+
+	void cycle_pump4() {
+		sys.wait(1);
+		while( PUMPS_RUNNING ) {
+			$slime_pump_02.time(3);
+			$slime_pump_02.move( UP, 96 );
+			sys.waitFor( $slime_pump_02 );
+			sys.trigger($speaker_pump4);
+			$slime_pump_02.time(1);
+			$slime_pump_02.move( DOWN, 96 );
+			sys.waitFor( $slime_pump_02 );
+		}
+	}
+	
+	void pist1_loop()
+	{	
+		while (1){
+			$pist1.time (1.5);
+			
+			$pist1.startSoundShader ("m3_loop", SND_CHANNEL_VOICE2);
+			
+			$pist1.move (DOWN, 48);
+			sys.waitFor ($pist1);
+			
+			$pist1.startSoundShader ("m2_stop", SND_CHANNEL_VOICE2);
+			$pist1.startSoundShader ("rec1_pump_endclack_01", SND_CHANNEL_ITEM );
+	
+			$pist1.time (0.5);
+			
+			$pist1.startSoundShader ("m3_loop", SND_CHANNEL_VOICE2);
+			
+			$pist1.move (UP, 48);
+			sys.waitFor ($pist1);
+			
+			$pist1.startSoundShader ("m3_stop", SND_CHANNEL_VOICE2);
+			$pist1.startSoundShader ("rec1_pump_endclack_01", SND_CHANNEL_ITEM );
+		}
+	}
+	
+	void pist2_loop()
+	{	
+		while (1){
+			$pist2.time (1.7);
+			
+			$pist2.startSoundShader ("m3_loop", SND_CHANNEL_VOICE2);
+			
+			$pist2.move (DOWN, 48);
+			sys.waitFor ($pist2);
+			
+			$pist2.startSoundShader ("m2_stop", SND_CHANNEL_VOICE2);
+			$pist2.startSoundShader ("rec1_pump_endclack_01", SND_CHANNEL_ITEM );
+
+			$pist2.time (0.7);
+			
+			$pist2.startSoundShader ("m3_loop", SND_CHANNEL_VOICE2);
+			
+			$pist2.move (UP, 48);
+			sys.waitFor ($pist2);
+			
+			$pist2.startSoundShader ("m3_stop", SND_CHANNEL_VOICE2);
+			$pist2.startSoundShader ("rec1_pump_endclack_01", SND_CHANNEL_ITEM );
+		}
+	}
+
+	float CheckBigDoor(float doorNum)
+	{
+		entity door = sys.getEntity("fuel_bigdoor_0" + doorNum);
+		float doorStatus = door.getFloatKey("DoorStatus");
+		return doorStatus;
+	}
+
+	float CheckNextBigDoor(float doorNum)
+	{
+		if(doorNum == 9)
+			return 0;
+
+		return CheckBigDoor(doorNum + 1);
+	}
+
+	float CheckPrevBigDoor(float doorNum)
+	{
+		if(doorNum == 1)
+			return 0;
+
+		return CheckBigDoor(doorNum - 1);
+	}
+
+	void OpenBigDoor(float doorNum, float handleNum)
+	{		
+		float handleDis = 6;
+		float otherHandleNum = 3 - handleNum;
+
+		entity handle = sys.getEntity("fuel_bigdoor_0" + doorNum + "_handle_" + handleNum);
+		entity otherClicker= sys.getEntity("fuel_bigdoor_0" + doorNum + "_handle_" + otherHandleNum + "_clicker");
+		otherClicker.setKey("click_item", 0);
+
+		vector handleRv = handle.getVectorKey("rotateVector");
+		float handleOut = handle.getFloatKey("outDir");
+
+		entity door = sys.getEntity("fuel_bigdoor_0" + doorNum);
+		entity door_aas_relay_open = sys.getEntity("fuel_bigdoor_0" + doorNum + "_aas_relay_open");
+		entity door_aas_relay_close = sys.getEntity("fuel_bigdoor_0" + doorNum + "_aas_relay_close");
+		entity door_relay_var1 = sys.getEntity("fuel_bigdoor_0" + doorNum + "_relay_var1");
+		entity door_relay_var2 = sys.getEntity("fuel_bigdoor_0" + doorNum + "_relay_var2");
+		entity crusher = sys.getEntity("fuel_bigdoor_0" + doorNum + "_crusher");
+		entity crusher_off = sys.getEntity("fuel_bigdoor_0" + doorNum + "_crusher_off");
+		vector doorRv = door.getVectorKey("rotateVector");
+		entity switch_blinkya = sys.getEntity("fuel_bigdoor_0" + doorNum + "_switch_lighta");
+		entity switch_blinkyb = sys.getEntity("fuel_bigdoor_0" + doorNum + "_switch_lightb");
+		entity switch_blinky_deco = sys.getEntity("fuel_bigdoor_0" + doorNum + "_switch_light_deco");
+		entity switch_blinky_decy = sys.getEntity("fuel_bigdoor_0" + doorNum + "_switch_light_decy");
+		entity switch_blinky_decg = sys.getEntity("fuel_bigdoor_0" + doorNum + "_switch_light_decg");
+		float doorStatus = door.getFloatKey("DoorStatus");
+
+		entity speaker = sys.getEntity("fuel_bigdoor_0" + doorNum + "_speaker");
+		entity portal = sys.getEntity("fuel_bigdoor_0" + doorNum + "_portal");
+		entity clicker = sys.getEntity("fuel_bigdoor_0" + doorNum + "_handle_" + handleNum + "_clicker");
+		entity step1 = sys.getEntity("fuel_bigdoor_0" + doorNum + "_step_1");
+		entity step2 = sys.getEntity("fuel_bigdoor_0" + doorNum + "_step_2");
+		float step1Out = step1.getFloatKey("outDir");
+		float step2Out = (180 + step1Out) % 360;
+			
+		handle.move(handleOut, handleDis);
+		handle.startSoundShader ("sound/shav/e1m5_2/handleout.ogg", SND_CHANNEL_ANY);
+		
+		sys.waitFor(handle);
+
+		float locked = CheckPrevBigDoor(doorNum);
+		if(!locked)
+		{		
+			locked = CheckNextBigDoor(doorNum);
+		}
+		
+		if(locked == 1)
+		{			
+			clicker.startSoundShader ("sound/shav/general/alarm4.ogg", SND_CHANNEL_ANY);
+			sys.wait(1);
+			handle.time(2);
+			handle.move(handleOut, -handleDis);
+			handle.startSoundShader ("sound/shav/e1m5_2/handlein.ogg", SND_CHANNEL_ANY);
+			sys.waitFor(handle);
+			handle.time(0.3);
+		}
+		else
+		{
+			door.setKey("DoorStatus", 1);
+
+			sys.wait(.25);
+
+			if(doorStatus == 0)
+			{
+				handle.rotateOnce(handleRv * 90);
+			}
+			else
+			{
+				handle.rotateOnce(handleRv * -90);				
+			}
+			
+			handle.startSoundShader ("sound/shav/e1m5_2/handlerot.ogg", SND_CHANNEL_ANY);
+			sys.waitFor(handle);
+			sys.wait(.25);
+
+			handle.move(handleOut, -handleDis);
+			handle.startSoundShader ("sound/shav/e1m5_2/handleout2.ogg", SND_CHANNEL_ANY);
+		
+			sys.waitFor(handle);
+			sys.wait(1);
+
+			if(doorStatus == 0)
+			{
+				sys.trigger(portal);
+				sys.trigger(door_aas_relay_open);
+				sys.trigger(door_relay_var1);
+				switch_blinkya.setColor(1, 1, 0);
+				switch_blinkyb.setColor(1, 1, 0);
+				switch_blinky_deco.hide();
+				switch_blinky_decy.show();				
+			}
+			else if(doorStatus == 1)
+			{
+				step1.move(step1Out, 24);
+				step2.move(step2Out, 24);
+				sys.trigger(door_aas_relay_close);
+				sys.trigger(door_relay_var2);
+				switch_blinkya.setColor(1, 1, 0);
+				switch_blinkyb.setColor(1, 1, 0);
+				switch_blinky_decg.hide();
+				switch_blinky_decy.show();
+				sys.trigger(crusher);
+				sys.trigger(crusher_off);
+			}
+
+			door.rotateOnce(doorRv * 180);
+			sys.wait(.1);
+			sys.trigger(speaker);
+
+			if(doorStatus == 0)
+			{
+				sys.wait(8);
+
+				step1.move(step2Out, 24);
+				step2.move(step1Out, 24);
+			}
+
+			sys.waitFor(door);
+
+			if(doorStatus == 1)
+			{
+				sys.trigger(portal);
+				switch_blinkya.setColor(1, 0.5, 0);
+				switch_blinkyb.setColor(1, 0.5, 0);
+				switch_blinky_decy.hide();
+				switch_blinky_deco.show();
+				doorStatus = 0;
+			}
+			else
+			{			
+				switch_blinkya.setColor(0, 1, 0.5);
+				switch_blinkyb.setColor(0, 1, 0.5);
+				switch_blinky_decy.hide();
+				switch_blinky_decg.show();	
+				doorStatus = 1;
+			}
+		
+			door.setKey("DoorStatus", doorStatus);
+			sys.wait(4);
+		}
+		clicker.setKey("click_item", 1);
+		otherClicker.setKey("click_item", 1);
+	}
+
+	void OpenBigDoor1_1() { OpenBigDoor(1,1); }
+	void OpenBigDoor1_2() { OpenBigDoor(1,2); }
+	void OpenBigDoor2_1() { OpenBigDoor(2,1); }
+	void OpenBigDoor2_2() { OpenBigDoor(2,2); }
+	void OpenBigDoor3_1() { OpenBigDoor(3,1); }
+	void OpenBigDoor3_2() { OpenBigDoor(3,2); }
+	void OpenBigDoor4_1() { OpenBigDoor(4,1); }
+	void OpenBigDoor4_2() { OpenBigDoor(4,2); }
+	void OpenBigDoor5_1() { OpenBigDoor(5,1); }
+	void OpenBigDoor5_2() { OpenBigDoor(5,2); }
+	void OpenBigDoor6_1() { OpenBigDoor(6,1); }
+	void OpenBigDoor6_2() { OpenBigDoor(6,2); }
+	void OpenBigDoor7_1() { OpenBigDoor(7,1); }
+	void OpenBigDoor7_2() { OpenBigDoor(7,2); }
+	void OpenBigDoor8_1() { OpenBigDoor(8,1); }
+	void OpenBigDoor8_2() { OpenBigDoor(8,2); }
+	void OpenBigDoor9_1() { OpenBigDoor(9,1); }
+	void OpenBigDoor9_2() { OpenBigDoor(9,2); }
+	
+	void crankshaft ()
+	{
+		while (1) 
+		{		
+			$piston1.move ( DOWN, 6 );
+			$pistrod1.rotateOnce ( '0 0 -26.56' );
+			$piston2.move ( UP, 6 );
+			$pistrod2.rotateOnce ( '0 0 26.56' );
+			$crankshaft.rotateOnce ( '0 0 90' );
+			sys.waitFor ($piston1);
+
+			$piston1.move ( DOWN, 6 );
+			$pistrod1.rotateOnce ( '0 0 26.56' );
+			$piston2.move ( UP, 6 );
+			$pistrod2.rotateOnce ( '0 0 -26.56' );
+			$crankshaft.rotateOnce ( '0 0 90' );
+			sys.waitFor ($piston1);
+
+			$piston1.move ( UP, 6 );
+			$pistrod1.rotateOnce ( '0 0 26.56' );
+			$piston2.move ( DOWN, 6 );
+			$pistrod2.rotateOnce ( '0 0 -26.56' );
+			$crankshaft.rotateOnce ( '0 0 90' );
+			sys.waitFor ($piston1);
+
+			$piston1.move ( UP, 6 );
+			$pistrod1.rotateOnce ( '0 0 -26.56' );
+			$piston2.move ( DOWN, 6 );
+			$pistrod2.rotateOnce ( '0 0 26.56' );
+			$crankshaft.rotateOnce ( '0 0 90' );
+			sys.waitFor ($piston1);
+		} 
+
+	}
+	
+	void pump1piston1_start ()
+	{
+		while (1)
+		{ 
+			$pump_piston1.accelTime (.5);
+			$pump_piston1.decelTime (.2);
+			$pump_piston1.time (1);
+			thread mover_startsound ($pump_piston1);
+			$pump_piston1.moveTo ($pump_piston1_btm);
+			sys.waitFor ($pump_piston1);
+			mover_stopsound ($pump_piston1);
+		        
+			sys.wait (1);
+		        
+			$pump_piston1.accelTime (.5);
+			$pump_piston1.decelTime (.8);
+				
+			thread mover_startsound ($pump_piston1);
+				
+			$pump_piston1.time (1.6);
+			$pump_piston1.moveTo ($pump_piston1_top);
+			sys.waitFor ($pump_piston1);
+				
+			mover_stopsound ($pump_piston1);
+		}
+	}
+
+	void pump1piston2_start ()
+	{
+		while (1)
+		{ 
+			$pump_piston2.accelTime (.5);
+			$pump_piston2.decelTime (.2);
+			$pump_piston2.time (1);
+			thread mover_startsound ($pump_piston2);
+			$pump_piston2.moveTo ($pump_piston2_btm);
+			sys.waitFor ($pump_piston2);
+			mover_stopsound ($pump_piston2);
+		        
+			sys.wait (1);
+		        
+			$pump_piston2.accelTime (.5);
+			$pump_piston2.decelTime (.8);
+				
+			thread mover_startsound ($pump_piston2);
+				
+			$pump_piston2.time (1.6);
+			$pump_piston2.moveTo ($pump_piston2_top);
+			sys.waitFor ($pump_piston2);
+				
+			mover_stopsound ($pump_piston2);
+		}
+	}
+	
+	void orangecyl_pumpsegs1()
+	{
+		while (1)
+		{
+				sys.waitFor($orange_pumpcyl_segs1);
+				$orange_pumpcyl_segs1.move(-1, 96);
+				sys.waitFor($orange_pumpcyl_segs1);
+				$orange_pumpcyl_segs1.move(-2, 96);
+		}
+	}
+	
+	void orangecyl_pumpsegs2()
+	{
+		while (1)
+		{
+		
+				sys.waitFor($orange_pumpcyl_segs2);
+				$orange_pumpcyl_segs2.move(-1, 96);
+				sys.waitFor($orange_pumpcyl_segs2);
+				$orange_pumpcyl_segs2.move(-2, 96);
+		}
+	}
+	
+	void orangecyl_pumpsegs3()
+	{
+		while (1)
+		{
+		
+				sys.waitFor($orange_pumpcyl_segs3);
+				$orange_pumpcyl_segs3.move(-1, 96);
+				sys.waitFor($orange_pumpcyl_segs3);
+				$orange_pumpcyl_segs3.move(-2, 96);
+		}
+	}
+
+	void EndTankDoor()
+	{
+		$EndTankHandle.rotateOnce('-90 0 0');
+		$EndTankHandle.startSoundShader("e1m5_3_large_switch", SND_CHANNEL_ANY);
+
+		sys.wait(1);
+		
+			$l_tankdoor.accelTime(.05);
+			$r_tankdoor.accelTime(.05);
+			$l_tankdoor.time(.35);
+			$r_tankdoor.time(.35);
+			sys.trigger($ltankdoor_spck);
+			sys.trigger($rtankdoor_spck);
+			$l_tankdoor.rotateDownTo(Y_AXIS, 357);
+			$r_tankdoor.rotateUpTo(Y_AXIS, 3);
+			sys.waitFor($r_tankdoor);
+			sys.wait(.7);
+			$l_tankdoor.accelTime(.35);
+			$r_tankdoor.accelTime(.35);
+			$l_tankdoor.time(6);
+			$r_tankdoor.time(6);
+			sys.trigger($ltankdoor_spro);
+			sys.trigger($rtankdoor_spro);
+			$l_tankdoor.rotateDownTo(Y_AXIS, 315);
+			$r_tankdoor.rotateUpTo(Y_AXIS, 45);
+			
+		sys.waitFor($l_tankdoor);
+		$EndPipe_Platform.move(DOWN, 256);
+		sys.waitFor($EndPipe_Platform);
+		$EndPipe_Platform_Railing.move(DOWN, 50);
+		sys.trigger($EndPipe_Platform_Railing_Spkr);	
+	}
+	
+	void SealEndTankDoors()
+	{
+			$l_tankdoor.decelTime(.35);
+			$r_tankdoor.decelTime(.35);
+			sys.trigger($ltankdoor_spro);
+			sys.trigger($rtankdoor_spro);
+			$l_tankdoor.rotateUpTo(Y_AXIS, 0);
+			$r_tankdoor.rotateDownTo(Y_AXIS, 0);
+			sys.wait(6);
+			sys.trigger($ltankdoor_spck2);
+			sys.trigger($rtankdoor_spck2);
+	}
+
+	float endLevelOnce = 0;
+	void EndLevel()
+	{
+		if(endLevelOnce != 0)
+			return;
+
+		endLevelOnce = 1;
+		
+		sys.trigger($exit_clip);
+		$EndPipe_Platform_Railing.move(UP, 50);
+		sys.trigger($EndPipe_Platform_Railing_Spkr);
+		sys.waitFor($EndPipe_Platform_Railing);
+		sys.wait(1);
+		$exit_clip.bind($EndPipe_Platform);
+		SealEndTankDoors();
+
+		$EndPipe_Platform.move(UP, 192);
+		sys.waitFor($EndPipe_Platform);
+		sys.wait(.5);
+
+		$EndPipeLowerDoorNorth.move(90, 136);
+		sys.wait(.125);
+		$EndPipeLowerDoorSouth.move(270, 136);
+		sys.waitFor($EndPipeLowerDoorSouth);
+		$EndPipe_Platform.time(8);
+		$EndPipe_Platform.move(UP, 608);
+		
+		sys.waitFor($EndPipe_Platform);
+		sys.wait(.5);
+
+		sys.trigger($EndPipeUpperDoorPortal);
+		$EndPipeUpperDoorNorth.move(90, 136);
+		sys.wait(.125);
+		$EndPipeUpperDoorSouth.move(270, 136);
+		sys.waitFor($EndPipeUpperDoorSouth);
+		$EndPipe_Platform.time(8);
+		$EndPipe_Platform.move(UP, 608);
+		
+		sys.wait(5);
+		$EndPipeUpperDoorNorth.move(270, 136);
+		$EndPipeUpperDoorSouth.move(90, 136);
+		
+		sys.wait(5);
+		sys.trigger($EndPipeUpperDoorPortal);
+		
+		sys.wait(.5);
+		
+		sys.trigger($EndPipeDoor3Portal);
+		$EndPipeDoorNorth3.move(90, 136);
+		sys.wait(.125);
+		$EndPipeDoorSouth3.move(270, 136);
+		sys.waitFor($EndPipeDoorSouth3);
+		$EndPipe_Platform.time(20);
+		$EndPipe_Platform.move(UP, 1824);
+		
+		sys.wait(16);
+		$EndPipeDoorNorth3.move(270, 136);
+		$EndPipeDoorSouth3.move(90, 136);
+		
+		sys.waitFor($EndPipeDoorNorth3);
+		sys.trigger($EndPipeDoor3Portal);
+		
+		sys.waitFor($EndPipe_Platform);
+		sys.wait(.5);
+		
+		sys.trigger($EndPipeDoor4Portal);
+		$EndPipeDoorNorth4.move(90, 136);
+		sys.wait(.125);
+		sys.trigger($shaft_sparks_relay);
+		$EndPipeDoorSouth4.move(270, 136);
+		sys.waitFor($EndPipeDoorSouth4);
+		$EndPipe_Platform.time(20);
+		$EndPipe_Platform.move(UP, 1824);
+		
+		sys.wait(16);
+		$EndPipeDoorNorth4.move(270, 136);
+		$EndPipeDoorSouth4.move(90, 136);
+		
+		sys.waitFor($EndPipeDoorNorth4);
+		sys.trigger($EndPipeDoor4Portal);
+		
+		sys.waitFor($EndPipe_Platform);
+		sys.wait(.5);
+		
+		sys.trigger($EndPipeDoor5Portal);
+		$EndPipeDoorNorth5.move(90, 136);
+		sys.wait(.125);
+		$EndPipeDoorSouth5.move(270, 136);
+		sys.waitFor($EndPipeDoorSouth5);
+		$EndPipe_Platform.time(20);
+		$EndPipe_Platform.move(UP, 1824);
+		
+		sys.wait(16);
+		$EndPipeDoorNorth5.move(270, 136);
+		$EndPipeDoorSouth5.move(90, 136);
+		
+		sys.waitFor($EndPipeDoorNorth5);
+		sys.trigger($EndPipeDoor5Portal);
+		
+		sys.waitFor($EndPipe_Platform);
+		sys.wait(.5);
+		
+		sys.trigger($EndPipeDoor6Portal);
+		$EndPipeDoorNorth6.move(90, 136);
+		sys.wait(.125);
+		$EndPipeDoorSouth6.move(270, 136);
+		sys.waitFor($EndPipeDoorSouth6);
+		$EndPipe_Platform.time(20);
+		$EndPipe_Platform.move(UP, 1824);
+		
+		sys.wait(16);
+		$EndPipeDoorNorth6.move(270, 136);
+		$EndPipeDoorSouth6.move(90, 136);
+		
+		sys.waitFor($EndPipeDoorNorth6);
+		sys.trigger($EndPipeDoor6Portal);
+		
+		sys.waitFor($EndPipe_Platform);
+		sys.wait(.5);
+		
+		sys.trigger($EndPipeDoor7Portal);
+		$EndPipeDoorNorth7.move(90, 136);
+		sys.wait(.125);
+		$EndPipeDoorSouth7.move(270, 136);
+		sys.waitFor($EndPipeDoorSouth7);
+		$EndPipe_Platform.time(20);
+		$EndPipe_Platform.move(UP, 1824);
+		
+	}
+	
+	
+	void chainsawfight()
+	{
+		float trigselect1;
+
+		while (1)
+		{
+			trigselect1 = sys.random(15);
+		
+				if (trigselect1 <= 8){
+					sys.trigger ($cabtrigger_once_110);
+					sys.wait(1);
+				}  
+				  else {
+					sys.trigger ($cabtrigger_once_111);
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_fight_selection1()
+	{
+		sys.killthread ("map_e1m5_2::chainsawfight");
+	}
+	
+	void impfight()
+	{
+		float trigselect2;
+
+		while (1)
+		{
+			trigselect2 = sys.random(15);
+		
+				if (trigselect2 <= 8){
+					sys.trigger ($imp_trig1);
+					sys.wait(1);
+				}  
+				  else {
+					sys.trigger ($imp_trig2);
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_fight_selection2()
+	{
+		sys.killthread ("map_e1m5_2::impfight");
+	}
+	
+	void tritefight()
+	{
+		float trigselect3;
+
+		while (1)
+		{
+			trigselect3 = sys.random(15);
+		
+				if (trigselect3 <= 8){
+					sys.trigger ($trite_trig1);
+					sys.wait(1);
+				}  
+				  else {
+					sys.trigger ($trite_trig2);
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_fight_selection3()
+	{
+		sys.killthread ("map_e1m5_2::tritefight");
+	}
+	
+	void maggotcacofight()
+	{
+		float trigselect4;
+
+		while (1)
+		{
+			trigselect4 = sys.random(15);
+		
+				if (trigselect4 <= 8){
+					sys.trigger ($maggotcaco_trig1);
+					sys.wait(1);
+				}  
+				  else {
+					sys.trigger ($maggotcaco_trig2);
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_fight_selection4()
+	{
+		sys.killthread ("map_e1m5_2::maggotcacofight");
+	}
+	
+	void disable_imp_trigger()
+	{
+		$trigger_once_151.disable();
+	}
+	
+	void enable_imp_trigger()
+	{
+		$trigger_once_151.enable();
+	}
+	
+	void disable_maggot_trigger()
+	{
+		$trigger_once_160.disable();
+	}
+	
+	void enable_maggot_trigger()
+	{
+		$trigger_once_160.enable();
+	}
+	
+	void disable_mancubus_trigger()
+	{
+		$trigger_once_129.disable();
+	}
+	
+	void enable_mancubus_trigger()
+	{
+		$trigger_once_129.enable();
+	}
+	
+	void disable_painelemental_trigger()
+	{
+		$trigger_once_182.disable();
+		$trigger_once_189.disable();
+	}
+	
+	void enable_painelemental_trigger()
+	{
+		$trigger_once_182.enable();
+		$trigger_once_189.enable();
+	}
+	
+	void disable_fueldoor_trigger()
+	{
+		$trigger_multiple_18.disable();
+	}
+	
+	void enable_fueldoor_trigger()
+	{
+		$trigger_multiple_18.enable();
+	}
+	
+	void open_arch_doors()
+	{
+		$func_door_188577.open();
+		$func_door_188571.open();
+		$func_door_188579.open();
+	
+	}
+	
+	void spec_spline()
+	{
+		$func_elevator_2.hide();
+		$broken_elev_gui.show();
+		sys.trigger ($spectrum_spline_stuff_relay);
+		$spec_spline_mover1.startSpline($spec_spline1);
+		$spec_spline_mover2.startSpline($spec_spline2);	
+	}
+	
+	void Miles12Sub()
+	{
+		PhobosShowSubtitle_e1m5_2("Miles", "I guess, technically, but he hasn't checked in for a long time.");		
+		sys.wait(7.25);		
+		PhobosShowSubtitle_e1m5_2("Miles", "Oh, right, speaking of the Bulwark.\nI think things have changed a bit.");
+		sys.wait(7);
+		PhobosShowSubtitle_e1m5_2("Miles", "They may have had to retreat further back into the complex.\nIt's not as safe as we initially thought.");
+	}
+
+	void Miles7Sub()
+	{
+		PhobosShowSubtitle_e1m5_2("Miles", "Yes! Well we've been orbiting the base for a couple of hours now.\nWe're just about to depart for the surface.");
+		sys.wait(5.75);
+		PhobosShowSubtitle_e1m5_2("Miles", "I hope it's not too bad down there.");
+	}
+
+	void Miles11Sub()
+	{
+		PhobosShowSubtitle_e1m5_2("Miles", "Sort of. Personnel on the different bases mostly work in shifts.");
+		sys.wait(4);
+		PhobosShowSubtitle_e1m5_2("Miles", "They rarely live at their workplace\nunless of course they work at the Bulwark itself.");
+	}
+	
+	void Miles14Sub()
+	{
+		PhobosShowSubtitle_e1m5_2("Miles", "I wish I knew. With all that's been going on,\nI don't know what to hope for.");
+		sys.wait(7);
+		PhobosShowSubtitle_e1m5_2("Miles", "If they got to him, he could have been detained.\nIf not, he may be in hiding.");
+		sys.wait(7.25);
+		PhobosShowSubtitle_e1m5_2("Miles", "I can't tell you exactly where to go,\nbut I'm sure there are clues as to what happened to him.");
+	}
+
+	void Miles15Sub()
+	{
+		PhobosShowSubtitle_e1m5_2("Miles", "I hope not, but he's been silent for so long and with all of this going on,\nit's hard to say.");
+		sys.wait(6);
+		PhobosShowSubtitle_e1m5_2("Miles", "I...I'm sorry...\nI don't know what to say.");
+	}
+
+	void MilesCall1()
+	{
+		PhobosShowSubtitle_e1m5_2("Miles", "Sam? Are you there?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles1.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "Miles? How did you...?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player1.ogg");	
+
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Miles", "It wasn't me. The radio indicated that you were in range.\nYou must be close to federal equipment!");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles2.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "Yeah I think I'm getting close!");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player2.ogg");	
+
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Miles", "I'm so glad you're safe.\nYou ARE safe, right?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles3.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "I think so.\nWell, yes. All things considered.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player3.ogg");	
+
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Miles", "So what happened back there?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles4.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "The bomb? Yeah. I forgot to review the settings...\nhad 3 seconds to get out of there.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player4.ogg");	
+
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Miles", "Ooof.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles5.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "I woke up on the other side of the room with ringing in my ears.\n...But I'm okay. It subsided.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player5.ogg");	
+
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Miles", "Having fun without me I see.\nI wish I could help you more directly...");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles6.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "So do I.\nDid you ever reach Phobos?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player6.ogg");	
+
+		Beat(.5);
+		
+		thread Miles7Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles7.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "What are you going to do once you get there?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player7.ogg");	
+
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Miles", "Almost all personnel has been drawn back to Phobos to secure some important assets.\nI'm part of the task force.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles8.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "Assets on Phobos?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player8.ogg");
+
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Miles", "Yeah. Our most prized research is located on Phobos.\nTeleportation. Receptacle base.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles9.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "Calloway is usually stationed on that base, right?\nI think he mentioned that in his message to you.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player9.ogg");	
+
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Miles", "Yup. Exactly.\nIt's where he works.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles10.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "Right. But then he lives on Mars? In the Bulwark?\nOr how does that work?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player10.ogg");
+
+		Beat(.5);
+		
+		thread Miles11Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles11.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "So there's a chance he may still be there?\nOn Phobos?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player11.ogg");
+
+		Beat(.5);
+		
+		thread Miles12Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles12.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "What, so I can't grab a cold one and relax?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player12.ogg");
+
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Miles", "That may have to wait.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles13.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "I had it all planned out, too...\nSo where do I find Calloway?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player13.ogg");
+
+		Beat(.5);
+		
+		thread Miles14Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles14.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "Sounds reassuring.\nSo you think something bad happened to him?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player14.ogg");
+
+		Beat(.5);
+		
+		thread Miles15Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles15.ogg");
+
+		sys.hideSubtitles();
+
+		$func_static_100810.setKey("item_disabled", 0);
+	}
+	
+	void Miles17Sub()
+	{
+		PhobosShowSubtitle_e1m5_2("Miles", "Does it really matter all that much?");		
+		sys.wait(3.25);		
+		PhobosShowSubtitle_e1m5_2("Miles", "We have a tendency to shape our identity way too much by what we have done.");
+		sys.wait(5);	
+		PhobosShowSubtitle_e1m5_2("Miles", "And not enough by what we want to do and what we want to accomplish.\nWho we want to be.");
+		sys.wait(5.75);		
+		PhobosShowSubtitle_e1m5_2("Miles", "You have been given a clean slate.\nYou're a free man!");
+	}
+	
+	void Miles18Sub()
+	{
+		PhobosShowSubtitle_e1m5_2("Miles", "What about all the bad memories? Getting bullied at school.\nThe first time you lost a pet.");		
+		sys.wait(8);		
+		PhobosShowSubtitle_e1m5_2("Miles", "Family members getting sick, dying? Losing your job. The love of your life leaving you?\nDo you really need all that baggage?");		
+		sys.wait(10.25);		
+		PhobosShowSubtitle_e1m5_2("Miles", "To be honest, sometimes I wish I could forget everything.");
+	}
+	
+	void Miles19Sub()
+	{
+		PhobosShowSubtitle_e1m5_2("Miles", "That's true, but there will never be a shortage of possibilities for failure.");
+		sys.wait(7.25);
+		PhobosShowSubtitle_e1m5_2("Miles", "I mean you'll make new mistakes, but you'll have the luxury of forgetting the old.");
+		sys.wait(6.25);
+		PhobosShowSubtitle_e1m5_2("Miles", "Think of it this way. About every two weeks, most of your skin cells have been replaced.");		
+		sys.wait(6);
+		PhobosShowSubtitle_e1m5_2("Miles", "Going 7 years, every atom in your body has been exchanged for another.");	
+		sys.wait(5);		
+		PhobosShowSubtitle_e1m5_2("Miles", "None of what you are made up of is the same as the you from 7 years ago.");
+		sys.wait(5);
+		PhobosShowSubtitle_e1m5_2("Miles", "So why do we have to act as if we're still the same person?");
+	}
+	
+	void Miles20Sub()
+	{
+		PhobosShowSubtitle_e1m5_2("Miles", "And vice versa. Look. I'm not telling you how to feel or what to think.");		
+		sys.wait(7.5);		
+		PhobosShowSubtitle_e1m5_2("Miles", "I'm sure you'll recover your memory, but even if you don't.");
+		sys.wait(4.5);		
+		PhobosShowSubtitle_e1m5_2("Miles", "Something good could come of it.\nYou're a good person, Sam. I wish I had met you sooner.");
+	}
+	
+	void Miles21Sub()
+	{
+		PhobosShowSubtitle_e1m5_2("Miles", "Don't say anything.");
+		sys.wait(2);		
+		PhobosShowSubtitle_e1m5_2("Miles", "I have to leave. We're departing for the surface soon,\nbut I just wanted to reconnect with you.");	
+		sys.wait(5.75);	
+		PhobosShowSubtitle_e1m5_2("Miles", "I'm so glad you're still with me.\nI'm sorry for all of this.");	
+		sys.wait(4);
+		PhobosShowSubtitle_e1m5_2("Miles", "Be careful, okay?");
+	}
+
+	void Player18Sub()
+	{
+		PhobosShowSubtitle_e1m5_2("Sam", "But, aren't those the memories that shape who you are the most?");
+		sys.wait(3.75);
+		PhobosShowSubtitle_e1m5_2("Sam", "Would you be the same Samantha Miles if you had not experienced all those bad times?");
+	}
+	
+	void MilesCall2()
+	{
+		PhobosShowSubtitle_e1m5_2("Sam", "Samantha? I was thinking. What if I never recover my memory?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player15.ogg");
+
+		Beat(.5);
+	
+		PhobosShowSubtitle_e1m5_2("Miles", "I'm sure you will, but even if you don't...\nWould that be so bad?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles16.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "But if I don't, how will I know who I was?\nWho I am?");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player16.ogg");
+
+		Beat(.5);
+		
+		thread Miles17Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles17.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "What about all the good memories?\nI must be missing out on a few great times.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player17.ogg");
+
+		Beat(.5);
+		
+		thread Miles18Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles18.ogg");
+		
+		Beat(.5);
+		
+		thread Player18Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player18.ogg");
+		
+		Beat(.5);
+		
+		thread Miles19Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles19.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "Sure, that's easy to say when you don't lack an identity.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player19.ogg");
+
+		Beat(.5);
+		
+		thread Miles20Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles20.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "Thanks. Now I don't know what to say.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player20.ogg");
+
+		Beat(.5);
+		
+		thread Miles21Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Miles21.ogg");
+		
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m5_2("Sam", "You too, Smiles.");
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_2/MilesCall/Player21.ogg");
+		
+		Beat(.5);
+		
+		sys.hideSubtitles();
+
+		sys.trigger($levelexit_relay);
+	}
+	
+	void platformactivate_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 10");
+	}
+	
+	void elevatorpower_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 11");
+	}
+	
+	void firstbulkhead_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 12");
+	}
+	
+	void tunnelladder_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 13");
+	}
+	
+	void postarchvile_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 14");
+	}
+	
+	void prehelltunnel_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 15");
+	}
+	
+	void bulwark_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 16");
+	}
+	
+	void main()
+	{
+		$EndPipe_Platform_Railing.move(UP, 50);
+		$EndPipe_Platform.move(UP, 256);
+		
+		objects_setup();
+		thread extract_tubes(); 
+		thread piston_discs_down();
+		thread pump1piston1_start();
+		thread pump1piston2_start();
+		thread crankshaft ();
+		thread orangecyl_pumpsegs1();
+		thread orangecyl_pumpsegs2();
+		thread orangecyl_pumpsegs3();
+		thread cycle_pump3 ();
+		thread cycle_pump4 ();
+		thread pist1_loop ();
+		thread pist2_loop ();
+		sys.trigger($cabfunc_static_96609);
+		sys.trigger($cabenv_storagecabinet_5);
+		sys.trigger($func_static_87974);
+		sys.trigger($env_storagecabinet_4);
+		sys.wait(5);
+		thread chainsawfight();
+		sys.wait(3);
+		thread impfight();
+		sys.wait(7);
+		thread tritefight();
+		sys.wait(10);
+		thread maggotcacofight();
+	}
+}

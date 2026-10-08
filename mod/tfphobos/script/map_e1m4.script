@@ -1,0 +1,2190 @@
+namespace map_e1m4
+{		
+	float hatch01state = 1;
+	//0 = closed
+	//1 = open
+	
+	float hatch03state = 0;
+	//0 = closed
+	//1 = open
+	
+	float objective_drainstartpipe_state = 0;
+	//0 = started
+	//1 = completed
+	
+	float objective_drainsecondpipe_state = 0;
+	//0 = not started
+	//1 = started
+	//2 = completed
+	
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m4(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+	
+	void CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+	
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}
+	
+	void StartObjectiveTwo()
+	{
+		objective_drainsecondpipe_state = 1;
+	}
+
+	void SetLock(float pipe, float state, float oldState)
+	{
+		entity door1 = sys.getEntity("fuelpipe0" + pipe + "_hatch01");
+		entity door2 = sys.getEntity("fuelpipe0" + pipe + "_hatch02");
+		entity gui1 = sys.getEntity("fuelpipe0" + pipe + "_hatch01_gui");
+		entity gui2 = sys.getEntity("fuelpipe0" + pipe + "_hatch02_gui");
+		entity light1 = sys.getEntity("fuelpipe0" + pipe + "_hatch01_light_" + (1 - state));
+		entity light2 = sys.getEntity("fuelpipe0" + pipe + "_hatch02_light_" + (1 - state));		
+		entity tex_red = sys.getEntity("fuelpipe0" + pipe + "_hatch01_tex_red");
+		entity tex_red2 = sys.getEntity("fuelpipe0" + pipe + "_hatch02_tex_red");
+		entity tex_green = sys.getEntity("fuelpipe0" + pipe + "_hatch01_tex_green");
+		entity tex_green2 = sys.getEntity("fuelpipe0" + pipe + "_hatch02_tex_green");
+		entity flare_red = sys.getEntity("fuelpipe0" + pipe + "_flare_0");
+		entity flare_green = sys.getEntity("fuelpipe0" + pipe + "_flare_1");
+		
+		door1.lock(state);
+		door2.lock(state);
+		gui1.setGuiParm("gui_parm2", state);
+		sys.trigger(gui1);
+		gui2.setGuiParm("gui_parm2", state);
+		sys.trigger(gui2);
+		sys.trigger(light1);
+		sys.trigger(light2);
+		
+		if(state == 1)
+		{
+			thread crossFadeEnt (flare_red, '0 0 0', '.5 0 0', .125);
+			thread crossFadeEnt (flare_green, '0 .5 0', '0 0 0', .125);
+		}
+		else
+		{
+			thread crossFadeEnt (flare_red, '.5 0 0', '0 0 0', .125);
+			thread crossFadeEnt (flare_green, '0 0 0', '0 .5 0', .125);
+		}
+		
+
+		if(oldState != state)
+		{
+			sys.trigger(tex_red);
+			sys.trigger(tex_green);
+			sys.trigger(tex_red2);
+			sys.trigger(tex_green2);
+		}
+	}
+
+	float cargoLineReady = 0;
+
+	void TransferFuel1()
+	{		
+		float oldState = $fuelcontrol.getGuiParmFloat (1, "gui_parm1");
+		float oS1 = 0;
+		float oS2 = 0;
+		float oS3 = 0;
+
+		if(oldState == 1)
+		{
+			oS1 = 1;
+		}
+		else if(oldState == 2)
+		{
+			oS2 = 1;
+		}
+		else
+		{
+			oS3 = 1;
+		}
+
+		$fuelcontrol.setGuiParm("gui_parm1", 1);
+		sys.trigger($fuelcontrol);
+
+		$fuelcontrol.startSoundShader("e1m3_2_beepx3", SND_CHANNEL_ANY);
+		$fuelcontrol.startSoundShader("bridge_up_speaker", SND_CHANNEL_ANY);
+		sys.trigger($speakerDrain);
+		
+		sys.wait(4.75);
+		
+		sys.trigger($speakerDrain);
+		$fuelcontrol.startSoundShader("bridge_down_speaker", SND_CHANNEL_ANY);
+		$fuelcontrol.startSoundShader("e1m3_2_beepx3", SND_CHANNEL_ANY);
+
+		SetLock(1, 1, oS1);
+		SetLock(2, 0, oS2);
+		SetLock(3, 0, oS3);
+
+		cargoLineReady = 0;
+	}
+
+	void TransferFuel2()
+	{
+		float oldState = $fuelcontrol.getGuiParmFloat (1, "gui_parm1");
+		float oS1 = 0;
+		float oS2 = 0;
+		float oS3 = 0;
+
+		if(oldState == 1)
+		{
+			oS1 = 1;
+		}
+		else if(oldState == 2)
+		{
+			oS2 = 1;
+		}
+		else
+		{
+			oS3 = 1;
+		}
+
+		$fuelcontrol.setGuiParm("gui_parm1", 2);
+		sys.trigger($fuelcontrol);
+
+		$fuelcontrol.startSoundShader("e1m3_2_beepx3", SND_CHANNEL_ANY);
+		$fuelcontrol.startSoundShader("bridge_up_speaker", SND_CHANNEL_ANY);
+		sys.trigger($speakerDrain);
+		
+		sys.wait(4.75);
+		
+		sys.trigger($speakerDrain);
+		$fuelcontrol.startSoundShader("bridge_down_speaker", SND_CHANNEL_ANY);
+		$fuelcontrol.startSoundShader("e1m3_2_beepx3", SND_CHANNEL_ANY);
+
+		SetLock(1, 0, oS1);
+		SetLock(2, 1, oS2);
+		SetLock(3, 0, oS3);
+		
+		cargoLineReady = 0;
+	}
+
+	void TransferFuel3()
+	{
+		float oldState = $fuelcontrol.getGuiParmFloat (1, "gui_parm1");
+		float oS1 = 0;
+		float oS2 = 0;
+		float oS3 = 0;
+
+		if(oldState == 1)
+		{
+			oS1 = 1;
+		}
+		else if(oldState == 2)
+		{
+			oS2 = 1;
+		}
+		else
+		{
+			oS3 = 1;
+		}
+
+		$fuelcontrol.setGuiParm("gui_parm1", 3);
+		sys.trigger($fuelcontrol);
+
+		$fuelcontrol.startSoundShader("e1m3_2_beepx3", SND_CHANNEL_ANY);
+		$fuelcontrol.startSoundShader("bridge_up_speaker", SND_CHANNEL_ANY);
+		sys.trigger($speakerDrain);
+		
+		sys.wait(4.75);
+		
+		sys.trigger($speakerDrain);
+		$fuelcontrol.startSoundShader("bridge_down_speaker", SND_CHANNEL_ANY);
+		$fuelcontrol.startSoundShader("e1m3_2_beepx3", SND_CHANNEL_ANY);
+		
+		SetLock(1, 0, oS1);
+		SetLock(2, 0, oS2);
+		SetLock(3, 1, oS3);
+
+		cargoLineReady = 1;
+	}
+	
+	void DrainToggle()
+	{
+		float fuelTank = $fuelcontrol.getGuiParmFloat (1, "gui_parm1");		
+		
+		if( fuelTank == 0 )
+		{
+			fuelTank = 1;
+			
+			if( hatch01state == 0 )
+			{
+				//$hatch01_door3.move(180, 28);
+				//$hatch01_door4.move(0, 28);
+				hatch01state = 1;
+				
+				sys.trigger($hatch01_setlight_green);				
+				
+				if( objective_drainsecondpipe_state == 1 )
+				{
+					objective_drainsecondpipe_state = 2;					
+				}
+			}
+			
+			if( hatch03state == 1 )
+			{
+				//$hatch03_door1.move(270, 28);
+				//$hatch03_door3.move(270, 28);
+				//$hatch03_door2.move(90, 28);
+				//$hatch03_door4.move(90, 28);
+				//sys.trigger($hatch03_portal);
+				hatch03state = 0;
+				
+				sys.trigger($hatch03_setlight_red);				
+			}						
+		}
+		else
+		{
+			fuelTank = 0;
+			
+			if( hatch01state == 1 )
+			{
+				//$hatch01_door3.move(0, 28);
+				//$hatch01_door4.move(180, 28);
+				//sys.trigger($hatch01_portal);
+				hatch01state = 0;
+				
+				sys.trigger($hatch01_setlight_red);
+				sys.trigger($starthatch_toRed);
+			}
+			
+			if( hatch03state == 0 )
+			{
+				//sys.trigger($hatch03_portal);
+				//$hatch03_door1.move(90, 28);
+				//$hatch03_door3.move(90, 28);
+				//$hatch03_door2.move(270, 28);
+				//$hatch03_door4.move(270, 28);
+				hatch03state = 1;
+				
+				sys.trigger($hatch03_setlight_green);
+				sys.trigger($starthatch_toGreen);
+				
+				if( objective_drainstartpipe_state == 0 )
+				{
+					objective_drainstartpipe_state = 1;					
+				}
+			}
+		}
+		
+		sys.trigger($relay_toggleDrain);
+		$fuelcontrol.setGuiParm("gui_parm1", fuelTank);
+		sys.trigger($fuelcontrol);
+	}
+	
+	void StartEndlessPitVent()
+	{
+		//while(1)
+		{
+			$endlesspit_vent01.move(360, 64);
+			sys.waitFor($endlesspit_vent01);
+			sys.trigger($endlesspit_vent01_fx);
+			$endlesspit_vent01_fx.startSoundShader("airlock_01", SND_CHANNEL_BODY);
+			
+			sys.wait(4);
+			sys.trigger($endlesspit_vent01_fx);
+			//$endlesspit_vent01.move(180, 64);				
+			
+			$endlesspit_vent02.move(360, 64);
+			sys.waitFor($endlesspit_vent02);
+			sys.trigger($endlesspit_vent02_fx);
+			$endlesspit_vent02_fx.startSoundShader("airlock_01", SND_CHANNEL_BODY);
+			
+			sys.wait(4);
+			sys.trigger($endlesspit_vent02_fx);
+			//$endlesspit_vent02.move(180, 64);				
+		}
+	}
+
+	void crawlspace_skel ()
+	{
+		$func_mover_29.moveTo($func_static_64443);
+		sys.waitFor ($func_mover_29);
+		$func_mover_29.remove();
+		$env_ragdoll_skeleton_2.remove();
+	}
+
+	float Track_Red_Nodes = 4;
+	float Track_Green_Nodes = 10;
+	float Track_Orange_Nodes = 14;
+	float Track_Blue_Nodes = 10;
+	
+	float Track_Red_Direction = 1;
+	float Track_Orange_Direction = -1;
+	float Track_Blue_Direction = 1;
+	float Track_Green_Direction = 1;
+	float Track_Direction_CW = 1;
+	float Track_Direction_CCW = -1;
+
+	float CargoSuspended = 0;
+
+	void CargoLoopOrangePlatform(entity platform)
+	{		
+		while(true)
+		{
+			if( CargoSuspended == 1 )
+			{
+				sys.waitFrame();
+				continue;
+			}
+
+			float nodeIndex = platform.getFloatKey("current_node");
+			float nextIndex = nodeIndex + Track_Orange_Direction;
+
+			if( nextIndex < 1 )
+				nextIndex = Track_Orange_Nodes;
+			else if( nextIndex > Track_Orange_Nodes )
+				nextIndex = 1;
+			
+			entity destination = sys.getEntity("track_orange_" + nextIndex);
+
+			platform.moveTo(destination);
+			
+			sys.waitFor(platform);			
+
+			if( CargoSuspended == 0 )
+			{
+				platform.setKey("current_node", nextIndex);
+			}
+		}
+	}
+	
+	void CargoLoopBluePlatform(entity platform)
+	{		
+		while(true)
+		{
+			if( CargoSuspended == 1 )
+			{
+				sys.waitFrame();
+				continue;
+			}
+
+			float nodeIndex = platform.getFloatKey("current_node");
+			float nextIndex = nodeIndex + Track_Blue_Direction;
+			
+			if( nextIndex < 1 )
+				nextIndex = Track_Blue_Nodes;
+			else if( nextIndex > Track_Blue_Nodes )
+				nextIndex = 1;
+			
+			entity destination = sys.getEntity("track_blue_" + nextIndex);
+
+			platform.moveTo(destination);
+			
+			sys.waitFor(platform);			
+
+			if( CargoSuspended == 0 )
+			{
+				platform.setKey("current_node", nextIndex);
+			}
+		}
+	}
+
+	void CargoLoopGreenPlatform(entity platform)
+	{		
+		while(true)
+		{
+			if( CargoSuspended == 1 )
+			{
+				sys.waitFrame();
+				continue;
+			}
+
+			float nodeIndex = platform.getFloatKey("current_node");
+			float nextIndex = nodeIndex + Track_Green_Direction;
+			
+			if( nextIndex < 1 )
+				nextIndex = Track_Green_Nodes;
+			else if( nextIndex > Track_Green_Nodes )
+				nextIndex = 1;
+			
+			entity destination = sys.getEntity("track_green_" + nextIndex);
+
+			platform.moveTo(destination);
+			
+			sys.waitFor(platform);			
+
+			if( CargoSuspended == 0 )
+			{
+				platform.setKey("current_node", nextIndex);
+			}
+		}
+	}
+
+	void CargoLoopRedPlatform(entity platform)
+	{
+		while( true)
+		{
+			if( CargoSuspended == 1 )
+			{
+				sys.waitFrame();
+				continue;
+			}
+
+			float nodeIndex = platform.getFloatKey("current_node");
+			float nextIndex = nodeIndex + Track_Red_Direction;
+			
+			if( nextIndex < 1 )
+				nextIndex = Track_Red_Nodes;
+			else if( nextIndex > Track_Red_Nodes )
+				nextIndex = 1;
+			
+			entity destination = sys.getEntity("track_red_" + nextIndex);
+
+			platform.moveTo(destination);
+						
+			sys.waitFor(platform);
+			if( CargoSuspended == 0 )
+			{
+				platform.setKey("current_node", nextIndex);
+			}
+		}
+	}
+
+	void CargoLoopRed()
+	{
+		float length = 0;
+
+		float index = 0;
+		while(index < Track_Red_Nodes)
+		{
+			float a = index;
+			float b = index + 1;
+			if( b >= Track_Red_Nodes)
+				b = 0;
+
+			entity one = sys.getEntity("track_red_" + (a+1));
+			entity two = sys.getEntity("track_red_" + (b+1));
+
+			length += one.distanceTo(two);
+
+			index++;
+		}		
+
+		float dis = length / 8;
+		dis = dis / 80;
+		
+		float i = 0;
+		while( i < 8 )
+		{
+			thread CargoLoopRedPlatform(sys.getEntity("track_red_platform_" + (i + 1)));
+			sys.wait(dis);
+			i++;
+		}
+	}
+
+	void CargoLoopOrange()
+	{
+		float length = 0;
+
+		float index = 0;
+		while(index < Track_Orange_Nodes)
+		{
+			float a = index;
+			float b = index + 1;
+			if( b >= Track_Orange_Nodes)
+				b = 0;
+
+			entity one = sys.getEntity("track_orange_" + (a+1));
+			entity two = sys.getEntity("track_orange_" + (b+1));
+
+			length += one.distanceTo(two);
+
+			index++;
+		}
+
+		float dis = length / (10);
+		dis = dis / 80;
+		float i = 0;
+		while( i < 10 )
+		{
+			thread CargoLoopOrangePlatform(sys.getEntity("track_orange_platform_" + (i + 1)));
+			sys.wait(dis);
+			i++;
+		}
+	}
+
+	void CargoLoopGreen()
+	{
+		float length = 0;
+
+		float index = 0;
+		while(index < Track_Green_Nodes)
+		{
+			float a = index;
+			float b = index + 1;
+			if( b >= Track_Green_Nodes)
+				b = 0;
+
+			entity one = sys.getEntity("track_green_" + (a+1));
+			entity two = sys.getEntity("track_green_" + (b+1));
+
+			length += one.distanceTo(two);
+
+			index++;
+		}
+
+		float dis = length / (10);
+		dis = dis / 80;
+		float i = 0;
+		while( i < 10 )
+		{
+			thread CargoLoopGreenPlatform(sys.getEntity("track_green_platform_" + (i + 1)));
+			sys.wait(dis);
+			i++;
+		}
+	}
+
+	void CargoLoopBlue()
+	{
+		float length = 0;
+
+		float index = 0;
+		while(index < Track_Blue_Nodes)
+		{
+			float a = index;
+			float b = index + 1;
+			if( b >= Track_Blue_Nodes)
+				b = 0;
+
+			entity one = sys.getEntity("track_blue_" + (a+1));
+			entity two = sys.getEntity("track_blue_" + (b+1));
+
+			length += one.distanceTo(two);
+
+			index++;
+		}
+
+		float dis = length / (10);
+		dis = dis / 80;
+		float i = 0;
+		while( i < 10 )
+		{
+			thread CargoLoopBluePlatform(sys.getEntity("track_blue_platform_" + (i + 1)));
+			sys.wait(dis);
+			i++;
+		}
+	}
+
+	void CargoLoop()
+	{
+		thread CargoLoopRed();
+		thread CargoLoopBlue();
+		thread CargoLoopOrange();
+		sys.wait(9);
+		thread CargoLoopGreen();
+	}
+
+	float cargofuelstate = 0;	
+	float cargofuelobjectivestate = 0;
+
+	void FuelCargo()
+	{
+		$FuelToCargo_Clicker.setKey ("click_item", "0");
+		
+		if(cargoLineReady == 1)
+		{
+			$FuelToCargo_Handle.move(DOWN, 8);
+			$FuelToCargo_Handle.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_VOICE2 );
+			sys.wait(.125);
+
+			$FuelToCargo_Handle.startSoundShader("mech_fingers_1_5s", SND_CHANNEL_ANY );
+
+			sys.wait(1.5);
+
+			sys.trigger($FuelToCargo_Relay);			
+			
+			//show/hide flares
+			$func_static_88001.hide();
+			$func_static_88004.show();
+			
+			thread crossFadeEnt ($CargoFuelFlare, '0 0 0', '0.141176 0.654902 1', 1);
+			thread crossFadeEnt ($CargoFuelLight, '0 0 0', '0.141176 0.654902 1', 1);
+			
+			thread crossFadeEnt ($CargoFuelFlare_2, '0 0 0', '0.141176 0.654902 1', 1);
+			thread crossFadeEnt ($CargoFuelLight_2, '0 0 0', '0.141176 0.654902 1', 1);
+			
+			thread crossFadeEnt ($CargoFuelFlare_3, '0 0 0', '0.141176 0.654902 1', 1);
+			thread crossFadeEnt ($CargoFuelLight_3, '0 0 0', '0.141176 0.654902 1', 1);
+
+			cargofuelstate = 1;
+			
+			sys.wait(.5);
+			
+			if(cargofuelobjectivestate == 1)
+			{
+				sys.trigger($item_objective_5);
+			}	
+		}
+		else
+		{			
+			thread ShowNPCSubtitles("PA", "Fuel pipe is empty.\nPlease fill fuel pipe.", 4.15);
+			sys.wait($player1.startSoundShader("e1m4_fuel_pipe_empty", SND_CHANNEL_VOICE2 ));
+
+			$FuelToCargo_Clicker.setKey ("click_item", "1");
+			
+			sys.wait(.5);
+			
+			if(cargofuelobjectivestate == 0)
+			{
+				sys.trigger($item_objective_4);				
+				cargofuelobjectivestate = 1;
+			}		
+		}
+	}
+
+	void SuspendCargo()
+	{
+		CargoSuspended = 1;
+
+		float i = 0;
+		while( i < 10 )
+		{
+			entity platform = sys.getEntity("track_orange_platform_" + (i + 1));
+			platform.stopMoving();
+			platform = sys.getEntity("track_green_platform_" + (i + 1));
+			platform.stopMoving();
+			platform = sys.getEntity("track_blue_platform_" + (i + 1));
+			platform.stopMoving();
+
+			if( i < 8 )
+			{
+				platform = sys.getEntity("track_red_platform_" + (i + 1));
+				platform.stopMoving();
+			}
+
+			i++;
+		}
+	}
+
+	void StartCargo()
+	{
+		$StartCargo_Clicker.setKey("click_item", "0");
+
+		if(cargofuelstate == 1)
+		{
+			thread ShowNPCSubtitles("Sam", "This better work.", 2.1);
+			sys.wait($player1.startSoundShader("player_vo_thisbetterwork", SND_CHANNEL_VOICE2 ));
+
+			sys.wait(.5);
+
+			$StartCargo_Handle.move(DOWN, 8);
+			$StartCargo_Handle.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_VOICE2 );
+			sys.wait(.125);
+			
+			//show/hide flares
+			$func_static_88005.hide();
+			$func_static_88008.show();
+			sys.trigger($exit_strobe_light);
+			
+			sys.trigger($track_init_spkr);
+			
+			sys.trigger($track_init_flash_relay);
+			
+			sys.wait(3);
+			sys.trigger($cargo_lights_relay_1);
+			
+			sys.trigger($track_spkr_seq_relay);
+			
+			sys.trigger($activate_exit_relay);
+			
+			sys.wait(10.5);
+
+			CargoSuspended = 0;
+		}		
+		else
+		{
+			thread ShowNPCSubtitles("PA", "Cargo line fuel is empty.\nPlease transfer fuel.", 5.15);
+			sys.wait($player1.startSoundShader("e1m4_cargo_line_empty", SND_CHANNEL_VOICE2 ));
+
+			$StartCargo_Clicker.setKey("click_item", "1");
+		}
+	}
+
+	void OpenStartCrawlspace()
+	{
+		$start_crawlspace_hatch_rotator.rotateOnce('90 0 0');
+		$start_crawlspace_hatch_rotator.startSoundShader("steel_clang", SND_CHANNEL_VOICE2 );
+		sys.trigger($start_crawlspace_ladder);
+		$start_crawlspace_hatch_click.remove();
+	}
+
+	void ClickCacheButton(entity button)
+	{
+		float direction = button.getFloatKey("direction");
+		button.move(direction, 1);
+		button.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+		sys.waitFor(button);
+
+		sys.wait(.125);
+		button.startSoundShader("e1m1_intercomclick2", SND_CHANNEL_ANY);
+		button.move(direction + 180, 1);
+	}
+	
+	void exitgui_skin()
+	{	
+		$func_static_100008.setSkin( "skins/doorlight_shaderparmon" );	
+	}
+	
+	float hasBravoTeamReaction = 0;		
+	void BravoTeamReaction()
+	{
+		if(hasBravoTeamReaction == 0)
+		{
+			hasBravoTeamReaction = 1;
+			thread ShowNPCSubtitles("Sam", "Bravo team?", 2);
+			CharacterSays($player1,"bravoteam");
+		}
+	}
+	
+	float sewerInspecting = 0;
+	void HideSewerClickers()
+	{
+		sewerInspecting = 1;
+		sys.disableItemGroup("sewer");
+	}
+	
+	void ShowSewerClickers()
+	{
+		sewerInspecting = 0;
+		sys.enableItemGroups();
+	}
+	
+	float leeAtFilter = 0;
+
+	void SewerScare()
+	{			
+		//$SpeakerTension.fadeSound(SND_CHANNEL_ANY, -100, 10);
+		//$SpeakerTension.fadeSound(SND_CHANNEL_ANY, 0, 10);
+
+		HideSewerClickers();
+
+		$player1.startSoundShader("player_sounds_footstep_vent_heavylanding", SND_CHANNEL_ANY );
+
+		sys.trigger($sewer_scareplate);
+		sys.wait(.125);
+		sys.trigger($sewer_scareplate);
+
+		sys.wait(.25);		
+
+		sys.trigger($sewer_scareplate);
+		sys.wait(.25);
+
+		thread ShowNPCSubtitles("Sam", "Ah!", 2);
+		$player1.startSoundShader("sewer_scare_Player1", SND_CHANNEL_ANY );
+		sys.trigger($sewer_scareplate);		
+		
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "Gotcha!", 2);
+		thread CharacterSays($Scare_Vent_1, "sewer_scare_Lee1_vent");
+		CharacterSays($player1, "sewer_scare_Lee1");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "What the fuck?", 2);
+		CharacterSays($player1, "player_vo_whatthefuck_int");
+		Beat(.5);		
+		
+		thread ShowNPCSubtitles("Lee", "Tag, you're it! Hah! Don't be such a little bitch!", 2);
+		thread CharacterSays($Scare_Vent_1, "sewer_scare_Lee2_vent");
+		CharacterSays($player1, "sewer_scare_Lee2");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.25);
+		
+		thread ShowNPCSubtitles("Sam", "I'm not sure you understand how tag works...", 2.15);
+		CharacterSays($player1, "sewer_scare_Player3");
+		Beat(.75);
+		
+		thread ShowNPCSubtitles("Lee", "Sure I do. You ready?", 2.15);
+		thread CharacterSays($Scare_Vent_1, "sewer_scare_Lee3_vent");
+		CharacterSays($player1, "sewer_scare_Lee3");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "Well I am now.", 2);
+		CharacterSays($player1, "sewer_scare_Player4");
+		Beat(.25);
+		
+		thread ShowNPCSubtitles("Lee", "Perfect! This is it, you know. The last spot on the map.", 3.25);
+		thread CharacterSays($Scare_Vent_1, "sewer_scare_Lee4_vent");
+		CharacterSays($player1, "sewer_scare_Lee4");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.75);
+		
+		thread ShowNPCSubtitles("Sam", "I know. I'm still not sure what to expect.", 2.25);
+		CharacterSays($player1, "sewer_scare_Player5");
+		Beat(.4);
+		
+		thread ShowNPCSubtitles("Lee", "Can't be worse than the mountains up north.", 2);
+		thread CharacterSays($Scare_Vent_1, "sewer_scare_Lee5_vent");
+		CharacterSays($player1, "sewer_scare_Lee5");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.6);
+		
+		thread ShowNPCSubtitles("Sam", "Can't be worse than plan B!", 2);
+		CharacterSays($player1, "sewer_scare_Player6");
+		Beat(.25);
+		
+		thread ShowNPCSubtitles("Lee", "I like Plan B. He's charming.", 2.25);
+		thread CharacterSays($Scare_Vent_1, "sewer_scare_Lee6_vent");
+		CharacterSays($player1, "sewer_scare_Lee6");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "He's dangerous.", 2);
+		CharacterSays($player1, "sewer_scare_Player7");
+		Beat(.75);
+		
+		thread ShowNPCSubtitles("Lee", "That's what makes it exciting.", 2);
+		thread CharacterSays($Scare_Vent_1, "sewer_scare_Lee7_vent");
+		CharacterSays($player1, "sewer_scare_Lee7");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		
+		Beat(1.5);
+		
+		thread ShowNPCSubtitles("Sam", "So. You're in a vent.", 2);
+		CharacterSays($player1, "sewer_scare_Player8");
+		Beat(.6);
+		
+		thread ShowNPCSubtitles("Lee", "I was thinking we should split up. Check several routes. Just to be sure.\nI picked the vents.", 5.15);
+		thread CharacterSays($Scare_Vent_1, "sewer_scare_Lee8_vent");
+		CharacterSays($player1, "sewer_scare_Lee8");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "Great...I'm no fan of tiny spaces.", 2.20);
+		CharacterSays($player1, "sewer_scare_Player9");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "I know.", 2);
+		thread CharacterSays($Scare_Vent_1, "sewer_scare_Lee9_vent");
+		CharacterSays($player1, "sewer_scare_Lee9");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.75);
+		
+		$sewer_scareplate.startSoundShader("sound/footsteps/ventilation/roam.wav", SND_CHANNEL_ANY );
+
+		ShowSewerClickers();
+
+		sys.wait(4);		
+
+		float i = 1;
+		while(i < 10)
+		{			
+			entity splate = sys.getEntity("sewer_plate_" + i);
+			sys.trigger(splate);
+			splate.startSoundShader("sound/footsteps/ventilation/step02.wav", SND_CHANNEL_ANY );
+
+			if(i == 9)
+			{
+				break;
+			}
+
+			sys.wait(2.5);
+			sys.trigger(splate);
+			splate.startSoundShader("sound/footsteps/ventilation/step03.wav", SND_CHANNEL_ANY );
+			sys.wait(1);
+			i++;
+		}
+
+		leeAtFilter = 1;
+	}
+	
+	
+	void HideSewerStartClickers()
+	{
+		$SewerPadlockClicker.hide();
+		$SewerFunnelClicker.hide();
+		$SewerPondClicker.hide();
+		$SewerBeerClicker.hide();
+		$SewerShirtClicker.hide();
+	}
+
+	void ShowSewerStartClickers()
+	{
+		$SewerPadlockClicker.show();
+		$SewerFunnelClicker.show();
+		$SewerPondClicker.show();
+		$SewerBeerClicker.show();
+		$SewerShirtClicker.show();
+	}
+
+	void SewerPondReaction()
+	{
+		HideSewerStartClickers();
+
+		thread ShowNPCSubtitles("Sam", "Whew. Why is it so hot down here?", 3);
+		CharacterSays($player1, "sewer_Player2");
+
+		ShowSewerStartClickers();
+	}
+	
+	void SewerFunnelReaction()
+	{
+		HideSewerStartClickers();
+
+		thread ShowNPCSubtitles("Sam", "That's a long climb!", 2);
+		CharacterSays($player1, "sewer_Player3");
+
+		ShowSewerStartClickers();
+	}
+	
+	float sewerDeadEndOnce = 0;
+	void SewerOpenDeadEndDoor()
+	{
+		$sewer_scene_gratedoor_2.startSoundShader("e1m4_locked_gate", SND_CHANNEL_ANY);		
+
+		$sewer_scene_gratedoor_2_mover.rotateOnce('0 1 0');
+		sys.waitFor($sewer_scene_gratedoor_2_mover);
+		$sewer_scene_gratedoor_2_mover.rotateOnce('0 -2 0');
+		sys.waitFor($sewer_scene_gratedoor_2_mover);
+		$sewer_scene_gratedoor_2_mover.rotateOnce('0 2 0');
+		sys.waitFor($sewer_scene_gratedoor_2_mover);
+		$sewer_scene_gratedoor_2_mover.rotateOnce('0 -2 0');
+		sys.waitFor($sewer_scene_gratedoor_2_mover);
+		$sewer_scene_gratedoor_2_mover.rotateOnce('0 2 0');
+		sys.waitFor($sewer_scene_gratedoor_2_mover);
+		$sewer_scene_gratedoor_2_mover.rotateOnce('0 -1 0');
+
+		if(sewerDeadEndOnce == 0)
+		{
+			sewerDeadEndOnce = 1;
+			thread ShowNPCSubtitles("Sam", "Can't go that way.", 2);
+			sys.wait($player1.startSoundShader("sewer_Player4", SND_CHANNEL_ANY));
+		}
+
+		sys.wait(1);
+		
+		$SewerDeadEndDoorClicker.setKey("click_item", "1");
+	}
+	
+	void SewerOpenStartDoor()
+	{
+		$sewer_scene_gratedoor_1_mover.rotateOnce('0 -95 0');
+		$sewer_scene_gratedoor_1_mover.startSoundShader("e1m4_door_creek_2", SND_CHANNEL_ANY);
+	}
+	
+	void SewerCallingLee()
+	{
+		thread ShowNPCSubtitles("Sam", "Where is she?", 2);
+		CharacterSays($player1, "sewer_Player7");
+	}
+	
+	void SewerBeerReaction()
+	{
+		HideSewerStartClickers();
+		
+		thread ShowNPCSubtitles("Sam", "Looks like Lee.", 2);
+		CharacterSays($player1, "sewer_Player5");
+
+		ShowSewerStartClickers();
+	}
+	
+	void SewerShirtReaction()
+	{
+		HideSewerStartClickers();
+
+		thread ShowNPCSubtitles("Sam", "Definately Lee.", 2);	
+		CharacterSays($player1, "sewer_Player6");
+
+		ShowSewerStartClickers();
+	}
+	
+	void SewerPadlockReaction()
+	{
+		HideSewerStartClickers();
+
+		thread ShowNPCSubtitles("Sam", "Can't undo this.", 2);
+		CharacterSays($player1, "sewer_Player8");
+
+		ShowSewerStartClickers();
+	}
+	
+	void SewerHoboCornerReaction()
+	{
+		HideSewerClickers();
+	
+		thread ShowNPCSubtitles("Sam", "Do you see this? Someone used to live down here.", 2.5);
+		CharacterSays($player1, "sewer_hobo_player1");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "What? Oh. Yeah.", 2);
+		thread CharacterSays($Scare_Vent_1, "sewer_hobo_Lee1_vent");
+		CharacterSays($player1, "sewer_hobo_Lee1");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.75);
+		
+		thread ShowNPCSubtitles("Sam", "I guess that explains the padlock.\nI wonder what happened to him. Her.", 5);
+		CharacterSays($player1, "sewer_hobo_player2");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "Sure. Whatever. Who cares. Move on.", 2);
+		thread CharacterSays($Scare_Vent_1, "sewer_hobo_Lee2_vent");
+		CharacterSays($player1, "sewer_hobo_Lee2");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.5);
+		
+		ShowSewerClickers();
+	}
+	
+	void SewerSlowFanReaction()
+	{
+		HideSewerClickers();
+
+		thread ShowNPCSubtitles("Sam", "Come on. keep up with your buddy. You can do it.", 3);
+		CharacterSays($player1, "sewer_player9");
+
+		ShowSewerClickers();
+	}
+	
+	void SewerTalkWithLeeThroughSmallVent()
+	{
+		thread ShowNPCSubtitles("Lee", "Hey. How did you get here?", 2);
+		CharacterSays($speaker_lee_small_vent, "sewer_smallvent_Lee1");
+		Beat(.75);
+		
+		thread ShowNPCSubtitles("Sam", "I...I don't know.", 2);
+		CharacterSays($player1, "sewer_smallvent_Player1");
+		Beat(.4);
+		
+		thread ShowNPCSubtitles("Lee", "Thought it was someone else. I almost didn't recognize you.", 4.15);
+		CharacterSays($speaker_lee_small_vent, "sewer_smallvent_Lee2");
+		Beat(.6);
+		
+		thread ShowNPCSubtitles("Sam", "I don't even...", 2);
+		CharacterSays($player1, "sewer_smallvent_Player2");
+		Beat(1);
+		
+		thread ShowNPCSubtitles("Lee", "Lets move on. I think the next area may be hot.", 3);
+		CharacterSays($speaker_lee_small_vent, "sewer_smallvent_Lee3");
+		Beat(.6);
+		
+		thread ShowNPCSubtitles("Sam", "Hot?", 2);
+		CharacterSays($player1, "sewer_smallvent_Player3");
+		Beat(.4);
+		
+		thread ShowNPCSubtitles("Lee", "Feds...Be careful.", 2);
+		CharacterSays($speaker_lee_small_vent, "sewer_smallvent_Lee4");
+		Beat(.25);
+
+		$sewer_fed_door_gui.setGuiParm("gui_parm3", 1);
+		sys.trigger($sewer_fed_door_gui);
+	}
+			
+	void SewerTurnOnPower()
+	{
+		HideSewerClickers();
+
+		$func_mover_sewer_power_switch.rotateOnce('-135 0 0');
+		$func_mover_sewer_power_switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_VOICE2 );
+		
+		sys.trigger($sewer_uwu_port_light1);
+		$sewer_uwu_port_light1_texture.show();
+		$sewer_vent_door_reaction_item.hide();
+
+		sys.wait(.5);
+
+		thread ShowNPCSubtitles("Sam", "I think that may have done it.", 2);
+		CharacterSays($player1, "sewer_filter_Player4");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "Awesome. See you in there.", 2);
+		thread CharacterSays($Scare_Vent_2, "sewer_filter_Lee4_vent");
+		CharacterSays($player1, "sewer_filter_Lee4");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.5);
+		
+		$sewer_vent_door_reaction_item.setKey("click_item", "0");
+		$sewer_vent_door_reaction_item.hide();
+		$seweruwu_door_1_clicker.setKey("click_item", "1");
+
+		ShowSewerClickers();
+	}
+	
+	void SewerLockedVentDoor()
+	{
+		thread ShowNPCSubtitles("Sam", "No luck.", 2);
+		CharacterSays($player1, "sewer_Player10");
+	}
+	
+	void SewerPartOneFinalTalk()
+	{		
+		sys.fadeTo('0 0 0', 1, .25);
+		sys.trigger($seweruwu_end_camera_waiter);
+		sys.trigger($SpeakerTension);
+		$player1.startSoundShader("e1m1_endflash", SND_CHANNEL_ANY );
+		
+		sys.wait(4);		
+		
+		$e1m1_fce_guard_1.remove();
+		$e1m1_fce_guard_2.remove();
+
+		sys.trigger($trigger_relay_chaptertext);
+		sys.trigger($info_player_teleport_1);		
+	}	
+	
+	float sewerInspectVentDoorState = 0;
+
+	void LeeFilterStuck()
+	{
+		while(leeAtFilter == 0 || sewerInspecting == 1)
+		{
+			sys.waitFrame();
+		}
+
+		HideSewerClickers();
+
+		sys.wait(2.5);
+
+		thread ShowNPCSubtitles("Lee", "I need your help. There seems to be a filter or whatever.\nCan you extract it? Somehow?", 5);
+		thread CharacterSays($Scare_Vent_2, "sewer_filter_Lee1_vent");
+		CharacterSays($player1, "sewer_filter_Lee1");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "Let me see...", 2);
+		CharacterSays($player1, "sewer_filter_Player1");
+		Beat(.5);
+		
+		$sewer_vent_filter_item.setKey("click_item", "1");
+		
+		ShowSewerClickers();
+	}
+
+	float startLeeOnce = 0;
+
+	void SewerInspectVentDoor()
+	{
+		if(sewerInspectVentDoorState == 0)
+		{
+			thread ShowNPCSubtitles("Sam", "hmm.", 2);
+			sys.wait($player1.startSoundShader("player_vo_hmm", SND_CHANNEL_ANY));
+			sys.wait(1);			
+			$sewer_vent_door_reaction_item.setKey("click_item", "1");
+
+			if(startLeeOnce == 0)
+			{
+				startLeeOnce = 1;
+				thread LeeFilterStuck();
+			}
+
+			return;
+		}
+
+		HideSewerClickers();
+
+		$sewer_vent_door_reaction_item.hide();
+
+		$seweruwu_door_1_upper.startSoundShader("shav_general_alarm5", SND_CHANNEL_ANY);
+
+		sys.wait(3);
+	
+		thread ShowNPCSubtitles("Sam", "There is a door opening here. But it seems...inoperable.", 4.15);
+		CharacterSays($player1, "sewer_filter_Player3");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "I saw some controls back where I crawled into the duct.\nMaybe...that's...something?", 4.25);
+		thread CharacterSays($Scare_Vent_2, "sewer_filter_Lee3_vent");
+		CharacterSays($player1, "sewer_filter_Lee3");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.5);
+		
+		$sewer_turn_on_vent_power_item.setKey("click_item", "1");
+
+		ShowSewerClickers();
+	}
+	
+	void SewerRemoveFilter()
+	{	
+		HideSewerClickers();
+
+		$sewer_vent_door_reaction_item.setKey("click_item", "0");
+
+		$sewer_vent_filter_mover.move(DOWN, 32);
+		
+		sys.wait(4);
+		
+		$sewer_vent_filter.hide();
+		$sewer_vent_filter.startSoundShader("e1m3_1_placebox", SND_CHANNEL_ANY);
+		$sewer_vent_filter_removed.show();
+		
+		thread ShowNPCSubtitles("Lee", "Thanks. What about you? Any progress?", 2.25);
+		thread CharacterSays($Scare_Vent_2, "sewer_filter_Lee2_vent");
+		CharacterSays($player1, "sewer_filter_Lee2");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "I think I see where I need to go. Two sec...", 2.25);
+		CharacterSays($player1, "sewer_filter_Player2");
+		Beat(.5);
+		
+		sewerInspectVentDoorState = 1;
+		$sewer_vent_door_reaction_item.setKey("click_item", "1");
+
+		ShowSewerClickers();
+	}	
+	
+	void SewerBackPackReaction()
+	{
+		HideSewerClickers();
+		
+		thread ShowNPCSubtitles("Sam", "Are you naked in there?", 2);
+		CharacterSays($player1, "sewer_backpack_player1");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "Well...maybe you can come in here and find out.", 3);
+		thread CharacterSays($Scare_Vent_2, "sewer_backpack_Lee1_vent");
+		CharacterSays($player1, "sewer_backpack_Lee1");
+		CharacterSays($player1, "e1m3_1_walkie_beep");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "Erm...I...Wow...Better move on.", 5.25);
+		CharacterSays($player1, "sewer_backpack_player2");
+		Beat(.5);
+		
+		ShowSewerClickers();
+	}
+
+	float sense2Done = 0;
+	void RingMyBell()
+	{
+		sense2Done = 3;
+		
+		$CounterBell.startSoundShader("e1m1_bell", SND_CHANNEL_ANY);
+		
+		sys.trigger($elevator_item_lobby);
+	}
+
+	void OpenRedDoor()
+	{
+		$hospital_red_door_handle_1.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+		$hospital_red_door_handle_1.rotateOnce('0 0 30');
+		
+		$hospital_red_door_mover.rotateOnce('0 -85 0');
+		$hospital_red_door_handle_1.startSoundShader("e1m4_door_creek_1", SND_CHANNEL_ANY);
+		sys.waitFor($hospital_red_door_mover);
+		
+		$hospital_red_door_handle_1.rotateOnce('0 0 -30');
+	}
+	
+	void CloseRedDoor()
+	{
+		$hospital_red_door_mover.rotateOnce('0 85 0');
+		sys.waitFor($hospital_red_door_mover);		
+		$light_64434.hide();
+		sys.trigger($auditorium_3_portalsky);
+	}	
+	
+	void PleaseLieDown()
+	{
+		sys.wait(0.5);
+		thread ShowNPCSubtitles("Dr. Nielsen", "Please, lie down on the table and we'll get started in just a few minutes.", 4);
+		$player1.startSoundShader("sewer_pleaseliedown", SND_CHANNEL_ANY);
+	}
+	
+	void TeleportAwayFromScanner()
+	{
+		PleaseLieDown();
+	
+		$hospital_scanner_coffin_leg.show();
+		$scanner_bed_hospital.show();
+		$scanner_foot_left.show();
+		$scanner_foot_right.show();
+		$outro_coffin_table.hide();
+		$hospital_body_box_tray.hide();
+		$outro_coffin_table_legs.hide();
+		$outro_coffin_table_cylinder_lower.hide();
+		$outro_coffin_table_cylinder_upper.hide();
+		$hospital_coffin_bed_cap_1.hide();
+		$hospital_coffin_bed_cap_2.hide();	
+	}	
+	
+	void TeleportToScanner()
+	{
+		sys.trigger($hospital_teleport_scanner);	
+		
+		sys.wait(2.5);
+		
+		TeleportAwayFromScanner();
+	}
+	
+	void YouToldMe()
+	{
+		thread ShowNPCSubtitles("Lee", "You told me how you looked for what seemed like an eternity.\nIn the endless halls and corridors of St. Amber Hospital. Like you were stuck. Forever.", 11);
+		$player1.startSoundShader("sewer_youtoldme", SND_CHANNEL_ANY);
+	}	
+	
+	float boxtimes = 0;
+	float boxGot = 0;
+	void BurnCoffin()
+	{		
+		$hospital_incinerator_button.move(90, 1);
+		$hospital_incinerator_button.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+		sys.waitFor($hospital_incinerator_button);
+		sys.wait(.125);
+		$hospital_incinerator_button.startSoundShader("e1m1_intercomclick2", SND_CHANNEL_ANY);
+		$hospital_incinerator_button.move(-90, 1);
+
+		if(boxtimes == 1)
+		{
+			$outro_coffin_table_cylinder_lower.move(UP, 8);
+			$outro_coffin_table_cylinder_upper.move(UP, 16);
+
+			sys.waitFor($outro_coffin_table_cylinder_upper);
+
+			sys.wait(1);
+
+			$outro_coffin_door.move(UP, 56);
+			sys.waitFor($outro_coffin_door);
+		
+			$hospital_body_box_tray.move(90, 140);
+			$hospital_body_box_tray.startSoundShader("e1m4_rolling", SND_CHANNEL_ANY);
+			sys.waitFor($hospital_body_box_tray);			
+
+			sys.wait(1);
+			$outro_coffin_door.move(DOWN, 56);
+
+			sys.waitFor($outro_coffin_door);
+			sys.wait(1);
+
+			$outro_coffin_door.startSoundShader("e1m1_burn2", SND_CHANNEL_ANY);
+
+			thread crossFadeEnt ($the_box, '0 0 0', '.75 0 0', .01);
+			thread crossFadeEnt ($boxkey_askey, '0 0 0', '.75 0 0', .01);			
+			$hospital_pick_box_from_burner.setKey("item_action", "Pickup");
+			boxtimes++;			
+
+			sys.wait(4.5);
+
+			$outro_coffin_door.startSoundShader("sound/shav/e1m4/boxchange.ogg", SND_CHANNEL_ANY);			
+
+			sys.wait(2);
+
+			$outro_coffin_door.move(UP, 56);
+			sys.waitFor($outro_coffin_door);
+		
+			$hospital_body_box_tray.move(90, -140);
+			$hospital_body_box_tray.startSoundShader("e1m4_rolling", SND_CHANNEL_ANY);
+			
+			sys.waitFor($hospital_body_box_tray);
+			$hospital_pick_box_from_burner.setKey("click_item", "1");
+
+			sys.wait(1);
+			$outro_coffin_door.move(DOWN, 56);
+		}
+		else
+		{
+			$outro_coffin_table_cylinder_lower.move(UP, 8);
+			$outro_coffin_table_cylinder_upper.move(UP, 16);
+
+			sys.waitFor($outro_coffin_table_cylinder_upper);
+
+			sys.wait(1);
+
+			$outro_coffin_door.move(UP, 56);		
+		
+			sys.waitFor($outro_coffin_door);
+			sys.wait(1);
+		
+			$outro_coffin.move(90, 192);
+			$outro_coffin.startSoundShader("e1m4_rolling", SND_CHANNEL_ANY);
+			sys.waitFor($outro_coffin);
+		
+			$outro_coffin_door.move(DOWN, 56);
+		
+			sys.waitFor($outro_coffin_door);
+
+			sys.wait(1);
+
+			$outro_coffin_door.startSoundShader("e1m1_burn2", SND_CHANNEL_ANY);
+		
+			//hide coffin
+			$outro_coffin.hide();
+			$outro_coffin_handles.hide();
+			$outro_coffin_flowers.hide();
+		
+			//show box
+			$the_box.show();
+			$hospital_body_box_tray.show();
+				
+			sys.wait(6.5);
+		
+			$outro_coffin_door.move(UP, 56);
+			sys.waitFor($outro_coffin_door);
+		
+			$hospital_body_box_tray.move(90, -140);
+			$hospital_body_box_tray.startSoundShader("e1m4_rolling", SND_CHANNEL_ANY);
+			sys.waitFor($hospital_body_box_tray);
+			$hospital_pick_box_from_burner.setKey("click_item", "1");		
+
+			sys.wait(1);
+			$outro_coffin_door.move(DOWN, 56);
+		}
+	}	
+
+	void PickUpBoxFromBurner()
+	{				
+		if(boxtimes == 1)
+		{
+			$the_box.show();
+			$player1.startSoundShader("e1m3_1_placebox", SND_CHANNEL_ANY);			
+			$hospital_incinerator_item.setKey("click_item", 1);
+		}
+		else if(boxtimes == 2)
+		{
+			$the_box.hide();
+			$player1.startSoundShader("e1m3_1_pickupbox", SND_CHANNEL_ANY);
+			$boxkey_askey_clicker.setKey("click_item", "1");
+		}
+	}
+	
+	float scannerActive;
+
+	void UpdateCameraAngle()
+	{	
+		scannerActive = 1;
+		while(scannerActive == 1)
+		{						
+			$scanner_camera.setAngles($player1.getHead().getAngles());
+			sys.wait(GAME_FRAMETIME);
+		}
+	}
+
+	void BlueTunnel()
+	{
+		sys.fadeTo('0 0 0', 1, .01);
+
+		$sewer_vent_door_reaction_item.hide();
+		sys.trigger($SpeakerAreYouWithMeOrNot);
+		sys.trigger($SpeakerVoidBack);		
+		sys.trigger($SpeakerSetAdrift);
+		sys.trigger($BlueWorldCam);		
+		sys.fadeTo('0 0 0', 0, .0625);
+
+		sys.wait(5);
+		sys.wait(1);
+
+		$BlueWorldRotator.rotateOnce('90 0 0');
+		sys.waitFor($BlueWorldRotator);
+		
+		$BlueWorldMover.move(DOWN, 3200);
+
+		sys.wait(21.5);
+		sys.trigger($SpeakerVoidHorn);
+
+		sys.wait(1);
+		sys.trigger($uwu_void_plug);
+
+		$BlueWorldRotator.time(8);
+		$BlueWorldRotator.rotateOnce('360 180 0');		
+
+		sys.wait(14);
+
+		sys.wait(1.277);
+		sys.fadeTo('0 0 0', 1, .01);
+		sys.wait(4);
+
+		sys.fadeTo('0 0 0', 0, .01);
+		sys.trigger($BlueWorldCam);		
+
+		$SpeakerVoidBack.fadeSound(SND_CHANNEL_ANY, -30, 20);
+	}
+
+	void InsertScanner()
+	{
+		thread UpdateCameraAngle();
+
+		sys.fadeTo('1 1 1', 1, .0625);
+		sys.wait(0.0625);			
+		$scanner_playerbody.show();		
+		
+		sys.trigger($small_ventilation_room_teleport);
+		
+		$boxkey_door_mover.time(0.01);
+		$boxkey_door_mover.rotateOnce('0 85 0');
+
+		sys.trigger($scanner_camera);		
+
+		sys.fadeTo('1 1 1', 0, .125);
+
+		sys.wait(1);
+
+		thread ShowNPCSubtitles("Sam", "Samantha Miles. Sounds familiar.", 5);
+		sys.wait($player1.startSoundShader("sewer_soundsfamiliar", SND_CHANNEL_ANY) + .5);
+				
+		$scanner_bed_hospital.move(UP, 16);
+		sys.waitFor($scanner_bed_hospital);
+		sys.wait(1);
+		
+		$outro_coffin_door.move(UP, 56);		
+		
+		sys.waitFor($outro_coffin_door);
+		sys.wait(1);
+
+		$scanner_bed_hospital.move(90, 160);
+
+		sys.waitFor($scanner_bed_hospital);
+		
+		$outro_coffin_door.move(DOWN, 56);
+		sys.fadeTo('0 0 0', 1, 2);
+
+		sys.waitFor($outro_coffin_door);
+
+		$SpeakerAreYouWithMeOrNot.fadeSound(SND_CHANNEL_ANY, -100, 6);
+		sys.wait($player1.startSoundShader("sound/shav/e1m1/burn3.ogg", SND_CHANNEL_ANY));
+		
+		scannerActive = 0;
+		
+		BlueTunnel();
+
+		sys.trigger($SpeakerTension);
+		$seweruwu_door_1_clicker.setKey("click_item", 1);
+		
+		sys.fadeTo('0 0 0', 0, 2);		
+		sys.trigger($SpeakerRecognize);
+	}
+	void SenseHospital()
+	{
+		while(1)
+		{			
+			vector angles = $player1.getViewAngles();		
+			
+			if(angles_y < 0)
+			{
+				break;
+			}			
+
+			sys.waitFrame();
+		}
+
+		$player1.startSoundShader("e1m4_see_hospital", SND_CHANNEL_ANY);
+		sys.trigger($HospitalSideSensor2);
+	}
+
+	void TeleportToAreaOne()
+	{
+		sys.trigger($info_player_teleport_area_one);
+		$player1.startSoundShader("e1m4_spotlight", SND_CHANNEL_ANY );
+		sys.trigger($SpeakerAreYouWithMeOrNot);
+		
+		sys.trigger($area_1_skyportal);
+		$area_1_fader.move(UP, 384);
+	}
+	
+	void KeyTalk()
+	{
+		sys.trigger($SpeakerTension);
+		sys.trigger($camera_key_talk);
+
+		thread CharacterSays($player1, "e1m3_1_smallwind");
+
+		CharacterSays($player1, "e1m1_trainfly");
+		
+		Beat(2.5);
+				
+		thread ShowNPCSubtitles("Sam", "Lee are you still there?", 2);
+		CharacterSays($player1, "e1m3_1_intro_Player2");
+	
+		Beat(1.75);		
+		
+		thread ShowNPCSubtitles("Sam", "Tell me about the device. The box.", 2.15);
+		CharacterSays($player1, "e1m3_1_intro_Player3");
+
+		Beat(.5);
+				
+		thread ShowNPCSubtitles("Lee", "It's a key. Our only chance to get out.", 3.5);
+		CharacterSays($player1, "e1m3_1_intro_Lee3");
+		
+		Beat(1.75);
+		
+		// Teleport away
+		sys.trigger($camera_key_talk);
+		TeleportToAreaOne();
+	}
+
+	float doorPortTime = 0;
+	void DoorPort()
+	{		
+		if(doorPortTime == 0)
+		{
+			doorPortTime++;
+			KeyTalk();
+		}
+		else
+		{
+			$seweruwu_door_1_clicker.hide();
+			$seweruwu_door_1_box.show();
+			$seweruwu_door_1_box.move(270, 4);
+			$seweruwu_door_1_box.startSoundShader("shav_general_insert", SND_CHANNEL_ANY);
+			sys.waitFor($seweruwu_door_1_box);
+			sys.wait(.5);
+
+			sys.wait($seweruwu_door_1_clicker.startSoundShader("shav_general_keycard", SND_CHANNEL_ANY));
+			
+			$seweruwu_door_1_clicker.startSoundShader("shav_general_accepted", SND_CHANNEL_ANY);
+
+			sys.wait(1.75);
+			$seweruwu_door_1_box.move(90, 4);
+			$seweruwu_door_1_box.startSoundShader("shav_general_extract", SND_CHANNEL_ANY);
+			sys.waitFor($seweruwu_door_1_box);
+			sys.wait(.5);
+			$seweruwu_door_1_box.hide();
+			$player1.startSoundShader("e1m3_1_pickupbox", SND_CHANNEL_ANY);
+
+			sys.wait(1);
+			
+			sys.trigger($seweruwu_door_1_lower);
+		}
+	}
+	
+	void OpenFceDoor()
+	{
+		//Open door
+		sys.trigger($sewer_outro_fce_door);
+		
+		sys.wait(.75);
+
+		thread ShowNPCSubtitles("Sam", "Shit!", 2);
+		$player1.startSoundShader("player_vo_shit_int", SND_CHANNEL_ANY);		
+	
+		//Start guy walking
+		$e1m1_fce_guard_2.setOrigin($fce_guard_origin.getOrigin());
+		sys.wait(.25);
+		sys.trigger($e1m1_fce_guard_2);
+	}
+
+	void KittySwitch()
+	{
+		while(1)
+		{
+			$hospital_scanner_kitty_grey.rotateOnce('0 180 0');
+
+			sys.wait(1);
+		}
+	}	
+
+	float boxFirstTime = 1;
+	void InsertBoxKey()
+	{
+		$boxkey_askey.show();
+		$boxkey_askey.move(0, 4);
+		$boxkey_askey.startSoundShader("shav_general_insert", SND_CHANNEL_ANY);
+		sys.waitFor($boxkey_askey);
+		sys.wait(.5);
+
+		sys.wait($boxkey_askey_clicker.startSoundShader("shav_general_keycard", SND_CHANNEL_ANY));
+
+		if(boxtimes == 0)
+		{
+			$boxkey_askey_clicker.startSoundShader("shav_general_alarm5", SND_CHANNEL_ANY);
+		}
+		else
+		{
+			$boxkey_askey_clicker.startSoundShader("shav_general_accepted", SND_CHANNEL_ANY);
+		}
+
+		sys.wait(1.75);
+		$boxkey_askey.move(180, 4);
+		$boxkey_askey.startSoundShader("shav_general_extract", SND_CHANNEL_ANY);
+		sys.waitFor($boxkey_askey);
+		sys.wait(.5);
+		$boxkey_askey.hide();
+		$player1.startSoundShader("e1m3_1_pickupbox", SND_CHANNEL_ANY);
+
+		sys.wait(1);
+
+		if(boxFirstTime == 1)
+		{
+			boxFirstTime = 0;
+			thread ShowNPCSubtitles("Lee", "Let it burn.", 2.1);
+			sys.wait($player1.startSoundShader("e1m1_intro_Lee19", SND_CHANNEL_ANY));
+		}		
+
+		if(boxtimes == 0)
+		{
+			$hospital_pick_box_from_burner.setKey("item_action", "Place");
+			$hospital_pick_box_from_burner.setKey("click_item", 1);
+			boxtimes++;
+		}
+		else if(boxtimes == 2)
+		{
+			thread KittySwitch();
+
+			$boxkey_door_mover.rotateOnce('0 -85 0');
+			$boxkey_door_mover.startSoundShader("e1m4_door_creek_1", SND_CHANNEL_ANY);
+			sys.waitFor($boxkey_door_mover);
+		}
+		else
+		{
+			$boxkey_askey_clicker.setKey("click_item", 1);
+		}
+	}		
+	
+	float areaInspecting = 1;
+	
+	void EnterAreaInspecting()
+	{
+		areaInspecting++;
+	}	
+	
+	void ContinueFromAreaOne()
+	{
+		if(areaInspecting == 0)
+		{
+			Beat(.5);
+
+			$area_1_fader.move(DOWN, 384);
+
+			$area_two_urn.show();
+			$player1.startSoundShader("e1m4_spotlight", SND_CHANNEL_ANY );
+			$area_two_spotlight.show();
+			$area_one_playerclip.hide();
+
+			sys.waitFor($area_1_fader);
+
+			sys.trigger($area_2_skyportal);
+			$area_2_fader.move(UP, 384);
+
+			areaInspecting++;
+		}
+	}
+	
+	void ExitInspectingAreaOne()
+	{
+		areaInspecting--;
+		ContinueFromAreaOne();
+	}
+	
+	void SewerFinalPlayer1Sub()
+	{
+		ShowNPCSubtitles("Sam", "Lee. I've uhm. I've been meaning to ask you.\nAll this breaking out of the valley stuff?", 6);	
+		ShowNPCSubtitles("Sam", "It's been really fun. It's been exhilarating even.\nBut...is...are we being serious here?", 9);		
+		ShowNPCSubtitles("Sam", "I know we've been working on it for so long, but think of all the fun we've had.\nIn the valley. Do we really have it so bad? ", 12);		
+		ShowNPCSubtitles("Sam", "I guess what I'm saying is...if this attempt fails, do we need to keep going?\nIt kinda feels like we're running...", 11);
+	}
+	
+	void InspectAreaOne()
+	{
+		thread SewerFinalPlayer1Sub();
+		CharacterSays($player1, "sewer_final_Player1");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "Running?", 2);
+		CharacterSays($player1, "sewer_final_Lee1");
+
+		areaInspecting--;
+
+		ContinueFromAreaOne();
+	}
+	
+	void ContinueFromAreaTwo()
+	{
+		if(areaInspecting == 0)
+		{
+			Beat(.5);
+
+			$area_2_fader.move(DOWN, 384);
+
+			$player1.startSoundShader("e1m4_spotlight", SND_CHANNEL_ANY );
+			$area_three_spotlight.show();
+			$area_two_playerclip.hide();
+
+			sys.waitFor($area_2_fader);
+
+			sys.trigger($area_3_skyportal);
+			$area_3_fader.move(UP, 384);
+
+			areaInspecting++;
+		}
+	}
+	
+	void ExitInspectingAreaTwo()
+	{
+		areaInspecting--;
+		ContinueFromAreaTwo();
+	}
+	
+	void SewerFinalPlayer2Sub()
+	{
+		ShowNPCSubtitles("Sam", "Yeah. Running away. It's just. I don't mean to.\nI'm sorry, but...", 6.5);
+		ShowNPCSubtitles("Sam", "I know we've always talked about going out and seeing the world together.", 2.8);
+		ShowNPCSubtitles("Sam", "But ever since you lost your mom\nyou've been really dead set on leaving the valley.", 5.3);
+		ShowNPCSubtitles("Sam", "Leaving home. Why are we running?", 3);
+	}	
+	
+	void InspectAreaTwo()
+	{
+		$area_one_spotlight.hide();
+		$area_one_playerclip.show();
+	
+		thread SewerFinalPlayer2Sub();
+		CharacterSays($player1, "sewer_final_Player2");
+		Beat(.25);
+		
+		thread ShowNPCSubtitles("Lee", "I...I just want something better.\nThis place gives me the creeps. It's so constricted.", 9.15);
+		CharacterSays($player1, "sewer_final_Lee2");
+		
+		areaInspecting--;
+
+		ContinueFromAreaTwo();
+	}
+	
+	void ContinueFromAreaThree()
+	{
+		if(areaInspecting == 0)
+		{
+			Beat(.5);
+
+			$area_3_fader.move(DOWN, 384);
+
+			$player1.startSoundShader("e1m4_spotlight", SND_CHANNEL_ANY );
+			$area_four_spotlight.show();
+			$area_three_playerclip.hide();
+
+			sys.waitFor($area_3_fader);
+
+			sys.trigger($area_4_skyportal);
+			$area_4_fader.move(UP, 384);
+
+			areaInspecting++;
+		}
+	}
+	
+	void ExitInspectingAreaThree()
+	{
+		areaInspecting--;
+		ContinueFromAreaThree();
+	}
+	
+	void SewerFinalLee3Sub()
+	{		
+		ShowNPCSubtitles("Lee", "My dad? Yeah, I guess I never really told you about him.\nLet me tell you about my dad.", 9);
+		ShowNPCSubtitles("Lee", "My dad stopped existing right around when my mom died.\nActually, probably somewhere in the last couple of weeks of her life.", 10);
+		ShowNPCSubtitles("Lee", "My dad is gone, Sam. He drinks all day and is gone all night\nWhen he isn't unconscious.", 8);
+		ShowNPCSubtitles("Lee", "Remember my camping trip with him last fall?\nYeah. That wasn't a camping trip. That was another trip to the clinic.", 10);
+		ShowNPCSubtitles("Lee", "Trying to help him. I...I can't deal with it anymore. I need to get out.", 5.15);
+	}
+	
+	void InspectAreaThree()
+	{
+		$area_two_urn.hide();
+		$area_two_spotlight.hide();
+		$area_two_playerclip.show();
+	
+		thread ShowNPCSubtitles("Sam", "Yeah, but why? I'm still around. You still have your dad...", 4.15);
+		CharacterSays($player1, "sewer_final_Player3");
+		Beat(.25);
+		
+		thread SewerFinalLee3Sub();
+		CharacterSays($player1, "sewer_final_Lee3");
+		
+		areaInspecting--;
+
+		ContinueFromAreaThree();
+	}
+	
+	void ContinueFromAreaFour()
+	{
+		if(areaInspecting == 0)
+		{
+			Beat(.5);
+
+			$area_4_fader.move(DOWN, 384);
+
+			$player1.startSoundShader("e1m4_spotlight", SND_CHANNEL_ANY );
+			$area_five_spotlight.show();
+			$area_four_playerclip.hide();			
+
+			Beat(.25);
+			
+			$intro_secret_hatch.rotateOnce('-95 0 0');
+			$player1.startSoundShader("e1m3_1_hatchopen", SND_CHANNEL_ANY );
+
+			areaInspecting++;
+		}
+	}
+	
+	void ExitInspectingAreaFour()
+	{
+		areaInspecting--;
+		ContinueFromAreaFour();
+	}
+	
+	void InspectAreaFour()
+	{
+		$area_three_spotlight.hide();
+		$area_three_playerclip.show();
+	
+		thread ShowNPCSubtitles("Sam", "I'm sorry. The valley is big, though. Can't we just find some other place?\nDoes it have to be outside the walls?", 8);
+		CharacterSays($player1, "sewer_final_Player4");
+		Beat(.25);
+		
+		thread ShowNPCSubtitles("Lee", "I...can't believe you're bringing this up now.\nAre you with me on this or not?", 5.15);
+		CharacterSays($player1, "sewer_final_Lee4");	
+		
+		areaInspecting--;
+
+		ContinueFromAreaFour();
+	}
+	
+	void InspectAreaFive()
+	{		
+		$area_four_playerclip.show();
+		$area_four_spotlight.hide();
+		
+		sys.trigger($outro_cardboard_speaker);
+		$outro_cardboard_box.move(180, 20);
+		Beat(.5);
+		$item_area_pickup_box.setKey("click_item", 1);		
+	}	
+	
+	void PickupAreaBox()
+	{
+		$player1.startSoundShader("e1m3_1_pickupbox", SND_CHANNEL_ANY);
+		$the_box_hidden.hide();
+		
+		sys.wait(.75);
+		
+		$area_five_playerclip.hide();		
+		$player1.startSoundShader("e1m4_spotlight", SND_CHANNEL_ANY );
+	}
+
+	void InspectDiary()
+	{
+		sys.trigger($SpeakerTheDiary);
+		$SpeakerTheDiary.fadeSound(SND_CHANNEL_ANY, 0, .1);
+		$SpeakerTension.fadeSound(SND_CHANNEL_ANY, -100, 60);		
+	}
+
+	void LeaveDiary()
+	{
+		$SpeakerTheDiary.fadeSound(SND_CHANNEL_ANY, -100, 1);
+		$SpeakerTension.fadeSound(SND_CHANNEL_ANY, 0, .5);
+		sys.wait(1);
+		sys.trigger($SpeakerTheDiary);
+		sys.wait(.25);
+		$sewer_diary_reaction_item.setKey("click_item", 1);
+	}
+	
+	void OpenFceGrateDoor()
+	{	
+		$fce_grate_door_mover.rotateOnce('0 95 0');
+		$fce_grate_door_mover.startSoundShader("e1m4_door_creek_2", SND_CHANNEL_ANY);
+	}
+	
+	void TeleportToSewerStart()
+	{
+		sys.fadeTo('1 1 1', 0, .125);
+		sys.trigger($info_player_teleport_sewer_start);
+
+		//rotate start door slightly
+		$sewer_scene_gratedoor_1_mover.rotateOnce('0 -10 0');
+		$sewer_scene_gratedoor_1_mover.startSoundShader("e1m4_door_creek_1", SND_CHANNEL_ANY);
+	}
+
+	void Fader()
+	{
+		$func_mover_3.move(DOWN, 384);
+	}
+
+	void PrepareScene()
+	{
+		sys.trigger($sewer_target_setinfluence_1);
+
+		$skyportal_mover.rotateOnce('0 180 0');
+		sys.waitFor($skyportal_mover);
+		$skyportal_mover.rotateOnce('0 0 10');					
+	}
+	
+	void ShippingCrates(float crate_num)
+	{
+		entity crate = sys.getEntity("crate_mover" + crate_num);
+	
+		crate.move(270, 120);
+		sys.waitFor(crate);
+		crate.bind($crate_pivot1);
+		$crate_pivot1.rotateOnce( '0 -90 0' );
+		sys.waitFor($crate_pivot1);
+		crate.unbind();
+		$crate_pivot1.restorePosition();
+		crate.time(3.4);
+		crate.move(180, 220);
+		sys.waitFor(crate);
+		crate.bind($crate_pivot2);
+		$crate_pivot2.rotateOnce( '45 0 0' );
+		sys.waitFor($crate_pivot2);
+		crate.unbind();
+		$crate_pivot2.restorePosition();
+		crate.time(1.5);
+		crate.moveTo($ship_crate_dest1);
+		sys.waitFor(crate);
+		crate.bind($crate_pivot3);
+		$crate_pivot3.rotateOnce( '-45 0 0' );
+		sys.waitFor($crate_pivot3);
+		crate.unbind();
+		$crate_pivot3.restorePosition();
+		crate.time(.8);
+		crate.move(180, 64);
+		sys.waitFor(crate);
+		crate.bind($crate_pivot4);
+		$crate_pivot4.rotateOnce( '0 -90 0' );
+		sys.waitFor($crate_pivot4);
+		crate.unbind();
+		$crate_pivot4.restorePosition();
+		crate.time(.75);
+		crate.move(90, 60);
+		sys.waitFor(crate);
+		crate.restorePosition();
+	}
+	
+	void ShippingCratesLoop()
+	{
+	while(1)
+		{
+			thread ShippingCrates(1);
+			sys.wait(4);
+			thread ShippingCrates(2);
+			sys.wait(4);
+			thread ShippingCrates(3);
+			sys.wait(4);
+			thread ShippingCrates(4);
+			sys.wait(4);
+		}
+	}
+	
+	//===========================================
+	// START CHECKPOINTS
+	//===========================================
+	
+	void startpipe_checkpoint()
+	{
+		sys.quickSave("Night Walk - Checkpoint 1");
+	}
+	
+	void drainedpipe_checkpoint()
+	{
+		sys.quickSave("Night Walk - Checkpoint 2");
+	}
+	
+	void postcontrolroomfight_checkpoint()
+	{
+		sys.quickSave("Night Walk - Checkpoint 3");
+	}
+	
+	void precguncommandosfight_checkpoint()
+	{
+		sys.quickSave("Night Walk - Checkpoint 4");
+	}
+	
+	void precargorefuel_checkpoint()
+	{
+		sys.quickSave("Night Walk - Checkpoint 5");
+	}	
+	
+	//===========================================
+	// END CHECKPOINTS
+	//===========================================
+
+	//===========================================
+	// RANDOM MONSTER SPAWNS
+	//===========================================		
+	
+	void select_monsterconfig(float encounterNum)
+	{
+		float monsterselect;
+		entity monster_config_a = sys.getEntity("monster_config_a" + encounterNum);
+		entity monster_config_b = sys.getEntity("monster_config_b" + encounterNum);
+
+
+		while (1)
+		{
+			monsterselect = sys.random(15);
+		
+				if (monsterselect <= 8){
+					sys.trigger (monster_config_a);
+					//sys.println("monster_configa" + encounterNum + "selected");
+					sys.wait(.5);
+				} else {
+					sys.trigger (monster_config_b);
+					//sys.println("monster_configb" + encounterNum + "selected");
+					sys.wait(.5);
+				} 
+		}
+	}
+	
+	void select_monsterconfig1()
+	{
+		select_monsterconfig(1);
+	}			
+	
+	void select_monsterconfig2()
+	{
+		select_monsterconfig(2);
+	}			
+	
+	void select_monsterconfig3()
+	{
+		select_monsterconfig(3);
+	}			
+	
+	void kill_monster_selection1()
+	{sys.killthread ("map_e1m4::select_monsterconfig1");}
+	
+	void kill_monster_selection2()
+	{sys.killthread ("map_e1m4::select_monsterconfig2");}
+	
+	void kill_monster_selection3()
+	{sys.killthread ("map_e1m4::select_monsterconfig3");}
+	
+	//===========================================
+	// END RANDOM MONSTER SPAWNS
+	//===========================================
+	
+	void main()
+	{	
+		PrepareScene();
+		
+		//TeleportToAreaOne();
+		
+		sys.wait(3.5);
+		thread select_monsterconfig1();
+		sys.wait(5);
+		thread select_monsterconfig2();
+		sys.wait(7);
+		thread select_monsterconfig3();
+
+		CargoLoop();
+		thread ShippingCratesLoop();
+		
+		sys.wait(180);		
+
+		SuspendCargo();
+	}		
+}

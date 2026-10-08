@@ -1,0 +1,2765 @@
+namespace map_e1m5_2
+{
+	float hideSubTime = 0;
+	float letsGoQuesting = 0;
+
+	float show_planning = 1;
+	float show_establishing_shot = 1;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m5_2(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+
+	float CharacterSaysNoWait(entity characterEntity, string line)
+	{
+		return characterEntity.startSoundShader(line, SND_CHANNEL_ANY);
+	}
+
+	void CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+
+	void LeeTexts(string text)
+	{
+		float textTime = sys.strLength(text) * 0.125;
+
+		sys.showTextTyping();
+		sys.wait(textTime);
+		sys.hideTextTyping();
+		sys.showTextMessage(text, 0);
+	}
+	
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}
+
+	void precache()
+	{
+		sys.cacheSoundShader ("switch_02");
+	}
+
+	string lg_main = "main";
+	float lg_main_num = 83;
+
+	void RestoreLightGroup(string name, float num)
+	{
+		float i = 0;
+		while(i < num)
+		{
+			entity light = sys.getEntity("house_light_group_" + name + "_" + (i + 1));
+			vector color = light.getColor();
+			vector ogcolor = light.getVectorKey("ogcolor");
+			
+			thread crossFadeEnt (light, color, ogcolor, 0.25);
+			i++;
+		}
+	}
+
+	void StoreLightGroup(string name, float num)
+	{
+		float i = 0;
+		while(i < num)
+		{
+			entity light = sys.getEntity("house_light_group_" + name + "_" + (i + 1));
+			vector ogcolor = light.getColor();
+			light.setKey("ogcolor", ogcolor);
+			light.setColor(0, 0, 0);
+			i++;
+		}
+	}
+
+	void PushSwing()
+	{
+		vector o1 = $intro_swingset_push_clicker.getOrigin();
+		vector o2 = $player1.getOrigin();
+		
+		float sign = -1;
+
+		if(o2_y > o1_y)
+		{
+			sign = 1;
+		}
+
+		$SwingRotator.accelTime(.0625);
+		$SwingRotator.time(1);
+		$SwingRotator.decelTime(.5);
+
+		$SwingRotator.startSoundShader("sound/shav/intro/swingset.ogg", SND_CHANNEL_ANY);
+		$SwingRotator.rotateOnce(sign * '0 0 -10');
+
+		sys.waitFor($SwingRotator);
+		$SwingRotator.accelTime(.5);		
+
+		float angle = 20;
+		vector rotAngle = '0 0 1';
+
+		while(angle > 0)
+		{
+			vector sa = sign * angle * rotAngle;
+
+			$SwingRotator.rotateOnce(sa);
+			//$SwingRotator.startSoundShader("sound/shav/intro/swingset.ogg", SND_CHANNEL_ANY);
+			sys.waitFor($SwingRotator);
+
+			sign *= -1;
+			angle -= 2;
+		}
+
+		$intro_swingset_push_clicker.setKey("click_item", 1);
+	}	
+
+	void EnterBensonHouse()
+	{
+		sys.wait(1);
+		sys.trigger($objective_break_into_house_complete);
+
+		//disable front door clickers
+		$house_front_door_clicker.setKey("click_item", 0);
+		$func_static_107789.setKey("click_item", 0);
+		$garage_door_try_clicker.setKey("click_item", 0);
+	}
+	
+	float hasNewspaperReaction = 0;	
+	void NewspaperReaction()
+	{
+		if(hasNewspaperReaction == 0)
+		{
+			hasNewspaperReaction = 1;
+
+			thread ShowSubtitles("Sam", "Critical journalism takes a nosedive. Maybe he planted those drugs.", 4.25);
+			CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/NewspaperReaction.ogg");
+		}
+	}
+
+	float evalongatedoria_state = 0;
+
+	float pantry_light = 0;
+
+	void CheckPantryLights()
+	{
+		if(evalongatedoria_state == 2 && pantry_light == 1)
+		{
+			$pantry_knob_box_clicker.setKey("click_item", 1);
+			$pantry_knob_box_clicker2.setKey("click_item", 1);
+			$pantry_knob_box_clicker3.setKey("click_item", 1);
+			$pantry_knob_box_clicker4.setKey("click_item", 1);
+
+			sys.wait(1);
+
+			sys.wait(1);
+			sys.trigger($objective_locate_box_complete);
+			sys.wait(.5);
+			sys.trigger($objective_locate_box_pantry);
+		}
+	}
+
+	void SafeReaction()
+	{
+		$benson_small_office_vault_door_mover.rotateOnce('0 105 0');
+
+		evalongatedoria_state = evalongatedoria_state + 1;
+		CheckPantryLights();
+	}
+
+	void ArmyReaction()
+	{
+		sys.disableItemGroup("evalongated");
+
+		thread ShowSubtitles("Sam", "Okay...", 2);
+		CharacterSays($player1, "sound/vo/player/general/OkayQuestion.ogg");
+
+		sys.enableItemGroups();
+
+		evalongatedoria_state = evalongatedoria_state + 1;
+		CheckPantryLights();
+	}
+	
+	float lee_note_state = 0;
+	
+	void CheckLeeUwu()
+	{
+		if(lee_note_state == 4)
+		{
+			$LeeNoteUwu.setKey("click_item", 1);
+		}
+	}
+
+	void TwoBedsReaction()
+	{
+		sys.disableItemGroup("motel_reactions");
+
+		thread ShowSubtitles("Sam", "That was a first...", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/Planning/BedsReaction.ogg");
+
+		sys.enableItemGroups();
+
+		lee_note_state++;
+		CheckLeeUwu();
+	}
+	
+	void TwoBagsReaction()
+	{
+		sys.disableItemGroup("motel_reactions");
+
+		thread ShowSubtitles("Sam", "We're finally getting out of here.\nLee really needs this...so do I.", 5);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/Planning/BagsReaction.ogg");
+
+		sys.enableItemGroups();
+
+		lee_note_state++;
+		CheckLeeUwu();
+	}
+
+	void KarlReactionSubs()
+	{
+		ShowSubtitles("Sam", "I really hope Karl can come through with all this.\nIt all hinges on him.", 5);
+		ShowSubtitles("Sam", "I don't trust him, but it's better than Benson.\nAnything is.", 5);
+	}
+	
+	void KarlRoomDoorReaction()
+	{
+		sys.disableItemGroup("motel_reactions");
+
+		thread KarlReactionSubs();
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/Planning/KarlReaction.ogg");
+
+		sys.enableItemGroups();
+
+		lee_note_state++;
+		CheckLeeUwu();
+	}		
+
+	void ReactToFML()
+	{
+		sys.disableItemGroup("motel_reactions");
+
+		thread ShowSubtitles("Sam", "Benson was a mistake, but we have to move on.", 3);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/Planning/FmlReaction.ogg");
+
+		sys.enableItemGroups();
+
+		lee_note_state++;
+		CheckLeeUwu();
+	}	
+
+	float is_wining = 0;
+	void WineReaction()
+	{
+		is_wining = 1;
+
+		thread ShowSubtitles("Sam", "Hmm. There's got to be more to this than just wine.", 3);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/WineReaction.ogg");
+
+		is_wining = 0;
+	}
+
+	void SecretOfficeReaction()
+	{
+		float was_wining = 0;
+		while(is_wining)
+		{
+			was_wining = 1;
+			sys.waitFrame();
+		}
+
+		if(was_wining)
+		{
+			sys.wait(1);
+		}
+
+		thread ShowSubtitles("Sam", "I think we're getting closer.", 3);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/GettingCloserReaction.ogg");
+	}
+
+	void ToothbrushesReaction()
+	{
+		thread ShowSubtitles("Sam", "I really hope this doesn't belong to Lee.", 3);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/ToothBrushesReaction.ogg");
+	}
+	
+	void SwingSetReaction()
+	{
+		thread ShowSubtitles("Sam", "I never imagined James would have a swingset and a castle. Creepy.", 3);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/SwingsetReaction.ogg");
+	}
+	
+	void TryGardenDoor()
+	{
+		thread ShowSubtitles("Sam", "Locked. Maybe James has something that can pry it open.", 3);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/BackyardDoorReaction.ogg");
+	
+		$shed_door_try_click_item.setKey("click_item", "1");
+	}
+	
+	void RotateSkewedPicture()
+	{
+		$picture_frame_item.setKey("click_item", "0");
+		
+		$skewed_picture.rotateOnce('0 0 -8');
+		$skewed_picture.startSoundShader("sound/shav/e1m5_2/painting.ogg", SND_CHANNEL_ANY);
+		
+		sys.wait(1.25);
+		
+		$skewed_picture.rotateOnce('0 0 8');
+		$skewed_picture.startSoundShader("sound/shav/e1m5_2/painting_rev.ogg", SND_CHANNEL_ANY);
+		
+		sys.wait(1.25);
+		
+		$picture_frame_item.setKey("click_item", "1");
+	}
+
+	void BreakShedWindow()
+	{
+		sys.trigger($break_shed_glass_relay);
+		
+		sys.wait(0.35);
+		
+		thread ShowSubtitles("Sam", "Ssshhh....", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/GlassBreakingReaction.ogg");
+		
+		$shed_door_click_item.setKey("click_item", "1");
+		
+		sys.wait(0.5);
+		
+		sys.trigger($dog_speaker);
+	}
+	
+	void OpenShedDoor()
+	{
+		$shed_door_handle.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+		$shed_door_handle.rotateOnce('-30 0 0');
+		
+		$shed_door_hinge.rotateOnce('0 -85 0');
+		$shed_door_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+		
+		sys.wait(.5);
+
+		$shed_door_handle.rotateOnce('30 0 0');
+				
+		$shed_light_switch.setKey("click_item", "1");		
+	}
+	
+	void TryShedDoor()
+	{
+		$shed_door.startSoundShader("sound/shav/e1m5_2/locked_door.ogg", SND_CHANNEL_ANY);
+
+		$shed_door_handle.rotateOnce('-15 0 0');
+
+		$shed_door_hinge.accelTime(0);
+		$shed_door_hinge.decelTime(0);
+		$shed_door_hinge.time(.0625);
+
+		float angle = 0.5;
+		$shed_door_hinge.rotateOnce('0 0.5 0' * angle);
+
+		float i = 0;
+		while( i < 2 )
+		{
+			sys.waitFor($shed_door_hinge);
+			$shed_door_hinge.rotateOnce('0 -1 0' * angle);
+			sys.waitFor($shed_door_hinge);
+			$shed_door_hinge.rotateOnce('0 1 0' * angle);
+			i++;
+		}	
+	
+		sys.waitFor($shed_door_hinge);
+
+		$shed_door_hinge.rotateOnce('0 -0.5 0' * angle);
+
+		$shed_door_handle.rotateOnce('15 0 0');
+		
+		sys.wait(0.25);
+		
+		$shed_door_class_clicker.setKey("click_item", "1");
+
+		$shed_door_hinge.accelTime(0.5);
+		$shed_door_hinge.decelTime(0.5);
+		$shed_door_hinge.time(3);
+	}
+
+	float pantryDoorState = 0;
+	float triedPantryDoor = 0;
+
+	float firstTimeOfficeDoor = 1;
+
+	void TryOfficeDoor()
+	{
+		if(pantryDoorState==0)
+		{
+			$office_door.startSoundShader("sound/shav/e1m5_2/locked_door.ogg", SND_CHANNEL_ANY);
+	
+			$office_door_handle.rotateOnce('-30 0 0');
+	
+			float angle = 0.5;
+			$office_door_hinge.rotateOnce('0 0.5 0' * angle);
+	
+			float i = 0;
+			while( i < 2 )
+			{
+				sys.waitFor($office_door_hinge);
+				$office_door_hinge.rotateOnce('0 -1 0' * angle);
+				sys.waitFor($office_door_hinge);
+				$office_door_hinge.rotateOnce('0 1 0' * angle);
+				i++;
+			}	
+		
+			sys.waitFor($office_door_hinge);
+	
+			$office_door_hinge.rotateOnce('0 -0.5 0' * angle);
+	
+			$office_door_handle.rotateOnce('30 0 0');
+	
+			sys.waitFor($office_door_handle);
+
+			sys.wait(.5);
+	
+			if(firstTimeOfficeDoor)
+			{
+				firstTimeOfficeDoor = 0;
+				$outro_garage_door_clicker_1.setKey("click_item", 1);
+				$house_pantry_door_clicker.setKey("click_item", 1);
+
+				sys.wait(1);
+				sys.trigger($objective_locate_box);
+			}
+			
+			$office_door_item.setKey("click_item", 1);
+		}
+		else
+		{
+			$office_door_item.hide();
+			sys.wait($office_door.startSoundShader("sound/shav/e1m5_2/unlock.ogg", SND_CHANNEL_ANY) + 0.5);
+
+			$office_door_hinge.accelTime(0.5);
+			$office_door_hinge.decelTime(0.5);
+			$office_door_hinge.time(3);
+
+			sys.trigger($office_door_portal);
+
+			$office_door_handle.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+			$office_door_handle.rotateOnce('-30 0 0');
+			
+			$office_door_hinge.rotateOnce('0 115 0');
+			$office_door_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+			
+			sys.wait(.5);
+
+			$office_door_handle.rotateOnce('30 0 0');
+		}
+	}
+	
+	void OpenEmptyRoom()
+	{
+		$empty_room_door_handle.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+		$empty_room_door_handle.rotateOnce('30 0 0');
+		
+		$empty_room_door_hinge.rotateOnce('0 -85 0');
+		$empty_room_door_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+		
+		sys.wait(.5);
+
+		$empty_room_door_handle.rotateOnce('-30 0 0');
+	}
+	
+	void OpenKitchenDoor()
+	{
+		sys.trigger($kitchen_door_portal);
+
+		$kitchen_door_handle.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+		$kitchen_door_handle.rotateOnce('-30 0 0');
+		
+		$kitchen_door_hinge.rotateOnce('0 85 0');
+		$kitchen_door_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+		
+		sys.wait(.5);
+
+		$kitchen_door_handle.rotateOnce('30 0 0');
+	}
+	
+	void TurnOnLightInMasterBedroom()
+	{	
+		RestoreLightGroup("master_bedroom", 18);
+		$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+	}
+	
+	void TurnOnLightEmptyRoom()
+	{		
+		RestoreLightGroup("empty_room", 8);
+		$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(.5);
+
+		thread ShowSubtitles("Sam", "Strange. Did someone live in this room?", 3);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EmptyRoomReaction.ogg");
+
+		$basketball_hoop_clicker.setKey("click_item", 1);
+
+		/*
+		sys.wait(1);
+
+		sys.showTextMessage("He has an empty room with boxed up stuff. Did someone live there?", 1);
+
+		sys.wait(1.75);
+
+		LeeTexts("Empty room? Dunno. Maybe he did?\nBefore his wife left?");
+
+		sys.wait(2);
+
+		sys.showTextMessage("This place is getting weirder by the minute.", 1);
+		*/
+	}
+	
+	void TurnOnTopBathroomLight()
+	{
+		RestoreLightGroup("top_bathroom", 4);
+		$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(0.5);
+
+		$toothbrush_reaction_item.setKey("click_item", 1);
+	}
+	
+	float garage_light = 0;
+	float garage_light_time = 0;
+	vector garage_light_player_position = '0 0 0';
+
+	void GarageLightSleeper()
+	{
+		float garage_light_duration = 20;
+
+		while(garage_light)
+		{
+			if(garage_light_time + garage_light_duration <= sys.getTime())
+			{
+				StoreLightGroup("garage", 20);
+				$garage_door_clicker.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+				
+				garage_light = 0;
+			}
+
+			sys.waitFrame();
+		}
+	}
+	
+	void TurnOnGarageLight()
+	{
+		vector player_origin = $player1.getOrigin();
+		
+		if(garage_light == 0)
+		{
+			if(player_origin == garage_light_player_position)
+			{
+				return;
+			}
+			garage_light_player_position = player_origin;
+
+			garage_light = 1;
+			garage_light_time = sys.getTime();
+
+			RestoreLightGroup("garage", 20);
+			$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+
+			thread GarageLightSleeper();
+		}
+		else
+		{
+			if(player_origin == garage_light_player_position)
+			{
+				return;
+			}
+
+			// If the light is already on, just update the time and place so it doesn't turn off
+			garage_light_time = sys.getTime();
+			garage_light_player_position = player_origin;
+		}
+	}
+
+	void TurnOnBottomBathroomLight()
+	{
+		RestoreLightGroup("bottom_bathroom", 4);
+		$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);		
+	}
+	
+	void TurnOnCellarLight()
+	{
+		RestoreLightGroup("cellar", 12);
+		$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+	}
+	
+	
+	
+
+	void TurnOnPantryLight()
+	{	
+		pantry_light = 1;
+		RestoreLightGroup("pantry", 5);
+		$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+		
+		CheckPantryLights();
+	}
+
+	float hmm = 0;
+
+	void CheckHmm(string hmm_text, string hmm_sound)
+	{
+		sys.disableItemGroup("pantry_inspection");
+
+		float hmm_duration = $player1.startSoundShader(hmm_sound, SND_CHANNEL_ANY);
+
+		thread ShowSubtitles("Sam", hmm_text, hmm_duration * 2);
+		sys.wait(hmm_duration);
+
+		if(hmm++ >= 4)
+		{
+			$pantry_door_closer.setKey("click_item", 1);
+		}
+
+		sys.enableItemGroups();
+	}
+
+
+	void PantryHmm1()
+	{				
+		CheckHmm("Hmm.", "sound/vo/player/general/hmm.ogg");
+	}
+
+	void PantryHmm2()
+	{
+		CheckHmm("Hm.", "sound/vo/player/general/hmmshort.ogg");
+	}
+
+	void PantryHmm3()
+	{
+		CheckHmm("Hmmm.", "sound/vo/player/general/hmmlong.ogg");
+	}
+
+	void PantryHmm4()
+	{
+		CheckHmm("Hmm?", "sound/vo/player/general/hmmquestion.ogg");
+	}
+
+
+	float attic_light = 0;
+	float attic_light_time = 0;
+
+	void AtticLightSleeper()
+	{
+		float attic_light_duration = 5;
+
+		while(attic_light)
+		{
+			if(attic_light_time + attic_light_duration <= sys.getTime())
+			{
+				StoreLightGroup("attic", 20);
+				attic_light = 0;
+			}
+
+			sys.waitFrame();
+		}
+	}
+
+	void TurnOnAtticLight()
+	{
+		attic_light_time = sys.getTime();
+
+		if(attic_light == 0)
+		{
+			attic_light = 1;
+
+			RestoreLightGroup("attic", 10);
+			$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+
+			thread AtticLightSleeper();
+		}
+	}
+
+	void FadeMediaLights(vector a, vector b)
+	{
+		thread crossFadeEnt ($house_light_group_main_25, a, b, 4);
+		thread crossFadeEnt ($house_light_group_main_26, a, b, 4);
+		thread crossFadeEnt ($house_light_group_main_30, a, b, 4);
+		thread crossFadeEnt ($house_light_group_main_68, a, b, 4);
+		thread crossFadeEnt ($house_light_group_main_27, a, b, 4);
+		thread crossFadeEnt ($house_light_group_main_28, a, b, 4);
+		thread crossFadeEnt ($house_light_group_main_31, a, b, 4);
+		thread crossFadeEnt ($house_light_group_main_69, a, b, 4);
+	}
+	
+	float boxUwuCounter = 0;
+
+	void CheckBoxUwu()
+	{
+		if(boxUwuCounter > 1)
+		{
+			$func_static_107732.setKey("click_item", 1);
+		}
+	}
+
+	void KaraBoxReaction()
+	{
+		sys.disableItemGroup("vault_items");
+
+		thread ShowSubtitles("Sam", "What did you do to her James?", 3);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/KaraBoxReaction.ogg");
+
+		sys.enableItemGroups();
+	
+		boxUwuCounter++;
+		CheckBoxUwu();		
+	}
+
+	void TvReaction()
+	{
+		thread ShowSubtitles("Sam", "I love this show.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/TvReaction.ogg");
+	}
+
+	float music_suspense_state = 1;
+	void Music_Suspense_01_Start()
+	{
+		$Speaker_Music_AfterHours.fadeSound(SND_CHANNEL_ANY, -100, 10);
+		sys.wait($player1.startSoundShader("sound/shav/e1m5_2/turn_on_the_lights.ogg", SND_CHANNEL_ANY) - 2);
+		sys.trigger($Speaker_Music_Suspense_01);
+		$Speaker_Music_Suspense_01.fadeSound(SND_CHANNEL_ANY, -100, 0);
+		sys.waitFrame();
+		$Speaker_Music_Suspense_01.fadeSound(SND_CHANNEL_ANY, 100, 5);
+
+		sys.wait(10);
+
+		sys.trigger($Speaker_Music_AfterHours);
+	}
+
+	void Music_Suspense_Advance()
+	{
+		entity old_entity = sys.getEntity("Speaker_Music_Suspense_0" + music_suspense_state);
+		music_suspense_state++;
+		entity new_entity = sys.getEntity("Speaker_Music_Suspense_0" + music_suspense_state);
+
+		sys.trigger(new_entity);
+		new_entity.fadeSound(SND_CHANNEL_ANY, -100, 0);
+		sys.waitFrame();
+		old_entity.fadeSound(SND_CHANNEL_ANY, -100, 15);
+		new_entity.fadeSound(SND_CHANNEL_ANY, 100, 5);
+	}
+
+	void TurnOnMainLights()
+	{
+		sys.disableItemGroup("living_room");
+
+		thread Music_Suspense_01_Start();
+
+		RestoreLightGroup(lg_main, lg_main_num);
+		$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(1);
+		
+		$office_door_item.setKey("click_item", 1);
+		$picture_frame_item.setKey("click_item", 1);
+		$recipe_item.setKey("click_item", 1);
+		$tv_reaction_clicker.setKey("click_item", 1);
+		
+		thread ShowSubtitles("Sam", "Fancy. The feds take care of their own...", 3);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/FancyReaction.ogg");
+
+		sys.enableItemGroups();
+
+		vector pink = '1 0 1';
+		vector cyan = '0 1 1';
+		vector yellow = '1 1 0';
+
+		while(1)
+		{
+			FadeMediaLights(pink, cyan);
+
+			sys.wait(4);
+
+			FadeMediaLights(cyan, yellow);
+
+			sys.wait(4);
+
+			FadeMediaLights(yellow, pink);
+
+			sys.wait(4);
+		}		
+	}
+
+	void TurnOnShedLights()
+	{
+		RestoreLightGroup("shed", 3);
+		$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(1);
+
+		$crowbar_item.setKey("click_item", "1");
+	}
+	
+	void OpenTopBath()
+	{
+		$top_bath_door_handle.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+		$top_bath_door_handle.rotateOnce('0 0 30');
+		
+		$top_bath_door_hinge.rotateOnce('0 85 0');
+		$top_bath_door_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+		
+		sys.wait(.5);
+
+		$top_bath_door_handle.rotateOnce('0 0 -30');
+	}
+	
+	
+	/*
+	void WaitIveGotIt()
+	{
+		sys.showTextMessage("Never mind. I'm on to something!", 1);
+	}
+
+	void DeadEndHint()
+	{
+		if(letsGoQuesting == 1)
+			return;
+
+		sys.showTextMessage("Dead end. I've looked all over the place.\nAny ideas?.", 1);
+
+		sys.wait(3);
+
+		if(letsGoQuesting == 1)
+		{
+			WaitIveGotIt();
+			return;
+		}
+
+		LeeTexts("What about the side quest?\nIt could lead somewhere I guess?");
+
+		sys.wait(1);
+
+		if(letsGoQuesting == 1)
+		{
+			WaitIveGotIt();
+			return;
+		}
+
+		sys.showTextMessage("It's better than nothing.\nThe note mentioned a grassy kingdom.", 1);
+
+		sys.wait(3);
+
+		if(letsGoQuesting == 1)
+		{
+			WaitIveGotIt();
+			return;
+		}
+
+		LeeTexts("Maybe it's out back somewhere?");
+	}*/
+	
+	void OpenBedroomDrawer()
+	{
+		sys.trigger($bedroom_drawer_speaker);
+		$bedroom_drawer.move(360, 15);
+		
+		sys.wait(.5);
+		
+		$bedroom_drawer_book_reaction_item.setKey("click_item", "1");
+	}
+
+	void OpenBedroomDrawer2()
+	{
+		sys.trigger($bedroom_drawer_speaker2);
+		$bedroom_drawer2.move(270, 15);
+		
+		sys.wait(.5);
+	}
+	
+	void InspectKeyBook()
+	{
+		
+		//DeadEndHint();
+	}
+
+	void PickupKeyFromBook()
+	{
+		if(pantryDoorState == 0)
+		{
+			//Picks up key to pantry
+			pantryDoorState = 1;
+
+			sys.wait(1);
+
+			$bedroom_drawer_book_reaction_item.setKey("click_inspect_item2", "guis/assets/items/key_book_2.tga");
+			
+			$player1.startSoundShader("e1m3_1_pickupbox", SND_CHANNEL_ANY);			
+				
+			$house_pantry_door_clicker.setKey("click_item", 1);
+
+			$func_static_107683.hide();
+			
+			sys.wait(1);
+			
+			sys.trigger($objective_find_contraband_key_complete);
+		}
+	}
+	
+	float hasGirlSignReaction = 0;	
+	float questSignReaction = 0;
+	void QuestSignReaction()
+	{		
+		if(questSignReaction == 1 && hasGirlSignReaction == 2)
+		{
+			questSignReaction = 2;
+		
+			
+		}
+	}
+
+	float seenQuest = 0;
+	void SeenQuest()
+	{
+		if(seenQuest == 0)
+		{
+			seenQuest = 1;
+		}
+	}
+
+	void QuestSignClick()
+	{
+		if(questSignReaction == 0)
+		{
+			questSignReaction = 1;
+
+			QuestSignReaction();
+		}
+	}
+
+	void GirlRoomSignReaction()
+	{			
+		if(seenQuest == 1)
+		{			
+			seenQuest = 2;
+
+			//Start treasure hunt			
+			$item_treasure_lightchain.setKey("click_item", 1);
+
+			sys.wait(1);
+									
+			sys.trigger($objective_find_contraband);
+
+			$func_static_100080.setKey("click_item", 1);
+
+		}
+
+		if(hasGirlSignReaction == 0)
+		{
+			hasGirlSignReaction = 1;
+			
+			$girl_room_door_item.setKey("click_item", "1");						
+
+			hasGirlSignReaction = 2;
+
+			QuestSignReaction();
+		}
+	}
+	
+	void OpenPantryDoor()
+	{	
+		$house_pantry_door_clicker.setKey("click_item", 0);
+
+		if(pantryDoorState == 0)
+		{
+			$pantry_door.startSoundShader("sound/shav/e1m5_2/locked_door.ogg", SND_CHANNEL_ANY);
+
+			$pantry_door_handle.rotateOnce('0 0 15');
+
+			float angle = 0.5;
+			$pantry_door_hinge.rotateOnce('0 0.5 0' * angle);
+
+			float i = 0;
+			while( i < 2 )
+			{
+				sys.waitFor($pantry_door_hinge);
+				$pantry_door_hinge.rotateOnce('0 -1 0' * angle);
+				sys.waitFor($pantry_door_hinge);
+				$pantry_door_hinge.rotateOnce('0 1 0' * angle);
+				i++;
+			}	
+		
+			sys.waitFor($pantry_door_hinge);
+
+			$pantry_door_hinge.rotateOnce('0 -0.5 0' * angle);
+
+			$pantry_door_handle.rotateOnce('0 0 -15');
+
+			if(triedPantryDoor == 0)
+			{
+				$kichen_door_clicker.setKey("click_item", 1);
+
+				triedPantryDoor = 1;
+				
+				sys.wait(0.5);
+			}
+		}
+		
+		if(pantryDoorState == 1)
+		{
+			sys.wait($pantry_door.startSoundShader("sound/shav/e1m5_2/unlock.ogg", SND_CHANNEL_ANY) + 0.5);
+
+			$pantry_door_hinge.accelTime(0.5);
+			$pantry_door_hinge.decelTime(0.5);
+			$pantry_door_hinge.time(3);
+
+			sys.trigger($pantry_door_portal);
+
+			$pantry_door_handle.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+			$pantry_door_handle.rotateOnce('0 0 30');
+			
+			$pantry_door_hinge.rotateOnce('0 115 0');
+			$pantry_door_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+			
+			sys.wait(.5);
+
+			$pantry_door_handle.rotateOnce('0 0 -30');
+		}
+	}	
+
+	void ClosePantryDoor()
+	{	
+		$pantry_clip.show();
+		$pantry_door.setKey("solid", 0);
+
+		$pantry_door_hinge.accelTime(0.5);
+		$pantry_door_hinge.decelTime(0.5);
+		$pantry_door_hinge.time(3);			
+			
+		$pantry_door_hinge.rotateOnce('0 -115 0');
+		$pantry_door_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+			
+		sys.waitFor($pantry_door_hinge);
+
+		sys.trigger($pantry_door_portal);
+		
+		$pantry_clip.hide();
+		$pantry_door.setKey("solid", 1);
+	}
+	
+	void OpenDownBathroomDoor()
+	{
+		$bottom_bath_door_handle.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+		$bottom_bath_door_handle.rotateOnce('0 0 30');
+		
+		$bottom_bath_door_hinge.rotateOnce('0 85 0');
+		$bottom_bath_door_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+		
+		sys.wait(.5);
+
+		$bottom_bath_door_handle.rotateOnce('0 0 -30');
+	}
+	
+	float foundTreasureNote = 0;
+	void TryGirlRoomDoor()
+	{	
+		//Try door
+		if(foundTreasureNote == 0)		
+		{
+			$girl_room_door.startSoundShader("sound/shav/e1m5_2/locked_door.ogg", SND_CHANNEL_ANY);
+
+			$girl_room_door_handle.rotateOnce('0 0 -15');
+
+			float angle = 0.5;
+			$girl_room_door_hinge.rotateOnce('0 0.5 0' * angle);
+
+			float i = 0;
+			while( i < 2 )
+			{
+				sys.waitFor($girl_room_door_hinge);
+				$girl_room_door_hinge.rotateOnce('0 -1 0' * angle);
+				sys.waitFor($girl_room_door_hinge);
+				$girl_room_door_hinge.rotateOnce('0 1 0' * angle);
+				i++;
+			}	
+		
+			sys.waitFor($girl_room_door_hinge);
+
+			$girl_room_door_hinge.rotateOnce('0 -0.5 0' * angle);
+
+			$girl_room_door_handle.rotateOnce('0 0 15');
+
+			sys.wait(0.5);
+			
+			$girl_room_keyhole_item.setKey("click_item", "1");
+		}
+		
+		//Open door
+		if(foundTreasureNote == 1)
+		{
+			sys.wait($girl_room_door_hinge.startSoundShader("sound/shav/e1m5_2/unlock.ogg", SND_CHANNEL_ANY) + 0.5);
+
+			$girl_room_door_hinge.accelTime(0.5);
+			$girl_room_door_hinge.decelTime(0.5);
+			$girl_room_door_hinge.time(3);
+
+			$girl_room_door_handle.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+			$girl_room_door_handle.rotateOnce('0 0 -30');
+			
+			$girl_room_door_hinge.rotateOnce('0 85 0');
+			$girl_room_door_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+			
+			sys.wait(.5);
+
+			$girl_room_door_handle.rotateOnce('0 0 30');
+		}		
+	}
+
+	float lookingIntoGirlRoom = 0;	
+	void UpdateCameraAngle2()
+	{			
+		while(lookingIntoGirlRoom)
+		{
+			vector angles = $player1.getViewAngles();
+			angles_x = angles_x * 0.5;
+			$girl_room_camera_mover.setAngles(angles + '0 90 0');
+			sys.wait(GAME_FRAMETIME);
+		}
+	}
+
+	vector originalStalkerViewAngles;
+
+	void LookIntoGirlRoom()
+	{
+		if(lookingIntoGirlRoom == 2)
+		{
+			return;
+		}
+
+		float new_state = lookingIntoGirlRoom;
+		lookingIntoGirlRoom = 2;
+
+		sys.fadeTo('0 0 0', 1, .125);
+
+		sys.wait(.125);
+
+		if(new_state == 0)
+		{
+			new_state = 1;
+
+			originalStalkerViewAngles = $player1.getViewAngles();
+			
+			$func_static_100940.show();
+
+			sys.trigger($girl_room_peek_teleport);
+			thread UpdateCameraAngle2();
+			sys.trigger($GirlRoomBreathing);
+		}
+		else
+		{
+			new_state = 0;
+
+			$func_static_100940.hide();
+			
+			$girl_room_keyhole_item.setKey("click_item", 1);
+			sys.trigger($girl_room_teleport);
+
+			$player1.setViewAngles(originalStalkerViewAngles);
+			sys.trigger($GirlRoomBreathing);
+		}
+
+		sys.trigger($girl_room_camera);
+		sys.wait(.125);
+		
+		sys.fadeTo('0 0 0', 0, .125);
+
+		sys.wait(.125);
+
+		lookingIntoGirlRoom = new_state;
+	}
+
+	void BreakSummerCam()
+	{
+		LookIntoGirlRoom();
+	}
+
+	void DepressHatch()
+	{
+		$cellar_hatch.accelTime(0);
+		$cellar_hatch.decelTime(0);
+		$cellar_hatch.time(.125);
+		$cellar_hatch.startSoundShader("sound/shav/e1m5_2/HandleRot.ogg", SND_CHANNEL_ANY);
+
+		$cellar_hatch.move(DOWN, 2);
+
+		sys.waitFor($cellar_hatch);
+	}
+
+	void OpenHatch()
+	{
+		$pantry_knob_clicker.hide();
+
+		DepressHatch();
+
+		sys.wait(2);
+
+		thread Music_Suspense_Advance();
+
+		sys.trigger($cellar_hatch_portal);
+		$cellar_hatch.accelTime(1);
+		$cellar_hatch.decelTime(1);
+		$cellar_hatch.time(10);
+		$cellar_hatch.startSoundShader("sound/shav/e1m4/rolling.ogg", SND_CHANNEL_ANY);
+
+		$cellar_hatch.move(180, 128);
+		sys.waitFor($cellar_hatch);
+
+		thread ShowSubtitles("Sam", "What are you hiding down here James?", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/CellarOpeningReaction.ogg");		
+	}
+
+	void LeeEnding1Subs()
+	{
+		ShowSubtitles("Lee", "You're amazing!! We can't talk for long, I made up an excuse.\nHow much time do you need?", 5.75);
+		ShowSubtitles("Lee", "To cover your tracks and get out of there I mean.\nI can't wait to get out of here and back to you.", 6.5);
+	}
+
+	void LeeEnding2Subs()
+	{
+		ShowSubtitles("Lee", "Kara? I think that's his daughter's friend.\nShe went missing some time ago, I know they're still looking for her.", 10);
+	}
+
+	void LeeEnding3Subs()
+	{
+		ShowSubtitles("Lee", "Ugh. How could I have been so blind?\nWe really need to make a clean getaway.", 6.5);
+	}
+
+	void LeeEnding4Subs()
+	{
+		ShowSubtitles("Lee", "So, the plan. You stash the box back at our place.", 5);
+		ShowSubtitles("Lee", "Once I've told him off I'll go back to the motel,\ngrab all of our stuff and meet you at the barn.", 5);
+	}
+
+	void LeeEnding5Subs()
+	{
+		ShowSubtitles("Lee", "I appreciate that, but if things go sour, the box is our bargaining chip.\nWe can do this. We need to do this!", 6.75);
+		ShowSubtitles("Lee", "This is the end of the beginning!\nI really have to go. Thanks for...", 5.25);
+		ShowSubtitles("Lee", "...well you know.", 3);
+	}
+
+	void PlayerEnding2Subs()
+	{
+		ShowSubtitles("Sam", "I think James has something to do with it.", 2.75);
+		ShowSubtitles("Sam", "I found a creepy box with her name on it and his wife mentioned something about her in an email.", 5);
+		ShowSubtitles("Sam", "This guy is bad news. Worse news. Please be careful!", 6);
+	}
+
+	void Player1EndingSubs()
+	{
+		ShowSubtitles("Sam", "Cover my tracks? Sadly, some of them can't be covered.\nI'll try to hurry. Be careful.", 8);
+		ShowSubtitles("Sam", "Erm.\nDoes the name Kara mean anything to you?", 4);
+	}
+
+	void PickUpRevolver()
+	{
+		sys.disableItemGroup("vault_items");
+
+		//Revolver
+		$func_static_91.hide();
+		$player1.startSoundShader("e1m3_1_pickupbox", SND_CHANNEL_ANY);
+
+		thread ShowSubtitles("Sam", "You've done enough damage with this.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/RevolverReaction.ogg");
+
+		sys.enableItemGroups();
+
+		boxUwuCounter++;
+		CheckBoxUwu();
+	}	
+
+	void PickUpBox()
+	{
+		sys.disableItemGroup("vault_items");
+
+		$player1.startSoundShader("e1m3_1_pickupbox", SND_CHANNEL_ANY);
+		$the_box_key.hide();
+
+		sys.wait(1);
+
+		sys.trigger($objective_locate_box_pantry_complete);
+
+		sys.wait(2);
+
+		sys.showTextMessage("I found the box! Call me!", 1);
+
+		sys.wait(2);
+
+		LeeTexts("Amazing! <3 <3\nCall you in 2 sec.");
+
+		entity music_entity = sys.getEntity("Speaker_Music_Suspense_0" + music_suspense_state);
+
+		music_entity.fadeSound(SND_CHANNEL_ANY, -12, 10);
+
+		sys.wait(5);
+
+		sys.wait($player1.startSoundShader("sound/shav/e1m3/phonering.ogg", SND_CHANNEL_ANY));
+		sys.wait(.25);
+		$player1.startSoundShader("sound/shav/e1m3/phone_bleep1.ogg", SND_CHANNEL_ANY);
+		
+		sys.wait(.5);
+
+		thread LeeEnding1Subs();
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Lee1.ogg");
+
+		Beat(.5);
+
+		thread Player1EndingSubs();
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Player1.ogg");
+
+		Beat(.5);
+
+		thread LeeEnding2Subs();
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Lee2.ogg");
+
+		Beat(.5);
+
+		thread PlayerEnding2Subs();
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Player2.ogg");
+
+		Beat(.5);
+
+		thread LeeEnding3Subs();
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Lee3.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "Yeah...", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Player3.ogg");
+
+		Beat(.5);
+
+		thread LeeEnding4Subs();
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Lee4.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "Are you sure you don't need any help?\nI can swing by the motel first.", 4);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Player4.ogg");
+
+		Beat(.5);
+
+		thread LeeEnding5Subs();
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Lee5.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "You too, Lee.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Player5.ogg");
+
+		Beat(.5);
+
+		music_entity.fadeSound(SND_CHANNEL_ANY, -100, 10);
+
+		sys.fadeTo('0 0 0', 1, .125);
+		sys.wait(.5);
+		sys.wait($player1.startSoundShader("sound/shav/e1m1/ominoushorn.ogg", SND_CHANNEL_ANY) + 1);
+
+		sys.wait(3);
+
+		sys.trigger($target_endlevel_1);
+	}	
+
+	void TakeCrowbar()
+	{
+		$player1.startSoundShader("e1m3_1_pickupbox", SND_CHANNEL_ANY);
+		$crowbar.hide();
+		$deck_door_crowbar_clicker.show();
+	}
+
+	float breakDoorState = 0;
+	void BreakDoor()
+	{
+		if(breakDoorState == 0)
+		{
+			$deck_door.startSoundShader("sound/shav/e1m5_2/HandleRot.ogg", SND_CHANNEL_ANY);
+			$deck_door.time(.125);
+			$deck_door.move(0, 2);
+
+			sys.waitFor($deck_door);
+			sys.wait(.5);
+			
+			$deck_door_crowbar_clicker.setKey("item_type", "action");
+			$deck_door_crowbar_clicker.setKey("item_action", "Open");
+			$deck_door_crowbar_clicker.setKey("clickonce", 1);
+			$deck_door_crowbar_clicker.setKey("item_disabled", 0);
+
+			breakDoorState = 1;
+
+			// Hide all the try clickers. They are no longer relevant
+			$house_front_door_clicker.hide();
+			$garage_door_try_clicker.hide();
+		}
+		else
+		{
+			$deck_door.startSoundShader("sound/shav/e1m1/slidingdoor.ogg", SND_CHANNEL_ANY);
+			$deck_door.time(2.25);
+			$deck_door.move(0, 50);
+			$deck_door_crowbar_clicker.hide();
+		}
+	}
+
+	float garageDoorState = 0;
+
+	void OpenGarageDoor()
+	{
+		if(garageDoorState == 1)
+		{
+			return;
+		}
+
+		garageDoorState = 2;
+
+		$garage_door_speaker.stopSound(SND_CHANNEL_ANY,0);
+
+		sys.trigger($garage_door_speaker);
+		sys.trigger($garage_portal);
+		if(debug)
+		sys.println("The portal is triggered");
+		
+		$garage_door_1_rotator.rotateOnce('0 0 -90');
+		$garage_door_2_rotator.rotateOnce('0 0 -90');
+		$garage_door_3_rotator.rotateOnce('0 0 -90');
+		$garage_door_4_rotator.rotateOnce('0 0 -90');
+		
+		sys.waitFor($garage_door_4_rotator);
+
+		$garage_door_clip.hide();
+
+		$garage_door_1_mover.move(UP, 4);
+		$garage_door_2_mover.move(UP, 32);
+		$garage_door_3_mover.move(UP, 60);
+		$garage_door_4_mover.move(UP, 88);
+		
+		$garage_door_clicker.setKey("item_action", "Close");
+		sys.waitFor($garage_door_4_mover);
+
+		garageDoorState = 1;
+	}
+
+	void CloseGarageDoor()
+	{
+		if(garageDoorState == 0)
+		{
+			return;
+		}
+		
+		garageDoorState = 2;
+
+		$garage_door_speaker.stopSound(SND_CHANNEL_ANY,0);
+
+		sys.trigger($garage_door_speaker);
+
+		$garage_door_1_mover.move(DOWN, 4);
+		$garage_door_2_mover.move(DOWN, 32);
+		$garage_door_3_mover.move(DOWN, 60);
+		$garage_door_4_mover.move(DOWN, 88);
+		
+		sys.waitFor($garage_door_4_mover);
+
+		$garage_door_1_rotator.rotateOnce('0 0 90');
+		$garage_door_2_rotator.rotateOnce('0 0 90');
+		$garage_door_3_rotator.rotateOnce('0 0 90');
+		$garage_door_4_rotator.rotateOnce('0 0 90');
+
+		sys.waitFor($garage_door_4_rotator);
+
+		$garage_door_clip.hide();
+		$garage_door_clicker.setKey("item_action", "Open");
+		sys.trigger($garage_portal);
+		if(debug)
+		sys.println("The portal is triggered");
+
+		garageDoorState = 0;
+	}
+
+	void ToggleGarageDoor()
+	{
+		if(garageDoorState == 2)
+		{
+			return;
+		}
+
+		$garage_door_clip.show();
+
+		if(garageDoorState == 0)
+		{
+			OpenGarageDoor();
+		}
+		else
+		{
+			CloseGarageDoor();
+		}
+
+		sys.wait(.5);
+
+		$garage_door_clicker.setKey("item_disabled", 0);
+	}
+
+	void OpenToGarage()
+	{
+		sys.trigger($garage_housedoor_portal);
+		$outro_garage_door_handle.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+		$outro_garage_door_handle.rotateOnce('0 0 30');
+
+		$outro_garage_door_rotator.rotateOnce('0 -85 0');
+		$outro_garage_door_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+
+		sys.wait(.5);
+
+		$outro_garage_door_handle.rotateOnce('0 0 -30');
+	}
+
+	void TryFrontPlant()
+	{
+		sys.disableItemGroup("frontdoor");
+
+		thread ShowSubtitles("Sam", "Hmmm.", 2);
+		CharacterSays($player1, "sound/vo/player/general/HmmLong.ogg");
+
+		sys.enableItemGroups();
+	}
+
+	void TryFrontDoor()
+	{	
+		sys.disableItemGroup("frontdoor");
+
+		$house_front_door.startSoundShader("sound/shav/e1m5_2/locked_door.ogg", SND_CHANNEL_ANY);
+
+		$house_front_door_handle.rotateOnce('-15 0 0');
+
+		float angle = 0.5;
+		$house_front_door_hinge.rotateOnce('0 0.5 0' * angle);
+
+		float i = 0;
+		while( i < 2 )
+		{
+			sys.waitFor($house_front_door_hinge);
+			$house_front_door_hinge.rotateOnce('0 -1 0' * angle);
+			sys.waitFor($house_front_door_hinge);
+			$house_front_door_hinge.rotateOnce('0 1 0' * angle);
+			i++;
+		}	
+		
+		sys.waitFor($house_front_door_hinge);
+
+		$house_front_door_hinge.rotateOnce('0 -0.5 0' * angle);
+
+		$house_front_door_handle.rotateOnce('15 0 0');
+
+		$house_front_door_clicker.hide();
+		
+		sys.wait(0.5);
+		
+		thread ShowSubtitles("Sam", "That would have been too easy.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/FrontDoorReaction.ogg");
+
+		sys.enableItemGroups();
+	}
+
+	void TryGarageDoor()
+	{
+		$garage_door_4.startSoundShader("sound/shav/e1m5_2/locked_door2.ogg", SND_CHANNEL_ANY);
+		$garage_door_try_clicker.hide();
+		
+		thread ShowSubtitles("Sam", "Nope.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/GarageReaction.ogg");
+	}
+
+	float panel1State = 0;
+	void PushPanel1()
+	{
+		if(panel1State == 0)
+		{
+			$house_panel_1.accelTime(0);
+			$house_panel_1.decelTime(0);
+			$house_panel_1.time(.125);
+			$house_panel_1.startSoundShader("sound/shav/e1m5_2/HandleRot.ogg", SND_CHANNEL_ANY);
+
+			$house_panel_1.move(90, 4);
+
+			sys.waitFor($house_panel_1);
+
+			panel1State = 1;
+
+			$house_panel_1_clicker.setKey("item_action", "Move");
+			$house_panel_1_clicker.setKey("clickonce", 1);
+			$house_panel_1_clicker.setKey("item_disabled", 0);			
+		}
+		else
+		{			
+			sys.trigger($house_panel_1_portal);
+
+			$house_panel_1.accelTime(.125);
+			$house_panel_1.decelTime(.0625);
+			$house_panel_1.time(2.25);
+			$house_panel_1.startSoundShader("sound/shav/e1m1/slidingdoor.ogg", SND_CHANNEL_ANY);
+
+			$house_panel_1.move(0, 36);
+
+			$house_panel_1_clicker.hide();
+		}
+	}
+
+	void PushPanel2()
+	{
+		$house_panel_2.startSoundShader("sound/shav/e1m5_2/locked_door2.ogg", SND_CHANNEL_ANY);
+		
+		sys.wait(0.5);
+		
+		$house_panel_1_clicker.setKey("click_item", 1);
+	}
+
+	float basementLight1State = 0;
+	float basementLight2State = 0;
+	float basementBookcaseState = 0;
+
+	vector basementVaultLight1_2;
+	vector basementVaultLight3_4;
+	vector basementVaultLight5;
+	vector basementVaultLightSpotsFixture;
+	vector basementVaultLightSpotsFlare;
+
+	void BasementLightSwitch1()
+	{
+		if(basementLight2State == 1	)
+		{
+			if(basementLight1State == 0)
+			{
+				$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+				
+				thread crossFadeEnt ($basement_vault_light_1, '0 0 0', basementVaultLight1_2, 0.25);				
+				thread crossFadeEnt ($basement_vault_light_2, '0 0 0', basementVaultLight1_2, 0.25);
+				thread crossFadeEnt ($basement_vault_light_3, '0 0 0', basementVaultLight3_4, 0.25);
+				thread crossFadeEnt ($basement_vault_light_4, '0 0 0', basementVaultLight3_4, 0.25);
+				thread crossFadeEnt ($basement_vault_light_5, '0 0 0', basementVaultLight5, 0.25);
+				thread crossFadeEnt ($basement_vault_light_spots_fixture, '0 0 0', basementVaultLightSpotsFixture, 0.25);
+				
+				// Only light up the flares when the bookcase has been moved or they will bleed through the bookcase
+				if(basementBookcaseState == 1)
+				{
+					thread crossFadeEnt ($basement_vault_light_spots_flare, '0 0 0', basementVaultLightSpotsFlare, 0.25);
+				}
+
+				sys.wait(.5);
+
+				basementLight1State = 1;
+			}
+			else
+			{
+				$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+
+				thread crossFadeEnt ($basement_vault_light_1, basementVaultLight1_2, '0 0 0', 0.25);				
+				thread crossFadeEnt ($basement_vault_light_2, basementVaultLight1_2, '0 0 0', 0.25);
+				thread crossFadeEnt ($basement_vault_light_3, basementVaultLight3_4, '0 0 0', 0.25);
+				thread crossFadeEnt ($basement_vault_light_4, basementVaultLight3_4, '0 0 0', 0.25);
+				thread crossFadeEnt ($basement_vault_light_5, basementVaultLight5, '0 0 0', 0.25);
+				thread crossFadeEnt ($basement_vault_light_spots_fixture, basementVaultLightSpotsFixture, '0 0 0', 0.25);
+				thread crossFadeEnt ($basement_vault_light_spots_flare, basementVaultLightSpotsFixture, '0 0 0', 0.25);
+
+				sys.wait(.5);
+
+				basementLight1State = 0;
+			}			
+
+			$basement_light_switch_1.setKey("item_disabled", 0);
+		}
+		else
+		{
+			$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+
+			sys.wait(.5);
+			$basement_light_switch_1.setKey("item_disabled", 0);
+		}
+
+		if(basementLight1State == 1 && basementLight2State == 1)
+		{
+			$BasementVaultLightInspectClicker.setKey("click_item", 1);
+		}
+		else
+		{
+			$BasementVaultLightInspectClicker.setKey("click_item", 0);
+		}
+	}
+	
+	vector basementLightGlare;
+	vector basementLightFlare;
+	vector basementLightFixture;
+	vector basementLight;
+	vector basementLightOff;
+	vector basementLight2_7;
+	vector basementLightSpotsFixture;
+	vector basementLightSpotsFlare;
+	float vaultLightInspected = 0;
+
+	void BasementLightSwitch2()
+	{
+		if(basementLight2State == 0)
+		{
+			// TURN OFF LIGHT
+
+			$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+
+			thread crossFadeEnt ($basement_light_1_glare, basementLightGlare, '0 0 0', 0.25);
+			thread crossFadeEnt ($basement_light_1_flare, basementLightFlare, '0 0 0', 0.25);
+			thread crossFadeEnt ($basement_light_1_fixture, basementLightFixture, '0 0 0', 0.25);
+			thread crossFadeEnt ($basement_light_1, basementLight, basementLightOff, 0.25);			
+			thread crossFadeEnt ($basement_light_2, basementLight2_7, '0 0 0', 0.25);
+			thread crossFadeEnt ($basement_light_3, basementLight2_7, '0 0 0', 0.25);
+			thread crossFadeEnt ($basement_light_4, basementLight2_7, '0 0 0', 0.25);
+			thread crossFadeEnt ($basement_light_5, basementLight2_7, '0 0 0', 0.25);
+			thread crossFadeEnt ($basement_light_6, basementLight2_7, '0 0 0', 0.25);
+			thread crossFadeEnt ($basement_light_7, basementLight2_7, '0 0 0', 0.25);
+			thread crossFadeEnt ($basement_light_spots_fixture, basementLightSpotsFixture, '0 0 0', 0.25);
+			thread crossFadeEnt ($basement_light_spots_flare, basementLightSpotsFlare, '0 0 0', 0.25);
+
+			if(basementLight1State == 1)
+			{
+				thread crossFadeEnt ($basement_vault_light_3, '0 0 0', basementVaultLight3_4, 0.25);
+				thread crossFadeEnt ($basement_vault_light_4, '0 0 0', basementVaultLight3_4, 0.25);
+			}
+
+			$basement_vault_knob_left_clicker.setKey("click_item", 0);
+			$basement_vault_knob_right_clicker.setKey("click_item", 0);
+
+			sys.wait(.5);
+
+			basementLight2State = 1;
+		}
+		else
+		{
+			// TURN ON LIGHT
+
+			$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+
+			thread crossFadeEnt ($basement_light_1_glare, '0 0 0', basementLightGlare, 0.25);
+			thread crossFadeEnt ($basement_light_1_flare, '0 0 0', basementLightFlare, 0.25);
+			thread crossFadeEnt ($basement_light_1_fixture, '0 0 0', basementLightFixture, 0.25);
+			thread crossFadeEnt ($basement_light_1, basementLightOff, basementLight, 0.25);
+			thread crossFadeEnt ($basement_light_2, '0 0 0', basementLight2_7, 0.25);
+			thread crossFadeEnt ($basement_light_3, '0 0 0', basementLight2_7, 0.25);
+			thread crossFadeEnt ($basement_light_4, '0 0 0', basementLight2_7, 0.25);
+			thread crossFadeEnt ($basement_light_5, '0 0 0', basementLight2_7, 0.25);
+			thread crossFadeEnt ($basement_light_6, '0 0 0', basementLight2_7, 0.25);
+			thread crossFadeEnt ($basement_light_7, '0 0 0', basementLight2_7, 0.25);
+			thread crossFadeEnt ($basement_light_spots_fixture, '0 0 0', basementLightSpotsFixture, 0.25);
+			thread crossFadeEnt ($basement_light_spots_flare, '0 0 0', basementLightSpotsFlare, 0.25);
+
+			if(basementLight1State == 1)
+			{
+				thread crossFadeEnt ($basement_vault_light_3, basementVaultLight3_4, '0 0 0', 0.25);
+				thread crossFadeEnt ($basement_vault_light_4, basementVaultLight3_4, '0 0 0', 0.25);
+			}
+			
+			if(vaultLightInspected == 1)
+			{
+				$basement_vault_knob_left_clicker.setKey("click_item", 1);
+				$basement_vault_knob_right_clicker.setKey("click_item", 1);
+
+				$BasementVaultLightInspectClicker.hide();
+			}
+
+			sys.wait(.5);
+
+			basementLight2State = 0;
+		}
+
+		$basement_light_switch_2.setKey("item_disabled", 0);
+
+		if(basementLight1State == 1 && basementLight2State == 1)
+		{
+			$BasementVaultLightInspectClicker.setKey("click_item", 1);
+		}
+		else
+		{
+			$BasementVaultLightInspectClicker.setKey("click_item", 0);
+		}
+	}
+
+	void OpenVault()
+	{
+		thread ShowSubtitles("Sam", "Gotcha!", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/VaultOpeningReaction.ogg");
+
+		$vault_handles_clicker.hide();
+		$vault_handles_hinge.rotateOnce('-1440 0 0');
+		$vault_handles_hinge.startSoundShader("sound/shav/e1m5_2/vault_handle.ogg", SND_CHANNEL_ANY);
+
+		sys.waitFor($vault_handles_hinge);
+
+		$vault_handles_hinge.time(.5);
+		$vault_handles_hinge.accelTime(.25);
+		$vault_handles_hinge.decelTime(.125);
+		$vault_handles_hinge.rotateOnce('3 0 0');
+
+		sys.waitFor($vault_handles_hinge);
+
+		sys.wait(1);
+
+		$vault_door_hinge.rotateOnce('0 90 0');
+		$vault_door_hinge.startSoundShader("sound/shav/e1m5_2/vault_open.ogg", SND_CHANNEL_ANY);
+	}
+
+	float knobLeftState = 0;
+	float knobRightState = 0;
+
+	void BasementBookcaseCheck()
+	{
+		if(knobLeftState == 3 && knobRightState == 2)
+		{
+			$basement_vault_knob_left_clicker.hide();
+			$basement_vault_knob_right_clicker.hide();
+
+			$vault_bookcase.accelTime(1);
+			$vault_bookcase.decelTime(1);
+			$vault_bookcase.time(10);
+			$vault_bookcase.startSoundShader("sound/shav/e1m4/rolling.ogg", SND_CHANNEL_ANY);
+
+			$vault_bookcase.move(DOWN, 110);
+
+			sys.waitFor($vault_bookcase);
+
+			sys.wait(.5);
+
+			$vault_handles_clicker.setKey("click_item", 1);
+		}
+	}
+
+	void PantryHatchBox()
+	{
+		$pantry_knob_box_clicker.hide();
+		$pantry_knob_box.hide();
+		$pantry_knob_box2.show();
+
+		$pantry_knob_clicker.setKey("click_item", 1);
+	}
+
+	float pantryLeverState = 0;
+	float pantryKnobState = 0;
+	float pantryKnobDidSomething = 0;
+
+	void PantryHatchKnob()
+	{
+		$player1.startSoundShader("sound/shav/e1m5_2/knobrot.ogg", SND_CHANNEL_ANY);
+		$pantry_knob_mover.rotateOnce('0 0 90');
+		pantryKnobState = (pantryKnobState + 1) % 4;
+
+		if(pantryKnobState == 2)
+		{
+			$player1.startSoundShader("sound/shav/e1m5_2/knobwin.ogg", SND_CHANNEL_ANY);
+			$cellar_hatch_clicker.setKey("click_item", 1);
+
+			sys.wait(.25);
+
+			if(pantryKnobDidSomething == 0)
+			{
+				pantryKnobDidSomething = 1;
+				thread ShowSubtitles("Sam", "That did something.", 2);
+				$player1.startSoundShader("sound/vo/player/general/thatdidsomethinginternal.ogg", SND_CHANNEL_ANY);
+			}
+		}
+		else
+		{
+			$cellar_hatch_clicker.setKey("click_item", 0);
+		}
+
+		sys.waitFor($pantry_knob_mover);
+		sys.wait(.25);
+
+		$pantry_knob_clicker.setKey("item_action", "Rotate");
+		$pantry_knob_clicker.setKey("item_disabled", 0);		
+	}
+
+	void PantryHatchLever()
+	{
+		pantryLeverState = 1;
+
+		thread ShowSubtitles("Sam", "What's this?", 1);
+		CharacterSays($player1, "sound/vo/player/general/whatisthis.ogg");
+
+		sys.wait(.25);
+
+		$pantry_lever_mover.rotateOnce('-90 0 0');
+		$pantry_lever_mover.startSoundShader("sound/shav/e1m5_2/knobrot.ogg", SND_CHANNEL_ANY);
+
+		$pantry_hatch_lever_item.hide();
+
+		sys.wait(.5);
+
+		$pantry_knob_clicker.setKey("click_item", 1);
+	}
+
+	void BasementVaultKnobLeft()
+	{
+		$basement_light_switch_1.setKey("click_item", 0);
+		$basement_light_switch_2.setKey("click_item", 0);
+
+		$player1.startSoundShader("sound/shav/e1m5_2/knobrot.ogg", SND_CHANNEL_ANY);
+		$basement_vault_knob_left_mover.rotateOnce('90 0 0');
+		knobLeftState = (knobLeftState + 1) % 4;
+
+		sys.waitFor($basement_vault_knob_left_mover);
+		
+
+		if(knobLeftState == 3)
+		{
+			$player1.startSoundShader("sound/shav/e1m5_2/knobwin.ogg", SND_CHANNEL_ANY);
+			BasementBookcaseCheck();
+		}		
+			
+		sys.wait(.25);
+		$basement_vault_knob_left_clicker.setKey("item_disabled", 0);		
+	}
+	
+	void BasementVaultKnobRight()
+	{
+		$basement_light_switch_1.setKey("click_item", 0);
+		$basement_light_switch_2.setKey("click_item", 0);
+
+		$player1.startSoundShader("sound/shav/e1m5_2/knobrot.ogg", SND_CHANNEL_ANY);
+		$basement_vault_knob_right_mover.rotateOnce('90 0 0');
+		knobRightState = (knobRightState + 1) % 4;
+
+		sys.waitFor($basement_vault_knob_right_mover);
+		
+
+		if(knobRightState == 2)
+		{			
+			$player1.startSoundShader("sound/shav/e1m5_2/knobwin.ogg", SND_CHANNEL_ANY);
+			BasementBookcaseCheck();
+		}
+
+		sys.wait(.25);
+		$basement_vault_knob_right_clicker.setKey("item_disabled", 0);
+	}	
+
+	void InspectVaultLight()
+	{
+		thread ShowSubtitles("Sam", "Hmm.", 2);
+		sys.wait($player1.startSoundShader("sound/vo/player/general/hmmquestion.ogg", SND_CHANNEL_ANY) + 0.5);
+		$BasementVaultLightInspectClicker.setKey("item_disabled", 0);
+		vaultLightInspected = 1;
+	}
+
+	void GrabBasketball()
+	{
+		$basketball_gone_home.hide();
+		$player1.startSoundShader("e1m3_1_pickupbox", SND_CHANNEL_ANY);
+
+		$basketball_hoop_clicker.show();
+	}
+
+	void BasketballMeow()
+	{
+		$basketball_gone_hoop.show();
+
+		sys.wait(.75);
+
+		$cat_home_gui.show();
+		$player1.startSoundShader("sound/shav/e1m5_3/meow.ogg", SND_CHANNEL_ANY);
+	}
+	
+	void MoveTreasure1Rock()
+	{
+		$rock_treasure_hunt_mover.rotateOnce('-75 0 0');		
+		$rock_treasure_hunt_mover.startSoundShader("sound/shav/e1m5_3/sand.ogg", SND_CHANNEL_ANY);
+
+		sys.waitFor($rock_treasure_hunt_mover);
+		
+		sys.wait(0.25);
+		
+		$item_treasure_hunt_1.setKey("click_item", 1);
+
+		thread ShowSubtitles("Sam", "Lift the dead.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/LiftTheDeadReaction.ogg");
+
+		sys.trigger($objective_find_contraband_light_complete);
+		sys.wait(1);
+		sys.trigger($objective_find_contraband_garage);
+	}		
+
+	void TurnOnSwingsetLights()
+	{
+		letsGoQuesting = 1;
+
+		thread Music_Suspense_Advance();
+
+		$player1.startSoundShader("sound/shav/e1m5_2/light_switch.ogg", SND_CHANNEL_ANY);
+
+		$treasure_hunt_clue_1_light_bulps.setColor(0.9, 0.4, 0.28);
+		$treasure_hunt_clue_1_light_flares.show();
+		$treasure_hunt_clue_1_light_1.show();
+		$treasure_hunt_clue_1_light_2.show();
+		$treasure_hunt_clue_1_light_3.show();
+		$treasure_hunt_clue_1_light_4.show();
+	
+		$item_remove_rock.setKey("click_item", 1);
+
+		thread ShowSubtitles("Sam", "Follow the line of light.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/LightChainReaction.ogg");
+
+		sys.trigger($objective_find_contraband_complete);
+		sys.wait(1);
+		sys.trigger($objective_find_contraband_light);
+	}	
+	
+	void MoveTreasure2Brick()
+	{
+		thread Music_Suspense_Advance();
+
+		$brick_in_place.move(0, 8);
+
+		$brick_in_place.startSoundShader("sound/shav/e1m5_2/brick_out.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(.9);
+
+		$brick_in_place.hide();
+		$func_static_107647.hide();
+		$brick_removed.show();
+		$brick_removed.startSoundShader("sound/shav/e1m5_2/brick_down.ogg", SND_CHANNEL_ANY);
+		
+		sys.wait(0.25);
+		
+		$item_treasure_hunt_2.setKey("click_item", 1);
+	}
+	
+	void InspectTreasureClue1()
+	{	
+		sys.trigger($treasure_hunt_spot);
+	}
+
+	void TresureHuntSpot()
+	{
+		$item_treasure_hunt_2_brick.setKey("click_item", 1);
+	}
+	
+	void InspectTreasureClue2()
+	{
+		foundTreasureNote = 1;
+
+		//Remove keyhole peep stuff
+		$girl_room_keyhole_item.setKey("click_item", 0);
+		$func_static_100940.hide();
+
+		$girl_room_door_item.setKey("click_item", 1);
+		$girl_room_insepect_clicker.setKey("click_item", 0);
+
+		sys.trigger($objective_find_contraband_garage_complete);
+		sys.wait(1);
+		sys.trigger($objective_find_contraband_summer);
+	}
+	
+	void InspectTreasureClue3()
+	{
+		//Make attic door openable
+		$func_static_100800.setKey("click_item", 1);
+
+		sys.trigger($objective_find_contraband_summer_complete);
+		sys.wait(1);
+		sys.trigger($objective_find_contraband_top_floor);
+	}
+
+	float clue4Seen = 0;
+
+	float Clue4Seen()
+	{
+		if(clue4Seen == 0)
+		{
+			clue4Seen = 1;
+			thread Music_Suspense_Advance();
+		}
+	}
+
+	void InspectTreasureClue4()
+	{
+		if(clue4Seen == 1)
+		{
+			clue4Seen = 2;			
+
+			//Make bedside drawer openable		
+			$func_static_107683.setKey("click_item", 1);
+
+			// Update the book clicker
+			$bedroom_drawer_book_reaction_item.setKey("click_inspect_numitems", 3);
+			$bedroom_drawer_book_reaction_item.setKey("click_inspect_item1", "guis/assets/items/key_book_front.tga");
+			$bedroom_drawer_book_reaction_item.setKey("click_inspect_item2", "guis/assets/items/key_book_1.tga");
+			$bedroom_drawer_book_reaction_item.setKey("click_inspect_item3", "guis/assets/items/key_book_back.tga");
+			$bedroom_drawer_book_reaction_item.setKey("call_exit", "");
+			$bedroom_drawer_book_reaction_item.setKey("click_inspect_item2_seen", "map_e1m5_2::PickupKeyFromBook");
+
+			sys.trigger($objective_find_contraband_top_floor_complete);
+			sys.wait(1);
+			sys.trigger($objective_find_contraband_key);
+		}
+	}
+	
+	float CookieNumber = 0;
+	void EatHarveyCookies()
+	{
+		$eat_cookie_item.setKey("click_item", 0);
+	
+		$player1.startSoundShader("sound/shav/e1m5_2/eating_cookie.ogg", SND_CHANNEL_ANY);
+		
+		if(CookieNumber == 0)
+		{
+			$harvey_cookie_1.hide();
+			CookieNumber++;
+			
+			sys.wait(1.25);
+			$eat_cookie_item.setKey("click_item", 1);
+		}
+		else if(CookieNumber == 1)
+		{
+			$harvey_cookie_2.hide();
+			CookieNumber++;
+			
+			sys.wait(1.25);
+			$eat_cookie_item.setKey("click_item", 1);
+		}
+		else if(CookieNumber == 2)
+		{
+			$harvey_cookie_3.hide();
+			$eat_cookie_item.setKey("click_item", 0);
+		}
+	}	
+	
+	void main_house()
+	{
+		sys.trigger($info_portalsky_1);
+
+		// Open open doors
+		$master_bedroom_door_hinge.rotateOnce('0 80 0');		
+		
+		$skewed_picture.rotateOnce('0 0 8');
+	
+		// Pantry
+		$pantry_lever_mover.rotateOnce('-45 0 0');
+
+		// Store basement light colors
+		basementLight = $basement_light_1.getColor();
+		basementLightOff = basementLight * 0.25;
+		basementLightFixture = $basement_light_1_fixture.getColor();
+		basementLightFlare = $basement_light_1_flare.getColor();
+		basementLightGlare = $basement_light_1_glare.getColor();
+		basementLight2_7 = $basement_light_2.getColor();
+		basementLightSpotsFixture = $basement_light_spots_fixture.getColor();
+		basementLightSpotsFlare = $basement_light_spots_flare.getColor();
+
+		basementVaultLight1_2 = $basement_vault_light_1.getColor();
+		basementVaultLight3_4 = $basement_vault_light_3.getColor();
+		basementVaultLight5 = $basement_vault_light_5.getColor();
+		basementVaultLightSpotsFixture = $basement_vault_light_spots_fixture.getColor();
+		basementVaultLightSpotsFlare = $basement_vault_light_spots_flare.getColor();
+
+		// Turn off the vault lights in the basement
+		$basement_vault_light_1.setColor(0, 0, 0);
+		$basement_vault_light_2.setColor(0, 0, 0);
+		$basement_vault_light_3.setColor(0, 0, 0);
+		$basement_vault_light_4.setColor(0, 0, 0);
+		$basement_vault_light_5.setColor(0, 0, 0);
+		$basement_vault_light_spots_fixture.setColor(0, 0, 0);
+		$basement_vault_light_spots_flare.setColor(0, 0, 0);
+		
+		// Store all the light colors and turn off the lights
+		StoreLightGroup(lg_main, lg_main_num);
+		StoreLightGroup("empty_room", 8);
+		StoreLightGroup("master_bedroom", 18);
+		StoreLightGroup("pantry", 5);
+		StoreLightGroup("top_bathroom", 4);
+		StoreLightGroup("bottom_bathroom", 4);
+		StoreLightGroup("garage", 20);
+		StoreLightGroup("cellar", 12);
+		StoreLightGroup("attic", 10);
+		StoreLightGroup("shed", 3);
+
+		if(show_planning)
+		{
+			$player1.startSoundShader("sound/shav/blueworld/distant_horn.ogg", SND_CHANNEL_ANY);
+			sys.wait(5.5);
+		}
+
+		sys.trigger($speaker_1102);
+		sys.trigger($Speaker_Music_AfterHours);
+		sys.trigger($info_player_teleport_1);
+		
+		vector angles = $Benson_Start_View.getAngles();
+		$player1.setViewAngles(angles);
+		
+		//if(show_planning)
+		//{
+		//	sys.trigger($camera_outshot);
+		//}
+
+		sys.fadeTo('0 0 0', 0, .25);
+
+		sys.wait(2);
+
+		sys.trigger($objective_break_into_house);
+
+		sys.wait(7);
+
+		sys.showTextMessage("I'm here now!\nI can't believe we're doing it!", 1);
+
+		sys.wait(2);
+
+		LeeTexts("Good Luck!\nI really wish I was there with you...");
+
+		sys.wait(2);
+		
+		sys.quickSave("The Last Date - Checkpoint 1");
+	}
+
+	void GoWithBus()
+	{
+		$SpeakerBefore.fadeSound(SND_CHANNEL_ANY, -100,20);
+		sys.fadeTo('0 0 0', 1, 0);
+
+		sys.wait(4);
+
+		main_house();
+	}
+
+	void Lee1Subs()
+	{
+		ShowSubtitles("Lee", "Okay so Benson is bad news and a complete and total dead end.", 5.6);
+		ShowSubtitles("Lee", "We tried to get out of the valley with his help.\nBut turns out he is a creeper and stole our most valuable asset; The box.", 8);
+		ShowSubtitles("Lee", "James Benson has it and he wants to sell it.", 4);
+	}
+
+	void Lee2Subs()
+	{
+		ShowSubtitles("Lee", "Now, *we* want to get out of this place.\nWe tried all sorts of things. All sorts of places. No dice.", 7);
+		ShowSubtitles("Lee", "We even tried Benson...who's trying to swindle us.", 4);
+	}
+
+	void Lee3Subs()
+	{
+		ShowSubtitles("Lee", "As suspected, the box is our ticket out of here.\nAnd this is where our next door neighbor, Karl, can help us.", 4.45);
+		ShowSubtitles("Lee", "This is plan C.", 4);
+	}
+
+	void Lee4Subs()
+	{
+		ShowSubtitles("Lee", "In exchange for an absurd amount of money,\nhe will provide us with a way out.", 3.4);
+		ShowSubtitles("Lee", "We have no cash, but, the box is worth at least 4 million,\naccording to Benson.", 4.5);
+		ShowSubtitles("Lee", "We can use the box to pay Karl for his services,\nwhich means we can finally get out.", 4.75);
+		ShowSubtitles("Lee", "But, we don't have the box. Benson does.", 4);
+		ShowSubtitles("Lee", "In conclusion we need to steal it back.", 3);
+		ShowSubtitles("Lee", "To re-steal it. Tonight.\nAnd how do we do that?", 5);
+	}
+
+	void Lee5Subs()
+	{
+		ShowSubtitles("Lee", "We are here.\nThe Old Oak Motel.", 4);
+		ShowSubtitles("Lee", "Benson, going from his home, will pick me up at 8 and take us to our last date, somewhere in town.", 6);
+	}
+
+	void Lee6Subs()
+	{
+		ShowSubtitles("Lee", "Meanwhile, you take the bus from right around the corner and go here, where Benson lives.", 4.25);
+		ShowSubtitles("Lee", "Here.", 2);
+	}
+
+	void Lee7Subs()
+	{
+		ShowSubtitles("Lee", "While I distract Benson and drag out the evening for as long as you need.", 3.5);
+		ShowSubtitles("Lee", "You find a way inside his house where you locate the box and reacquire it.", 5.5);
+	}
+
+	void Lee8Subs()
+	{
+		ShowSubtitles("Lee", "Once the box is back in your hands,\nyou message me and we meet at the barn.", 4);
+		ShowSubtitles("Lee", "Here.", 2);
+		ShowSubtitles("Lee", "So how do we find this box?", 3);
+	}
+
+	void Lee9Subs()
+	{
+		ShowSubtitles("Lee", "Okay, so first we need to get in.", 3.25);
+		ShowSubtitles("Lee", "You could of course try the front door or the garage door, but they are probably locked.", 5.25);
+		ShowSubtitles("Lee", "Look around for a key.", 2.25);
+		ShowSubtitles("Lee", "Alternatively, out back there is an old shed.\nMaybe there is something in there.", 4.7);
+		ShowSubtitles("Lee", "Once inside, we need to search the most likely hiding spots.", 5);
+		ShowSubtitles("Lee", "I have only ever been downstairs and the most interesting room here would be this elongated thing.", 6);
+		ShowSubtitles("Lee", "I think it's an office, but I'm not sure.\nI haven't been inside.", 5);
+		ShowSubtitles("Lee", "It's a two-story building though.\nThere could even be an attic.", 4.65);
+		ShowSubtitles("Lee", "What's upstairs? I don't know exactly, but I know Benson sleeps up there.\nAnd there's bound to be other rooms as well.", 8.75);
+		ShowSubtitles("Lee", "Once you have the box, go back, take the bus all the way back to our place.\nHide it in the safe spot and wait for me there.", 8.75);
+		ShowSubtitles("Lee", "Look. I know you have received the short end of the stick for this plan,\nbut it's the only way to do it safely.", 7.75);
+		ShowSubtitles("Lee", "Hopefully when this day is over, we have the box in our possession,\nback at the barn and ready to move on with our lives.", 7.45);
+		ShowSubtitles("Lee", "Benson can go suck it.", 3);
+	}	
+
+	void StartBreakinPlanning()
+	{
+		if(show_planning)
+		{
+			// Set up zoom-in camera
+			{			
+				vector height_offset = '0 0 0';
+				height_offset_z = $player1.getEyeHeight();
+				vector origin = $player1.getWorldOrigin() + height_offset;
+				vector angles = $player1.getViewAngles();
+			
+				$camera_inside_note_mover.setWorldOrigin(origin);
+				$camera_inside_note.setAngles(angles);
+			}
+
+			$SpeakerTheLastDate.fadeSound(SND_CHANNEL_ANY, -100,20);
+
+			sys.trigger($camera_inside_note);
+
+			// Move towards note
+			{
+				vector destination = $LeeNoteUwu.getWorldOrigin();
+				$camera_inside_note_mover.moveToPos(destination);		
+				
+				sys.wait(2);
+
+				sys.fadeTo('0 0 0', 1, 2);
+
+				sys.wait(2);
+			}			
+
+			// Set up coffee
+			{
+				$altan_coffee_steam.hide();
+				$altan_coffee_cup.hide();
+				$altan_coffee_level.hide();
+
+				$planning_coffee_1_cup.show();
+				$planning_coffee_2_cup.show();
+				$planning_coffee_1_level.show();
+				$planning_coffee_2_level.show();
+				$planning_coffee_1_steam.show();
+				$planning_coffee_2_steam.show();
+			}
+
+			sys.wait(1);
+
+			$lee_open_door_speaker.startSoundShader("sound/shav/e1m4_4/door_open.ogg", SND_CHANNEL_ANY);
+
+			sys.wait(2);
+
+			// Set up planning lighting
+			{			
+				$Motel_Light_1.hide();
+				$Motel_Light_2.hide();
+				$camera_notes_light.show();
+				$Motel_Map_Light.show();		
+			}
+
+			// Show outside
+			{
+				sys.trigger($camera_planning_outside);
+				$camera_planning_outside_mover.moveTo($target_null_17);
+				sys.fadeTo('0 0 0', 0, .1);			
+			}
+
+			thread Lee1Subs();
+			float lee1time = CharacterSaysNoWait($speaker_lee_1, "sound/vo/e1m5_2/BensonHouse/Planning/Lee1.ogg");
+
+			sys.wait(5.5);
+			lee1time -= 5.5;
+
+			// Show notes
+			{
+				sys.trigger($SpeakerPlanning);
+				sys.trigger($camera_notes);
+				
+				sys.wait(lee1time);
+				
+				$camera_notes_mover.accelTime(.25);
+				$camera_notes_mover.time(1.75);
+				$camera_notes_mover.decelTime(.125);
+				$camera_notes_mover.move(0, 18);
+				
+				sys.waitFor($camera_notes_mover);
+
+				Beat(1.25);
+
+				thread Lee2Subs();
+				float duration = CharacterSaysNoWait($speaker_lee_1, "sound/vo/e1m5_2/BensonHouse/Planning/Lee2.ogg");
+
+				sys.wait(duration * 0.75);
+
+				$camera_notes_mover.accelTime(.25);
+				$camera_notes_mover.time(1.75);
+				$camera_notes_mover.decelTime(.125);
+				$camera_notes_mover.move(0, 16);
+
+				sys.wait(duration * 0.25);
+
+				Beat(1.5);
+
+				thread Lee3Subs();
+				duration = CharacterSaysNoWait($speaker_lee_1, "sound/vo/e1m5_2/BensonHouse/Planning/Lee3.ogg");
+
+				sys.wait(duration * 0.75);
+
+				$camera_notes_mover.accelTime(.25);
+				$camera_notes_mover.time(1.75);
+				$camera_notes_mover.decelTime(.125);
+				$camera_notes_mover.move(0, 15);
+
+				sys.wait(duration * 0.25);
+
+				Beat(.75);
+
+				thread Lee4Subs();
+				duration = CharacterSaysNoWait($speaker_lee_1, "sound/vo/e1m5_2/BensonHouse/Planning/Lee4.ogg");
+
+				$camera_notes_mover.accelTime(.25);
+				$camera_notes_mover.time(30);
+				$camera_notes_mover.move(DOWN, 4);
+
+				sys.wait(duration);
+			}
+
+			// Show Map
+			{
+				Beat(1.25);
+
+				sys.trigger($camera_oldoakmotel);
+				
+				thread Lee5Subs();
+				duration = CharacterSaysNoWait($speaker_lee_1, "sound/vo/e1m5_2/BensonHouse/Planning/Lee5.ogg");
+
+				sys.wait(.5);
+
+				CharacterSaysNoWait($player1, "sound/shav/e1m5_2/sharpie.ogg");
+				$mark_oldoak.move(UP, 2);
+				
+				sys.wait(duration - 1.0);
+
+				sys.trigger($camera_restaurant);
+				$mark_oldoak.hide();
+				$mark_oldoak_flat.show();
+
+				CharacterSaysNoWait($player1, "sound/shav/e1m5_2/sharpie.ogg");
+				$mark_town.move(UP, 2);
+
+				sys.wait(.5);
+				
+				Beat(1.25);
+
+				thread Lee6Subs();
+				duration = CharacterSaysNoWait($speaker_lee_1, "sound/vo/e1m5_2/BensonHouse/Planning/Lee6.ogg");
+
+				sys.wait(duration * 0.5);
+
+				sys.trigger($camera_bensonhouse);
+				
+				$mark_town.hide();
+				$mark_town_flat.show();
+
+				sys.wait(duration * 0.5 - .5);
+
+				CharacterSaysNoWait($player1, "sound/shav/e1m5_2/sharpie.ogg");
+				$mark_bensonhouse.move(UP, 2);
+
+				Beat(2);
+
+				// DO SOMETHING SO THE WHISPERING ISN'T SUPER WEIRD
+
+				thread Lee7Subs();
+				duration = CharacterSaysNoWait($speaker_lee_1, "sound/vo/e1m5_2/BensonHouse/Planning/Lee7.ogg");
+
+				sys.wait(duration * 0.5);
+
+				//sys.trigger($camera_bensonhouse);
+
+				sys.wait(duration * 0.5);
+
+				Beat(.75);
+
+				thread Lee8Subs();
+				duration = CharacterSaysNoWait($speaker_lee_1, "sound/vo/e1m5_2/BensonHouse/Planning/Lee8.ogg");			
+
+				sys.wait(2);
+
+				duration -= 2;
+
+				sys.trigger($camera_barn);
+				$mark_bensonhouse.hide();
+				$mark_bensonhouse_flat.show();
+
+				sys.wait(2);
+				duration -= 2;
+
+				CharacterSaysNoWait($player1, "sound/shav/e1m5_2/sharpie.ogg");
+				$mark_barn.move(UP, 2);
+
+				sys.wait(duration);
+			}
+
+			Beat(1.25);
+
+			// Show Benson House Map
+			{
+				$camera_bensonhousemap_photo_mover.moveTo($target_null_20);
+				sys.trigger($camera_bensonhousemap_photo);
+
+				$mark_barn.hide();
+				$mark_barn_flat.show();
+
+				sys.wait(.25);
+
+				CharacterSays($speaker_lee_1, "sound/shav/e1m5_3/footsteps_on_carpet.ogg");
+
+				sys.wait(.25);
+				
+				thread Lee9Subs();
+				duration = CharacterSaysNoWait($speaker_lee_2, "sound/vo/e1m5_2/BensonHouse/Planning/Lee9.ogg");
+				
+				sys.wait(12.5);
+				duration -= 12.5;
+
+				$camera_bensonhousemap_shed_mover.moveTo($target_null_18);
+				sys.trigger($camera_bensonhousemap_shed);
+
+				sys.wait(3.5);
+				duration -= 3.5;
+
+				$camera_bensonhousemap_mover.moveTo($camera_bensonhousemap_target);
+				sys.trigger($camera_bensonhousemap);
+
+				sys.wait(8.5);
+				duration -= 8.5;
+
+				CharacterSaysNoWait($player1, "sound/shav/e1m5_2/sharpie.ogg");
+				$mark_office.move(0, 2);
+				
+				sys.wait(9);
+				duration -= 9;
+
+				$mark_office.hide();
+				$mark_office_flat.show();
+
+				$camera_bensonhousemap_upstairs_mover.moveTo($target_null_19);
+				sys.trigger($camera_bensonhousemap_upstairs);
+
+				sys.wait(11.5);
+				duration -= 11.5;
+
+				$camera_finalmap_mover.move(UP, 64);
+				sys.trigger($camera_finalmap);
+
+				sys.wait(8);
+				duration -= 8;
+
+				$camera_outshot_mover.move(DOWN, 256);
+				sys.trigger($camera_outshot);
+
+				sys.wait(14);
+				duration -= 14;
+
+				sys.fadeTo('0 0 0', 1, 0);
+
+				sys.wait(duration);
+				sys.wait(2);
+			}
+		}
+
+		// Spawn in motel again to use door to take bus to benson
+		sys.trigger($SpeakerBefore);
+		sys.trigger($motel_later_text_camera);
+		sys.fadeTo('0 0 0', 0, .25);
+		sys.wait(3);
+		sys.fadeTo('0 0 0', 1, 0);
+		sys.wait(1);
+		sys.fadeTo('0 0 0', 0, .25);
+		sys.trigger($motel_later_text_camera);
+		$go_bus_item.show();
+		$camera_notes_light.hide();
+		$Motel_Map_Light.hide();
+		sys.trigger($info_player_teleport_2);
+	}
+
+	float onBalcony = 1;
+	void UpdateBalconyCameraAngle()
+	{			
+		while(onBalcony)
+		{			
+			vector angles = $player1.getViewAngles();
+			angles_y += 180;
+			$motel_balcony_camera.setAngles(angles);
+			sys.wait(GAME_FRAMETIME);
+		}
+	}
+
+	void GetOutOfChair()
+	{
+		$coffee_level.show();
+
+		$motel_balcony_camera_clicker.hide();
+
+		onBalcony = 0;
+		
+		vector angles = $player1.getViewAngles();
+		angles_y += 180;
+		$player1.setViewAngles(angles);
+		sys.trigger($motel_balcony_camera);
+
+		$SpeakerTheLastDate.fadeSound(SND_CHANNEL_ANY, -25,5);
+
+		sys.trigger($speaker_coffee_maker);
+
+		$coffee_level_mover.move(UP, 6);
+	}	
+
+	void main_intro()
+	{			
+		sys.trigger($info_portalsky_2);
+		
+		sys.fadeTo('0 0 0', 1, 0);		
+
+		if(show_establishing_shot)
+		{
+		// Chapter text		
+		{
+			sys.trigger($chapter_text_camera);
+
+			sys.wait(1);
+
+			sys.trigger($chapter_text_speaker);
+
+			sys.fadeTo('0 0 0', 0, 2);
+
+			sys.wait(4);
+
+			sys.fadeTo('0 0 0', 1, 2);
+			
+			sys.wait(3);
+
+			sys.trigger($chapter_text_camera);
+		}
+		
+		sys.trigger($establish_camera_1);		
+		
+		sys.trigger($SpeakerTheLastDate);
+		
+		sys.wait(3);		
+		
+		sys.fadeTo('0 0 0', 0, 2);		
+
+		// Show Motel
+		{
+			$establish_camera_1_mover.move(315, 256);
+			$establish_camera_1_mover.rotateOnce('0 45 0');
+
+			sys.wait(12);
+		}
+
+		// Show ALTAN
+		{
+			sys.trigger($camera_altanman_1);
+			$camera_altanman_1_mover.move(UP, 512);
+			$camera_altanman_1_mover.rotateOnce('0 0 45');
+
+			sys.wait(12);
+		}
+
+		// Establishing shot of the motel
+		{
+		sys.trigger($func_cameraview_1);
+			$motel_camera_1_mover.moveTo($target_null_13);
+			sys.wait(7);
+		}
+		
+		// Show the inside of the motel
+		{			
+			sys.trigger($camera_inside_corner);						
+			$camera_inside_corner_mover.move(270, 64);
+			
+			sys.wait(10);
+		}				
+
+		// Show beds
+		{
+			sys.trigger($camera_beds);
+			$camera_beds_mover.move(DOWN, 32);
+
+			sys.wait(8);
+		}
+
+		// Show planning table
+		{
+			sys.trigger($camera_inside_table);
+			$camera_inside_table_mover.move(0, 32);
+
+			sys.wait(8);
+		}
+
+		// Show missing closet doors
+		{
+			sys.trigger($camera_closet);
+			$camera_closet_mover.move(90, 32);
+			$camera_closet_mover.rotateOnce('0 45 0');
+
+			sys.wait(8);
+		}
+
+		// Show outside
+		{
+			$camera_outside_mover.moveTo($motel_balcony_camera);
+			sys.trigger($camera_outside);
+
+			sys.waitFor($camera_outside_mover);
+		}
+
+		//sys.fadeTo('0 0 0', 1, 2);
+		
+		//sys.wait(3);
+
+		}
+		else
+		{
+			$LeeNoteUwu.setKey("click_item", 1);
+		}
+
+		// Go to balcony cam
+		{
+			$player1.setViewAngles($camera_outside.getAngles() + '0 180 0');
+			thread UpdateBalconyCameraAngle();
+			sys.trigger($motel_balcony_camera);
+		}
+
+		// Open bathroom door
+		$door_bathroom_mover.rotateOnce('0 -105 0');
+
+		// Rotate alarm clock
+		$outro_alarmclock.rotateOnce('0 -15 0');
+		
+		// Set influence
+		sys.trigger($setinfluence_bensonhouse);
+		
+		// Turn on local sounds
+		sys.trigger($Speaker_Motel_AC);
+
+		//sys.fadeTo('0 0 0', 0, 2);		
+	}	
+}

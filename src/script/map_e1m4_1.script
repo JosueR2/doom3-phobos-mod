@@ -1,0 +1,2158 @@
+namespace map_e1m4_1
+{	
+	#define M4CRANE_WEST 0
+	#define M4CRANE_EAST 1
+	#define M4CRANE_NONE 2
+
+	float hatch01state = 1;
+	//0 = closed
+	//1 = open
+	
+	float hatch03state = 0;
+	//0 = closed
+	//1 = open
+	
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m4_1(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+	
+	void CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+
+	float CharacterSaysImmediate(entity characterEntity, string line)
+	{
+		return characterEntity.startSoundShader(line, SND_CHANNEL_ANY);
+	}
+	
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}
+
+	void WhatsThatSoundSubs()
+	{
+		ShowNPCSubtitles("Sam", "What's that sound?", 2.25);
+	}
+
+	void SetLock(float pipe, float state, float oldState)
+	{
+		entity door1 = sys.getEntity("fuelpipe0" + pipe + "_hatch01");
+		entity door2 = sys.getEntity("fuelpipe0" + pipe + "_hatch02");
+		entity gui1 = sys.getEntity("fuelpipe0" + pipe + "_hatch01_gui");
+		entity gui2 = sys.getEntity("fuelpipe0" + pipe + "_hatch02_gui");
+		entity light1 = sys.getEntity("fuelpipe0" + pipe + "_hatch01_light_" + (1 - state));
+		entity light2 = sys.getEntity("fuelpipe0" + pipe + "_hatch02_light_" + (1 - state));		
+		entity tex_red = sys.getEntity("fuelpipe0" + pipe + "_hatch01_tex_red");
+		entity tex_red2 = sys.getEntity("fuelpipe0" + pipe + "_hatch02_tex_red");
+		entity tex_green = sys.getEntity("fuelpipe0" + pipe + "_hatch01_tex_green");
+		entity tex_green2 = sys.getEntity("fuelpipe0" + pipe + "_hatch02_tex_green");
+		entity flare_red = sys.getEntity("fuelpipe0" + pipe + "_flare_0");
+		entity flare_green = sys.getEntity("fuelpipe0" + pipe + "_flare_1");
+		
+		door1.lock(state);
+		door2.lock(state);
+		gui1.setGuiParm("gui_parm2", state);
+		sys.trigger(gui1);
+		gui2.setGuiParm("gui_parm2", state);
+		sys.trigger(gui2);
+		sys.trigger(light1);
+		sys.trigger(light2);
+		
+		if(state == 1)
+		{
+			thread crossFadeEnt (flare_red, '0 0 0', '.5 0 0', .125);
+			thread crossFadeEnt (flare_green, '0 .5 0', '0 0 0', .125);
+		}
+		else
+		{
+			thread crossFadeEnt (flare_red, '.5 0 0', '0 0 0', .125);
+			thread crossFadeEnt (flare_green, '0 0 0', '0 .5 0', .125);
+		}
+		
+
+		if(oldState != state)
+		{
+			sys.trigger(tex_red);
+			sys.trigger(tex_green);
+			sys.trigger(tex_red2);
+			sys.trigger(tex_green2);
+		}
+	}
+
+	float cargoLineReady = 0;
+
+	float Track_Red_Nodes = 4;
+	float Track_Green_Nodes = 10;
+	float Track_Orange_Nodes = 14;
+	float Track_Blue_Nodes = 10;
+	
+	float Track_Red_Direction = 1;
+	float Track_Orange_Direction = -1;
+	float Track_Blue_Direction = 1;
+	float Track_Green_Direction = 1;
+	float Track_Direction_CW = 1;
+	float Track_Direction_CCW = -1;
+
+	float CargoSuspended = 0;
+
+	void CargoLoopOrangePlatform(entity platform)
+	{		
+		while(true)
+		{
+			if( CargoSuspended == 1 )
+			{
+				sys.waitFrame();
+				continue;
+			}
+
+			float nodeIndex = platform.getFloatKey("current_node");
+			float nextIndex = nodeIndex + Track_Orange_Direction;
+
+			if( nextIndex < 1 )
+				nextIndex = Track_Orange_Nodes;
+			else if( nextIndex > Track_Orange_Nodes )
+				nextIndex = 1;
+			
+			entity destination = sys.getEntity("track_orange_" + nextIndex);
+
+			platform.moveTo(destination);
+			
+			sys.waitFor(platform);			
+
+			if( CargoSuspended == 0 )
+			{
+				platform.setKey("current_node", nextIndex);
+			}
+		}
+	}
+	
+	void CargoLoopBluePlatform(entity platform)
+	{		
+		while(true)
+		{
+			if( CargoSuspended == 1 )
+			{
+				sys.waitFrame();
+				continue;
+			}
+
+			float nodeIndex = platform.getFloatKey("current_node");
+			float nextIndex = nodeIndex + Track_Blue_Direction;
+			
+			if( nextIndex < 1 )
+				nextIndex = Track_Blue_Nodes;
+			else if( nextIndex > Track_Blue_Nodes )
+				nextIndex = 1;
+			
+			entity destination = sys.getEntity("track_blue_" + nextIndex);
+
+			platform.moveTo(destination);
+			
+			sys.waitFor(platform);			
+
+			if( CargoSuspended == 0 )
+			{
+				platform.setKey("current_node", nextIndex);
+			}
+		}
+	}
+
+	void CargoLoopGreenPlatform(entity platform)
+	{		
+		while(true)
+		{
+			if( CargoSuspended == 1 )
+			{
+				sys.waitFrame();
+				continue;
+			}
+
+			float nodeIndex = platform.getFloatKey("current_node");
+			float nextIndex = nodeIndex + Track_Green_Direction;
+			
+			if( nextIndex < 1 )
+				nextIndex = Track_Green_Nodes;
+			else if( nextIndex > Track_Green_Nodes )
+				nextIndex = 1;
+			
+			entity destination = sys.getEntity("track_green_" + nextIndex);
+
+			platform.moveTo(destination);
+			
+			sys.waitFor(platform);			
+
+			if( CargoSuspended == 0 )
+			{
+				platform.setKey("current_node", nextIndex);
+			}
+		}
+	}
+
+	void CargoLoopRedPlatform(entity platform)
+	{
+		while( true)
+		{
+			if( CargoSuspended == 1 )
+			{
+				sys.waitFrame();
+				continue;
+			}
+
+			float nodeIndex = platform.getFloatKey("current_node");
+			float nextIndex = nodeIndex + Track_Red_Direction;
+			
+			if( nextIndex < 1 )
+				nextIndex = Track_Red_Nodes;
+			else if( nextIndex > Track_Red_Nodes )
+				nextIndex = 1;
+			
+			entity destination = sys.getEntity("track_red_" + nextIndex);
+
+			platform.moveTo(destination);
+						
+			sys.waitFor(platform);
+			if( CargoSuspended == 0 )
+			{
+				platform.setKey("current_node", nextIndex);
+			}
+		}
+	}
+
+	void CargoLoopRed()
+	{
+		float length = 0;
+
+		float index = 0;
+		while(index < Track_Red_Nodes)
+		{
+			float a = index;
+			float b = index + 1;
+			if( b >= Track_Red_Nodes)
+				b = 0;
+
+			entity one = sys.getEntity("track_red_" + (a+1));
+			entity two = sys.getEntity("track_red_" + (b+1));
+
+			length += one.distanceTo(two);
+
+			index++;
+		}		
+
+		float dis = length / 8;
+		dis = dis / 80;
+
+		float i = 0;
+		while( i < 8 )
+		{
+			thread CargoLoopRedPlatform(sys.getEntity("track_red_platform_" + (i + 1)));
+			sys.wait(dis);
+			i++;
+		}
+	}
+
+	void CargoLoopOrange()
+	{
+		float length = 0;
+
+		float index = 0;
+		while(index < Track_Orange_Nodes)
+		{
+			float a = index;
+			float b = index + 1;
+			if( b >= Track_Orange_Nodes)
+				b = 0;
+
+			entity one = sys.getEntity("track_orange_" + (a+1));
+			entity two = sys.getEntity("track_orange_" + (b+1));
+
+			length += one.distanceTo(two);
+
+			index++;
+		}
+
+		float dis = length / (10);
+		dis = dis / 80;
+		float i = 0;
+		while( i < 10 )
+		{
+			thread CargoLoopOrangePlatform(sys.getEntity("track_orange_platform_" + (i + 1)));
+			sys.wait(dis);
+			i++;
+		}
+	}
+
+	void CargoLoopGreen()
+	{
+		float length = 0;
+
+		float index = 0;
+		while(index < Track_Green_Nodes)
+		{
+			float a = index;
+			float b = index + 1;
+			if( b >= Track_Green_Nodes)
+				b = 0;
+
+			entity one = sys.getEntity("track_green_" + (a+1));
+			entity two = sys.getEntity("track_green_" + (b+1));
+
+			length += one.distanceTo(two);
+
+			index++;
+		}
+
+		float dis = length / (10);
+		dis = dis / 80;
+		float i = 0;
+		while( i < 10 )
+		{
+			thread CargoLoopGreenPlatform(sys.getEntity("track_green_platform_" + (i + 1)));
+			sys.wait(dis);
+			i++;
+		}
+	}
+
+	void CargoLoopBlue()
+	{
+		float length = 0;
+
+		float index = 0;
+		while(index < Track_Blue_Nodes)
+		{
+			float a = index;
+			float b = index + 1;
+			if( b >= Track_Blue_Nodes)
+				b = 0;
+
+			entity one = sys.getEntity("track_blue_" + (a+1));
+			entity two = sys.getEntity("track_blue_" + (b+1));
+
+			length += one.distanceTo(two);
+
+			index++;
+		}
+
+		float dis = length / (10);
+		dis = dis / 80;
+		float i = 0;
+		while( i < 10 )
+		{
+			thread CargoLoopBluePlatform(sys.getEntity("track_blue_platform_" + (i + 1)));
+			sys.wait(dis);
+			i++;
+		}
+	}
+
+	float LowerTracksState = 0;
+
+	void ReverseLowerTracks()
+	{
+		$reverse_tracks_clicker.setKey("click_item", "0");
+		
+		if(LowerTracksState == 0)
+		{
+			$reverse_tracks_handle.rotateUpTo(X_AXIS, 90);
+			sys.trigger($track_rev_whirr_spkr);
+			LowerTracksState = 1;
+		}
+		else
+		{
+			$reverse_tracks_handle.rotateDownTo(X_AXIS, 0);
+			sys.trigger($track_rev_whirr_spkr);
+			LowerTracksState = 0;
+		}
+		
+		float i = 0;
+		while( i < 10 )
+		{
+			entity platform = sys.getEntity("track_orange_platform_" + (i + 1));
+			platform.stopMoving();
+			platform = sys.getEntity("track_green_platform_" + (i + 1));
+			platform.stopMoving();
+			i++;
+		}
+		Track_Orange_Direction = Track_Orange_Direction * -1;
+		Track_Green_Direction = Track_Green_Direction * -1;
+
+		sys.wait(2.8);
+
+		$reverse_tracks_clicker.setKey("click_item", "1");
+	}
+
+	float forcefield_lower = 1;	
+
+	void TurnOffField(entity handle, entity red, entity green, entity console, entity relay, entity relayDone)
+	{
+		handle.move(UP, 8);
+		handle.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+		red.show();
+		green.hide();
+
+		console.startSoundShader("e1_bomb_placement", SND_CHANNEL_VOICE2);
+
+		sys.trigger(relay);
+		sys.wait(0.025);
+		sys.trigger(relay);
+		sys.wait(0.025);
+		sys.trigger(relay);
+		sys.wait(0.025);
+		sys.trigger(relay);
+		sys.wait(0.025);
+		sys.trigger(relay);
+		sys.wait(0.1);
+		sys.trigger(relay);
+		sys.wait(0.1);
+		sys.trigger(relay);
+
+		sys.trigger(relayDone);
+	}
+
+	void TurnOffOrangeField()
+	{
+		entity handle = sys.getEntity("upperff_console_handle");
+		entity red = sys.getEntity("upperff_console_red");
+		entity green = sys.getEntity("upperff_console_green");
+		entity console = sys.getEntity("upperff_console");
+		entity relay = sys.getEntity("upperff_relay");
+		entity relayDone = sys.getEntity("upperff_relay_done");
+		
+		TurnOffField(handle, red, green, console, relay, relayDone);
+
+		sys.trigger($speaker_1168);
+	}
+
+	void TurnOffLowerField2()
+	{
+		entity handle = sys.getEntity("lowerff_console_handle2");
+		entity red = sys.getEntity("lowerff_console_red2");
+		entity green = sys.getEntity("lowerff_console_green2");
+		entity console = sys.getEntity("lowerff_console2");
+		entity relay = sys.getEntity("relay_forcefields_lower2");
+		entity relayDone = sys.getEntity("relay_forcefields_lower_done2");		
+
+		TurnOffField(handle, red, green, console, relay, relayDone);
+	}
+
+	void ToggleLowerField()
+	{
+		entity handle = sys.getEntity("lowerff_console_handle");
+		entity red = sys.getEntity("lowerff_console_red");
+		entity green = sys.getEntity("lowerff_console_green");
+		entity console = sys.getEntity("lowerff_console");
+		entity relay = sys.getEntity("relay_forcefields_lower");
+		entity relayDone = sys.getEntity("relay_forcefields_lower_done");		
+
+		TurnOffField(handle, red, green, console, relay, relayDone);
+	}
+
+	vector	crane_2_mins = '-6184 832 -64';
+	vector	crane_2_maxs = '-5784 832 -64';
+	vector	crane_2_pos;
+
+	vector	crane_1_mins = '-6184 1800 -36';
+	vector	crane_1_maxs = '-5784 1800 -36';
+	vector	crane_1_pos;	
+	
+	float crane_1_state = M4CRANE_NONE;
+	float crane_2_state = M4CRANE_NONE;
+	
+	void crane_1_goeast()
+	{
+		crane_1_state = M4CRANE_EAST;
+	}
+
+	void crane_1_gowest()
+	{
+		crane_1_state = M4CRANE_WEST;
+	}
+
+	void crane_1_stop()
+	{
+		crane_1_state = M4CRANE_NONE;
+	}
+
+	void crane_2_goeast()
+	{
+		crane_2_state = M4CRANE_EAST;
+	}
+
+	void crane_2_gowest()
+	{
+		crane_2_state = M4CRANE_WEST;
+	}
+
+	void crane_2_stop()
+	{
+		crane_2_state = M4CRANE_NONE;
+	}
+
+	void sound_crane_1_loop() {
+	$crane_1_console.startSoundShader ("al3_crane_loop", SND_CHANNEL_VOICE2 );
+	}
+
+	void sound_crane_1_stop() {
+		$crane_1_console.startSoundShader ("al3_crane_end", SND_CHANNEL_VOICE2 );
+	}
+	
+	void sound_crane_2_loop() {
+		$crane_2_console.startSoundShader ("al3_crane_loop", SND_CHANNEL_VOICE2 );
+	}
+
+	void sound_crane_2_stop() {
+		$crane_2_console.startSoundShader ("al3_crane_end", SND_CHANNEL_VOICE2 );
+	}
+
+	void crane_1_move( entity part, entity northWheel1, entity northWheel2, entity southWheel1, entity southWheel2, float dir, float amount, float stopOnCommand )
+	{
+		float cmd;
+
+		if ( amount < 0.01 )
+		{		
+			return;
+		}
+		
+		sound_crane_1_loop();
+	
+		part.move( dir, amount );
+		
+		float rotTime = amount / 50;
+
+		southWheel1.time(rotTime);
+		southWheel2.time(rotTime);
+
+		northWheel1.time(rotTime);
+		northWheel2.time(rotTime);
+
+		float revolutions = amount / 50.27;
+		float rotDir = 1;
+		if(dir == EAST)
+			rotDir = -1;
+
+		southWheel1.rotateOnce('0 360 0' * revolutions * rotDir);
+		southWheel2.rotateOnce('0 360 0' * revolutions * rotDir);
+		northWheel1.rotateOnce('0 -360 0' * revolutions * rotDir);
+		northWheel2.rotateOnce('0 -360 0' * revolutions * rotDir);
+
+
+		if ( !stopOnCommand )
+		{
+			sys.waitFor( part );
+		}
+		else
+		{
+			cmd = crane_1_state;
+			while( crane_1_state == cmd )
+			{
+				sys.waitFrame();			
+				if ( !part.isMoving() )
+				{
+					break;
+				}
+			}
+			part.stopMoving();
+			southWheel1.stopRotating();
+			southWheel2.stopRotating();
+			northWheel1.stopRotating();
+			northWheel2.stopRotating();
+		}	
+		sound_crane_1_stop();
+	
+		crane_1_pos = $crane_1.getWorldOrigin();
+	}
+	
+	void crane_2_move( entity part, entity northWheel1, entity northWheel2, entity southWheel1, entity southWheel2, float dir, float amount, float stopOnCommand )
+	{
+		float cmd;
+
+		if ( amount < 0.01 )
+		{
+		
+			return;
+		}
+
+		sound_crane_2_loop();
+	
+	
+		part.move( dir, amount );
+
+		float rotTime = amount / 50;
+
+		southWheel1.time(rotTime);
+		southWheel2.time(rotTime);
+
+		northWheel1.time(rotTime);
+		northWheel2.time(rotTime);
+
+		float revolutions = amount / 50.27;
+		float rotDir = 1;
+		if(dir == EAST)
+			rotDir = -1;
+
+		southWheel1.rotateOnce('0 360 0' * revolutions * rotDir);
+		southWheel2.rotateOnce('0 360 0' * revolutions * rotDir);
+		northWheel1.rotateOnce('0 -360 0' * revolutions * rotDir);
+		northWheel2.rotateOnce('0 -360 0' * revolutions * rotDir);
+
+		if ( !stopOnCommand )
+		{
+			sys.waitFor( part );
+		}
+		else
+		{
+			cmd = crane_2_state;
+			while( crane_2_state == cmd )
+			{
+				sys.waitFrame();			
+				if ( !part.isMoving() )
+				{
+					break;
+				}
+			}
+			part.stopMoving();
+			southWheel1.stopRotating();
+			southWheel2.stopRotating();
+			northWheel1.stopRotating();
+			northWheel2.stopRotating();
+		}	
+		sound_crane_2_stop();
+	
+		crane_2_pos = $crane_2.getWorldOrigin();
+	}
+
+	void crane1loop()
+	{
+		while( 1 )
+		{
+			crane_1_state = M4CRANE_NONE;
+			while( crane_1_state == M4CRANE_NONE )
+			{							
+				sys.waitFrame();
+			}
+
+			if ( crane_1_state == M4CRANE_WEST )
+			{
+				if ( crane_1_pos_x > crane_1_mins_x )
+				{
+					crane_1_move( $crane_1, $crane_1_wheel_north_1, $crane_1_wheel_north_2, $crane_1_wheel_south_1, $crane_1_wheel_south_2, WEST, crane_1_pos_x - crane_1_mins_x, true );
+				}
+			}
+			else if ( crane_1_state == M4CRANE_EAST )
+			{
+				if ( crane_1_pos_x < crane_1_maxs_x )
+				{
+					crane_1_move( $crane_1, $crane_1_wheel_north_1, $crane_1_wheel_north_2, $crane_1_wheel_south_1, $crane_1_wheel_south_2, EAST, crane_1_maxs_x - crane_1_pos_x, true );
+				}
+			}			
+		}
+	}
+
+	void crane2loop()
+	{
+		while( 1 )
+		{
+			crane_2_state = M4CRANE_NONE;
+			while( crane_2_state == M4CRANE_NONE )
+			{							
+				sys.waitFrame();
+			}
+
+			if ( crane_2_state == M4CRANE_WEST )
+			{
+				if ( crane_2_pos_x > crane_2_mins_x )
+				{
+					crane_2_move( $crane_2,  $crane_2_wheel_north_1, $crane_2_wheel_north_2, $crane_2_wheel_south_1, $crane_2_wheel_south_2,WEST, crane_2_pos_x - crane_2_mins_x, true );
+				}
+			}
+			else if ( crane_2_state == M4CRANE_EAST )
+			{
+				if ( crane_2_pos_x < crane_2_maxs_x )
+				{
+					crane_2_move( $crane_2,  $crane_2_wheel_north_1, $crane_2_wheel_north_2, $crane_2_wheel_south_1, $crane_2_wheel_south_2,EAST, crane_2_maxs_x - crane_2_pos_x, true );
+				}
+			}			
+		}
+	}
+
+	void CargoLoop()
+	{
+		thread CargoLoopRed();
+		thread CargoLoopBlue();
+		thread CargoLoopOrange();
+		sys.wait(9);
+		thread CargoLoopGreen();
+	}
+
+	float cargofuelstate = 0;
+
+	void SuspendCargo()
+	{
+		CargoSuspended = 1;
+
+		float i = 0;
+		while( i < 10 )
+		{
+			entity platform = sys.getEntity("track_orange_platform_" + (i + 1));
+			platform.stopMoving();
+			platform = sys.getEntity("track_green_platform_" + (i + 1));
+			platform.stopMoving();
+			platform = sys.getEntity("track_blue_platform_" + (i + 1));
+			platform.stopMoving();
+
+			if( i < 8 )
+			{
+				platform = sys.getEntity("track_red_platform_" + (i + 1));
+				platform.stopMoving();
+			}
+
+			i++;
+		}
+	}
+	
+	void KillCargoLines()
+	{
+		SuspendCargo();
+		$func_static_79506.setColor(0, 0, 0);
+		$func_static_79505.setColor(0, 0, 0);
+		$func_static_79504.setColor(0, 0, 0);
+		$func_static_79503.setColor(0, 0, 0);
+		$func_static_79493.setColor(0, 0, 0);
+		$func_static_79492.setColor(0, 0, 0);
+		$func_static_100947.setColor(0, 0, 0);
+		$func_static_100945.setColor(0, 0, 0);
+		$func_static_79447.setColor(0, 0, 0);
+		$func_static_79448.setColor(0, 0, 0);
+		$func_static_79449.setColor(0, 0, 0);
+		$func_static_79450.setColor(0, 0, 0);
+		$func_static_79451.setColor(0, 0, 0);
+		$func_static_79478.setColor(0, 0, 0);
+		$func_static_79477.setColor(0, 0, 0);
+		$func_static_79507.setColor(0, 0, 0);
+		$func_static_79508.setColor(0, 0, 0);
+		$func_static_79509.setColor(0, 0, 0);
+		$func_static_79510.setColor(0, 0, 0);
+		$func_static_77118.setColor(0, 0, 0);
+		$func_static_79514.setColor(0, 0, 0);
+		$func_static_79522.setColor(0, 0, 0);
+		$func_static_79521.setColor(0, 0, 0);
+		$func_static_76537.setColor(0, 0, 0);
+		$func_static_79520.setColor(0, 0, 0);
+		$func_static_79519.setColor(0, 0, 0);
+		$func_static_76869.setColor(0, 0, 0);
+		$func_static_79518.setColor(0, 0, 0);
+		$func_static_79517.setColor(0, 0, 0);
+		$func_static_77299.setColor(0, 0, 0);
+		$func_static_79539.setColor(0, 0, 0);
+		$func_static_79540.setColor(0, 0, 0);
+		$func_static_79476.setColor(0, 0, 0);
+		$func_static_79446.setColor(0, 0, 0);
+		$func_static_79464.setColor(0, 0, 0);
+		$func_static_79486.setColor(0, 0, 0);
+		$func_static_79485.setColor(0, 0, 0);
+		$func_static_79463.setColor(0, 0, 0);
+		$func_static_79484.setColor(0, 0, 0);
+		$func_static_79462.setColor(0, 0, 0);
+		$func_static_79483.setColor(0, 0, 0);
+		$func_static_79461.setColor(0, 0, 0);
+		$func_static_79460.setColor(0, 0, 0);
+		$func_static_79482.setColor(0, 0, 0);
+		$func_static_79481.setColor(0, 0, 0);
+		$func_static_79459.setColor(0, 0, 0);
+		$func_static_79475.setColor(0, 0, 0);
+		$func_static_79445.setColor(0, 0, 0);
+		$func_static_79444.setColor(0, 0, 0);
+		$func_static_79474.setColor(0, 0, 0);
+		$func_static_79443.setColor(0, 0, 0);
+		$func_static_79442.setColor(0, 0, 0);
+		$func_static_79441.setColor(0, 0, 0);
+		$func_static_79429.setColor(0, 0, 0);
+		$func_static_79473.setColor(0, 0, 0);
+		$func_static_79426.setColor(0, 0, 0);
+		$func_static_79411.setColor(0, 0, 0);
+		$func_static_79404.setColor(0, 0, 0);
+		$trm1.setColor(0, 0, 0);
+		$func_static_79393.setColor(0, 0, 0);
+		$func_static_79491.setColor(0, 0, 0);
+		$func_static_100946.setColor(0, 0, 0);
+		$func_static_100943.setColor(0, 0, 0);
+		$func_static_79499.setColor(0, 0, 0);
+		$func_static_79498.setColor(0, 0, 0);
+		$func_static_100942.setColor(0, 0, 0);
+		$func_static_100941.setColor(0, 0, 0);
+		$func_static_79497.setColor(0, 0, 0);
+		$func_static_100940.setColor(0, 0, 0);
+		$func_static_79496.setColor(0, 0, 0);
+		$func_static_100939.setColor(0, 0, 0);
+		$func_static_79495.setColor(0, 0, 0);
+		$func_static_100938.setColor(0, 0, 0);
+		$func_static_79494.setColor(0, 0, 0);
+		$func_static_79490.setColor(0, 0, 0);
+		$func_static_100937.setColor(0, 0, 0);
+		$func_static_100936.setColor(0, 0, 0);
+		$func_static_79489.setColor(0, 0, 0);
+		$func_static_79488.setColor(0, 0, 0);
+		$func_static_100944.setColor(0, 0, 0);
+		$func_static_79487.setColor(0, 0, 0);
+		$func_static_79410.setColor(0, 0, 0);
+		$trm2.setColor(0, 0, 0);
+		$func_static_79417.setColor(0, 0, 0);
+		$func_static_79418.setColor(0, 0, 0);
+		$func_static_79419.setColor(0, 0, 0);
+		$tr2.setColor(0, 0, 0);
+		$func_static_79420.setColor(0, 0, 0);
+		$func_static_79412.setColor(0, 0, 0);
+		$func_static_79403.setColor(0, 0, 0);
+		$func_static_79400.setColor(0, 0, 0);
+		$func_static_79401.setColor(0, 0, 0);
+		$func_static_79402.setColor(0, 0, 0);
+		$func_static_79394.setColor(0, 0, 0);
+		$bd2.setColor(0, 0, 0);
+		$bd1.setColor(0, 0, 0);
+		$tr1.setColor(0, 0, 0);
+		$func_static_79392.setColor(0, 0, 0);
+		$func_static_79421.setColor(0, 0, 0);
+		$func_static_79422.setColor(0, 0, 0);
+		$func_static_79423.setColor(0, 0, 0);
+		$func_static_79424.setColor(0, 0, 0);
+		$tr4.setColor(0, 0, 0);
+		$func_static_79407.setColor(0, 0, 0);
+		$trm3.setColor(0, 0, 0);
+		$func_static_79406.setColor(0, 0, 0);
+		$func_static_79405.setColor(0, 0, 0);
+		$func_static_76418.setColor(0, 0, 0);
+		$func_static_76553.setColor(0, 0, 0);
+		$func_static_77033.setColor(0, 0, 0);
+		$func_static_79537.setColor(0, 0, 0);
+		$func_static_79536.setColor(0, 0, 0);
+	}
+	
+	void SetCargoCoordinates()	
+	{
+		$track_orange_platform_1.setWorldOrigin('-4592 625.6 -648');
+		$track_green_platform_1.setWorldOrigin('-4384 756.54 -488');
+		$track_blue_platform_1.setWorldOrigin('-5774.08 -600 -328');
+		$track_red_platform_1.setWorldOrigin('-6223.46 4000 48');
+		$track_orange_platform_2.setWorldOrigin('-4592 1492.65 -648');
+		$track_green_platform_2.setWorldOrigin('-4384 1944 -525.61');
+		$track_blue_platform_2.setWorldOrigin('-4673.28 -600 -328');
+		$track_red_platform_2.setWorldOrigin('-6496 3549.04 48');
+		$track_orange_platform_3.setWorldOrigin('-4592 2104 -35.09');
+		$track_green_platform_3.setWorldOrigin('-4957.43 2560.76 -613.03');
+		$track_blue_platform_3.setWorldOrigin('-4592 248 -457.4');
+		$track_red_platform_3.setWorldOrigin('-6496 2813.42 48');
+		$track_orange_platform_4.setWorldOrigin('-5297.72 2528 48');
+		$track_green_platform_4.setWorldOrigin('-6169.47 2799.11 -539.13');
+		$track_blue_platform_4.setWorldOrigin('-4587.19 1120.03 -328');
+		$track_red_platform_4.setWorldOrigin('-5801.86 2784 48');
+		$track_orange_platform_5.setWorldOrigin('-6535.12 2528 48');
+		$track_green_platform_5.setWorldOrigin('-7008 2594.83 -488');
+		$track_blue_platform_5.setWorldOrigin('-4569.34 1808 71.73');
+		$track_red_platform_5.setWorldOrigin('-5066.13 2784 48');
+		$track_orange_platform_6.setWorldOrigin('-6800 1969.15 -328');
+		$track_green_platform_6.setWorldOrigin('-7008 1357.46 -488');
+		$track_blue_platform_6.setWorldOrigin('-5062.15 1645.54 632');
+		$track_red_platform_6.setWorldOrigin('-4768 3209.38 48');
+		$track_orange_platform_7.setWorldOrigin('-6800 1076.8 -648');
+		$track_green_platform_7.setWorldOrigin('-7008 304.96 -648');
+		$track_blue_platform_7.setWorldOrigin('-6109.07 1306.83 632');
+		$track_red_platform_7.setWorldOrigin('-4768 3944.99 48');
+		$track_orange_platform_8.setWorldOrigin('-6800 -160.96 -648');
+		$track_green_platform_8.setWorldOrigin('-6687.44 -600 -648');
+		$track_blue_platform_8.setWorldOrigin('-6764.31 1160.62 207.37');
+		$track_red_platform_8.setWorldOrigin('-5436.55 4000 48');
+		$track_orange_platform_9.setWorldOrigin('-6013.67 -600 -648');
+		$track_green_platform_9.setWorldOrigin('-5449.98 -600 -648');
+		$track_blue_platform_9.setWorldOrigin('-6800 684.9 -328');
+		$track_orange_platform_10.setWorldOrigin('-4776.27 -600 -648');
+		$track_green_platform_10.setWorldOrigin('-4384 -440.64 -648');
+		$track_blue_platform_10.setWorldOrigin('-6800 -415.71 -328');
+	}
+
+	void OpenStartCrawlspace()
+	{
+		$start_crawlspace_hatch_rotator.rotateOnce('90 0 0');
+	}
+
+	float arachElevatorSouthState = 1;
+	float arachElevatorNorthState = 1;
+
+	void ArachElevDoorRange(string elev, float dir, float from, float to)
+	{
+		while(from < to)
+		{
+			entity door = sys.getEntity("arach_elev_" + elev + "_door_" + from);
+
+			door.move(dir, 48);			
+
+			sys.wait(.25);
+
+			from++;
+		}
+	}
+
+	void ArachDoors(string elev, float dir)
+	{
+		thread ArachElevDoorRange(elev, dir, 1, 9);
+
+		sys.wait(.5);
+
+		thread ArachElevDoorRange(elev, dir, 9, 17);
+
+		entity door = sys.getEntity("arach_elev_" + elev + "_door_16");
+		sys.waitFor(door);
+	}
+
+	void ToggleArachElevatorNorth()
+	{
+		if(arachElevatorNorthState != 2)
+		{
+			$arach_elev_north_top_clicker.setKey ("click_item", "0");
+			$arach_elev_north_bottom_clicker.setKey ("click_item", "0");
+
+			if(arachElevatorNorthState == 0)
+			{
+				arachElevatorNorthState = 2;
+
+				$arach_elev_north_handle.move(UP, 12);
+				$arach_elev_north_handle.startSoundShader("e1m5_3_large_switch", SND_CHANNEL_ANY);				
+
+				sys.waitFor($arach_elev_north_handle);
+
+				$arach_elev_north_top_flare.show();
+				$arach_elev_north_bottom_flare.hide();
+				$arach_elev_north_top_light.show();
+				$arach_elev_north_bottom_light.hide();
+
+				sys.wait(.5);
+
+				$arach_elev_north.move(UP, 5 * 64);
+
+				$arach_elev_north.startSoundShader("c1_pipeupaway", SND_CHANNEL_ANY);
+
+				sys.waitFor($arach_elev_north);
+
+				ArachDoors("north", DOWN);
+
+				arachElevatorNorthState = 1;
+				
+				$arach_elev_north_bottom_clicker.setKey ("click_item", "1");				
+			}
+			else if(arachElevatorNorthState == 1)
+			{
+				arachElevatorNorthState = 2;				
+
+				$arach_elev_north_handle.move(DOWN, 12);
+				$arach_elev_north_handle.startSoundShader("e1m5_3_large_switch", SND_CHANNEL_ANY);
+
+				sys.waitFor($arach_elev_north_handle);
+
+				$arach_elev_north_top_flare.hide();
+				$arach_elev_north_bottom_flare.show();
+				$arach_elev_north_top_light.hide();
+				$arach_elev_north_bottom_light.show();
+
+				sys.wait(.5);
+
+				ArachDoors("north", UP);
+
+				$arach_elev_north.move(DOWN, 5 * 64);
+
+				$arach_elev_north.startSoundShader("c1_pipeupaway", SND_CHANNEL_ANY);				
+
+				sys.waitFor($arach_elev_north);
+
+				arachElevatorNorthState = 0;
+
+				$arach_elev_north_top_clicker.setKey ("click_item", "1");
+			}
+		}
+	}
+	
+	void postImminence_Fade() {
+		$speaker_51.fadeSound (SND_CHANNEL_ANY, 4, 5);		//4
+		$speaker_57.fadeSound (SND_CHANNEL_ANY, 5, 5);		//5
+		$speaker_94.fadeSound (SND_CHANNEL_ANY, 4, 5);		//4
+		$speaker_35.fadeSound (SND_CHANNEL_ANY, 5, 5);		//5
+		$speaker_41.fadeSound (SND_CHANNEL_ANY, 5, 5);		//5
+		$speaker_42.fadeSound (SND_CHANNEL_ANY, 3, 5);		//3
+		$speaker_47.fadeSound (SND_CHANNEL_ANY, 3, 5);		//3
+		$speaker_49.fadeSound (SND_CHANNEL_ANY, 3, 5);		//3
+		$speaker_95.fadeSound (SND_CHANNEL_ANY, 4, 5);		//4
+		$speaker_97.fadeSound (SND_CHANNEL_ANY, 5, 5);		//5
+		$speaker_98.fadeSound (SND_CHANNEL_ANY, 4, 5);		//4
+		$speaker_99.fadeSound (SND_CHANNEL_ANY, 5, 5);		//5
+		$speaker_4.fadeSound (SND_CHANNEL_ANY, 5, 5);		//5
+		$speaker_7.fadeSound (SND_CHANNEL_ANY, 3, 5);		//3
+	}
+	
+	void SpeakerAmbience_fadeout() {
+		$speaker_58.fadeSound (SND_CHANNEL_ANY, -20, 5);
+		$speaker_56.fadeSound (SND_CHANNEL_ANY, -20, 5);
+		$speaker_55.fadeSound (SND_CHANNEL_ANY, -20, 5);
+		$speaker_61.fadeSound (SND_CHANNEL_ANY, -20, 5);
+		$speaker_70.fadeSound (SND_CHANNEL_ANY, -20, 5);
+	}
+	
+	void SpeakerAmbience_fadein2() {
+		$speaker_58.fadeSound (SND_CHANNEL_ANY, 0, 3.5);
+		$speaker_56.fadeSound (SND_CHANNEL_ANY, 0, 3.5);
+		$speaker_55.fadeSound (SND_CHANNEL_ANY, 0, 3.5);
+		$speaker_61.fadeSound (SND_CHANNEL_ANY, 0, 3.5);
+		$speaker_70.fadeSound (SND_CHANNEL_ANY, 0, 3.5);
+	}
+
+	void SewerExitSearchlight()
+	{
+		$sewerexit_searchlight.rotateOnce('0 45 0');
+		sys.waitFor($sewerexit_searchlight);
+		sys.wait(2);
+
+		while(1)
+		{
+			$sewerexit_searchlight.rotateOnce('0 -135 0');
+			sys.waitFor($sewerexit_searchlight);
+			sys.wait(4);
+			$sewerexit_searchlight.rotateOnce('0 135 0');
+			sys.waitFor($sewerexit_searchlight);
+			sys.wait(4);
+		}
+	}
+	
+	void CallowayMessageSub()
+	{
+		ShowNPCSubtitles("Calloway", "Samantha. I have been a terrible friend, I know,\nbut it has not been without reason.", 8.6);
+		ShowNPCSubtitles("Calloway", "I...I think I may have been right after all.", 4.5);
+		ShowNPCSubtitles("Calloway", "Kaylee...Kaylee may still be alive.", 6.6);
+		ShowNPCSubtitles("Calloway", "As we both know the official records state that Kaylee died in the fire.\nHer body identified by DNA.", 6.7);
+		ShowNPCSubtitles("Calloway", "What tipped me off back then was the sheer amount of security surrounding the incident.", 5);
+		ShowNPCSubtitles("Calloway", "Local fires usually aren't locked down like this with soldiers,\nscientists in hazmat suits and higher ups being alerted.", 7.6);
+		ShowNPCSubtitles("Calloway", "And you know what? The hazmat guys came from here. From Mars.\nSo I went to investigate.", 8);
+		ShowNPCSubtitles("Calloway", "Being a fully initiated member of Receptacle base.\nAnd a high ranking officer at the Bulwark.", 5); 
+		ShowNPCSubtitles("Calloway", "I have access to many places and heaps of information.", 3.9); 
+		ShowNPCSubtitles("Calloway", "The records of the federal police is out of my reach.\nBut knowing the right people and a little sneakiness goes a long way.", 6.5);
+		ShowNPCSubtitles("Calloway", "I've finally obtained access to the unofficial records for the fire that supposedly claimed her life.", 7.4);
+		ShowNPCSubtitles("Calloway", "I haven't seen many records of the sort.\nBut I'm sure they're not supposed to be this brief.", 5.9);
+		ShowNPCSubtitles("Calloway", "They called in the higher ups.\nAnd the Mars division really early in the process.", 4.3);
+		ShowNPCSubtitles("Calloway", "Yes, they did find the blood and DNA of Kaylee, but Samantha, they never found a body!", 8);
+		ShowNPCSubtitles("Calloway", "So why did they claim otherwise?\nAnd why did they need to reinforce and lock down the investigation?", 7);
+		ShowNPCSubtitles("Calloway", "They found something else at the site. Something that wasn't supposed to be there.\nSomething from Mars.", 8.4);
+		ShowNPCSubtitles("Calloway", "This linked her to an old case about theft of federal property and it linked her to federal personnel.", 6.6);
+		ShowNPCSubtitles("Calloway", "But before they came knocking on my door.\nFor reasons unknown.", 3.7);
+		ShowNPCSubtitles("Calloway", "The investigation was cut short and the item was reclaimed and returned to Mars.", 5.2);
+		ShowNPCSubtitles("Calloway", "Guess who was the ranking officer on the case? Benson.\nBenson, Benson, Benson. It's always him.", 12.25);
+		ShowNPCSubtitles("Calloway", "I think my curiosity may have caught the interest of the wrong people.", 3.8);
+		ShowNPCSubtitles("Calloway", "I am quite sure I'm being watched and my time here may be cut short.\nSo I'm reaching out to you. For Kaylee.", 9);
+		ShowNPCSubtitles("Calloway", "I know this is a lot to take in after all these years, but I need your help.\nCome to the Bulwark, Samantha. Quickly!", 9);
+	}
+	
+	void Miles15Sub()
+	{
+		ShowNPCSubtitles("Miles", "Exactly! I can't just go wherever I please.\nI have orders. Superiors I have to answer to.", 6);		
+		ShowNPCSubtitles("Miles", "It's fair if you don't trust me, an apparent complete stranger to you.", 5.1);
+		ShowNPCSubtitles("Miles", "But in this current situation, your best bet is to reach the Bulwark.", 3.6);		
+		ShowNPCSubtitles("Miles", "For your own safety. Calloway or not.", 2.1);
+	}
+
+	void PlayCallowayMessage()
+	{			
+		entity playerC = sys.getEntity("player1");		
+		
+		thread CallowayMessageSub();
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/calloway_message.ogg");
+
+		$calloscreen.hide();
+		$calloscreen_offline.show();
+
+		Beat(.5);
+		thread ShowNPCSubtitles("Miles", "That's all I have...but I can't get in touch with him now.\nI just hope they didn't get to him.", 5);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles12.ogg");
+		Beat(1);
+		thread ShowNPCSubtitles("Sam", "So, this Benson fellow. Is that the same guy I found burning to a crisp?", 4);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player8.ogg");
+		Beat(.25);
+		thread ShowNPCSubtitles("Miles", "The very same.", 2);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles13.ogg");
+		Beat(1.25);
+		thread ShowNPCSubtitles("Sam", "That's...kinda suspicious.\nWhy was it you didn't go find Calloway yourself?", 5.15);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player9.ogg");
+		Beat(.25);
+		thread ShowNPCSubtitles("Miles", "I know this must all be really confusing to you, but let's not jump to conclusions.\nI can't go because I have duties.", 6.5);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles14.ogg");
+		Beat(.25);
+		thread ShowNPCSubtitles("Sam", "On Phobos...", 2);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player10.ogg");
+		Beat(.5);
+		thread Miles15Sub();
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles15.ogg");
+		Beat(3);
+		thread ShowNPCSubtitles("Miles", "Sam. Something I noticed. Right at the beginning of this call, you mentioned you don't remember much\nSo you remember something?", 10);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles16.ogg");
+
+		Beat(.75);
+		thread ShowNPCSubtitles("Sam", "I do.\nI'm starting to remember small things.", 4);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player11.ogg");
+		Beat(.25);
+		sys.fadeTo('0 0 0', 1, 2.25);
+		Beat(1.5);
+		thread ShowNPCSubtitles("Sam", "From when I was a kid.", 2);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player11_b.ogg");
+		Beat(2);
+		thread ShowNPCSubtitles("Sam", "Like my room.", 2);
+		CharacterSaysImmediate(playerC, "sound/vo/e1m4/milescall/player11_c.ogg");
+		Beat(1.25);
+		$Flashback_Cam_Mover.move(0, 8);
+		sys.trigger($Flashback_Cam);
+		sys.fadeTo('0 0 0', 0, .0625);
+		sys.trigger($SpeakerPling);
+			
+		Beat(2);
+		thread ShowNPCSubtitles("Miles", "That's great. Tell me about it.", 2);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles17.ogg");
+		Beat(2);
+		$Flashback_Cam2_Mover.move(315, 8);
+		sys.trigger($Flashback_Cam2);
+		thread ShowNPCSubtitles("Sam", "I remember I had a desk close to the windows.\nI could see the stars from there. And trees.", 7.15);
+		CharacterSaysImmediate(playerC, "sound/vo/e1m4/milescall/player12.ogg");
+		Beat(4.3);		
+		sys.trigger($Flashback_Cam3);
+		sys.wait(1);
+		$Flashback_Cam3_Mover.rotateOnce('-35 0 0');
+		Beat(3.5);
+		thread ShowNPCSubtitles("Miles", "Anything else?", 2);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/miles18.ogg");
+		Beat(2);
+		thread ShowNPCSubtitles("Sam", "There was someone.\nA girl.", 2.15);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player13.ogg");
+		Beat(.5);
+
+		$player1.startSoundShader("sound/shav/e1m4/spotlight.ogg", SND_CHANNEL_ANY );
+		sys.trigger($Seweruwu2_teleport);
+		sys.trigger($Flashback_Cam3);
+		
+		$comm_snapin.hide();
+
+		$func_mover_airplane.move(180, 1400);
+
+		thread SewerExitSearchlight();
+	}
+	
+	void Miles7Sub()
+	{
+		ShowNPCSubtitles("Miles", "Well, I...I care about you, Sam.", 3);
+		ShowNPCSubtitles("Miles", "Look. Calm down. I've known Calloway for some time now. We're good friends.\nBack on Earth, we lost someone. Someone real close.", 11);
+		ShowNPCSubtitles("Miles", "But according to Calloway she may not be gone after all.", 4);
+		ShowNPCSubtitles("Miles", "Here, let me show you. This is the last I heard from him.", 4);
+	}
+	
+	void Miles10Sub()
+	{
+		ShowNPCSubtitles("Miles", "Did you find it?", 2);		
+		sys.wait(3);		
+		ShowNPCSubtitles("Miles", "Sam? Can you turn on the display?", 4);		
+		sys.wait(2);		
+		ShowNPCSubtitles("Miles", "What are you waiting for?", 2);
+	}
+	
+	void Player2Sub()
+	{
+		ShowNPCSubtitles("Sam", "It's just...this is bullshit.\nI wake up in this hellhole and...and everything is fucked.", 6.25);		
+		ShowNPCSubtitles("Sam", "I don't remember much about my past. I don't know anyone. ", 3.15);		
+		ShowNPCSubtitles("Sam", "The only living things I see are those...fuckers! ", 3.15);		
+		ShowNPCSubtitles("Sam", "The only contact out of this place I have is to a soft-voiced drill sergeant that might as well be a robot...", 6.5);
+	}
+	
+	float stillCalling = 1;
+	void CallMiles()
+	{
+		SpeakerAmbience_fadeout();
+
+		entity playerC = sys.getEntity("player1");
+
+		sys.trigger($scene_target_setinfluence_1);
+	
+		Beat(.5);
+		thread ShowNPCSubtitles("Miles", "Hey Sam. Did you get to The Bulwark yet?", 2);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles1.ogg");
+		Beat(.75);
+		thread ShowNPCSubtitles("Sam", "What? No. I was going in the right direction and then things kind of...curved off.\nI'm stuck in a stupid cargo line.", 9.15);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player1.ogg");
+		Beat(.25);
+		thread ShowNPCSubtitles("Miles", "A conga line? Sounds fun.", 2.15);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles2.ogg");
+		Beat(1.5);
+		thread ShowNPCSubtitles("Miles", "Look. I'm sure you'll get there. I trust you, Sam.\nWhat do you need?", 4.25);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles3.ogg");
+		Beat(1);
+		thread Player2Sub();
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player2.ogg");
+		Beat(.25);
+		thread ShowNPCSubtitles("Miles", "Hey!?", 1);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles4.ogg");
+		Beat(.5);
+		thread ShowNPCSubtitles("Sam", "I want out. I don't want to do this...",  2);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player3.ogg");
+		Beat(.25);
+		thread ShowNPCSubtitles("Miles", "I'm not a robot.", 2);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles5.ogg");
+		Beat(1.5);
+		thread ShowNPCSubtitles("Sam", "Why is it so important we find this Calloway guy anyway?\nIt can't all be for my memory. What is it to you?", 6.25);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player4.ogg");
+		Beat(.75);
+		thread ShowNPCSubtitles("Miles", "I'm trying to help you Sam! It's not my fault you ended up in this situation.\nI even arranged for your escape!", 7.15);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles6.ogg");
+		Beat(.5);
+		thread ShowNPCSubtitles("Sam", "Yeah that went well! Come on. I'm doing all the legwork.\nSwimming through fuel and...and...riding platforms. Why do you care?", 10);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player5.ogg");
+		Beat(.75);
+		thread Miles7Sub();
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles7.ogg");
+		
+		Beat(3.5);
+		
+		thread ShowNPCSubtitles("Miles", "Do you see it?", 2);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles8.ogg");
+		Beat(.75);
+		thread ShowNPCSubtitles("Sam", "What?", 2);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player6.ogg");
+		Beat(1.5);
+		thread ShowNPCSubtitles("Miles", "Oh, right. I'm such an idiot. The display is off. Could you turn it on?\nIt should be right next to the communications device.", 6.5);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles9.ogg");
+		
+		sys.trigger($calloclicker);
+
+		while(stillCalling == 1)
+		{
+			sys.wait(5);
+
+			if(stillCalling == 0)
+				break;
+			thread Miles10Sub();
+			CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles10.ogg");			
+		}
+	}
+
+	void TurnOnStreamingDevice()
+	{
+		stillCalling = 0;
+		entity playerC = sys.getEntity("player1");
+		$Comm_Holder.stopSound(SND_CHANNEL_ANY,0);
+		
+		$calloscreen_empty.hide();
+		
+		$calloscreen.setGuiParm("gui_parm41", 1);
+		sys.trigger($calloscreen);
+		$calloscreen.show();
+
+		Beat(.5);
+		thread ShowNPCSubtitles("Sam", "There! Should be on.", 2);
+		CharacterSays(playerC, "sound/vo/e1m4/milescall/player7.ogg");
+		Beat(.5);
+		thread ShowNPCSubtitles("Miles", "Perfect. It should stream now.", 2);
+		CharacterSays($Comm_Holder, "sound/vo/e1m4/milescall/miles11.ogg");
+
+		sys.trigger($SpeakerCallowaysMessage);
+
+		sys.wait(1);
+
+		PlayCallowayMessage();
+	}	
+	
+	void InsertSnapin()
+	{
+		// We need to lock for this scene seeing how it's mandatory because of the sewer flashback end
+		// And some crucial information for the story. That sucks, but its an easy & fast fix.
+		$miles_conf_door.lock(2);
+		$miles_conf_door.setKey("no_touch", 1);
+
+		$player1.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+		
+		sys.trigger($comm_beep);
+
+		$comm_snapin.show();
+		$comm_blinker_tex.hide();
+		$comm_blinking_light.hide();
+		sys.wait(.1);
+		$commscreen_online.hide();
+		sys.wait(.1);
+		$commscreen.setGuiParm("gui_parm41", 1);		
+		sys.trigger($commscreen);
+		$commscreen.show();
+
+		sys.wait(2.5);
+		CallMiles();
+	}
+
+	void ToggleArachElevatorSouth()
+	{
+		if(arachElevatorSouthState != 2)
+		{
+			$arach_elev_south_top_clicker.setKey ("click_item", "0");
+			$arach_elev_south_bottom_clicker1.setKey ("click_item", "0");
+			$arach_elev_south_bottom_clicker2.setKey ("click_item", "0");
+
+			if(arachElevatorSouthState == 0)
+			{
+				arachElevatorSouthState = 2;
+
+				$arach_elev_south_handle.move(UP, 12);
+				$arach_elev_south_handle.startSoundShader("e1m5_3_large_switch", SND_CHANNEL_ANY);				
+
+				sys.waitFor($arach_elev_south_handle);
+
+				$arach_elev_south_top_flare.show();
+				$arach_elev_south_bottom_flare.hide();
+				$arach_elev_south_top_light.show();
+				$arach_elev_south_bottom_light.hide();
+
+				sys.wait(.5);
+
+				$arach_elev_south.move(UP, 5 * 64);
+
+				$arach_elev_south.startSoundShader("c1_pipeupaway", SND_CHANNEL_ANY);
+
+				sys.waitFor($arach_elev_south);
+
+				ArachDoors("south", DOWN);
+
+				arachElevatorSouthState = 1;
+				
+				$arach_elev_south_bottom_clicker1.setKey ("click_item", "1");
+				$arach_elev_south_bottom_clicker2.setKey ("click_item", "1");
+			}
+			else if(arachElevatorSouthState == 1)
+			{
+				arachElevatorSouthState = 2;				
+
+				$arach_elev_south_handle.move(DOWN, 12);
+				$arach_elev_south_handle.startSoundShader("e1m5_3_large_switch", SND_CHANNEL_ANY);
+
+				sys.waitFor($arach_elev_south_handle);
+
+				$arach_elev_south_top_flare.hide();
+				$arach_elev_south_bottom_flare.show();
+				$arach_elev_south_top_light.hide();
+				$arach_elev_south_bottom_light.show();
+
+				sys.wait(.5);
+
+				ArachDoors("south", UP);
+
+				$arach_elev_south.move(DOWN, 5 * 64);
+
+				$arach_elev_south.startSoundShader("c1_pipeupaway", SND_CHANNEL_ANY);				
+
+				sys.waitFor($arach_elev_south);
+
+				arachElevatorSouthState = 0;
+
+				$arach_elev_south_top_clicker.setKey ("click_item", "1");
+			}
+		}
+	}
+
+	void ClickCacheButton(entity button)
+	{
+		float direction = button.getFloatKey("direction");
+		button.move(direction, 1);
+		button.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+		sys.waitFor(button);
+
+		sys.wait(.125);
+		button.startSoundShader("e1m1_intercomclick2", SND_CHANNEL_ANY);
+		button.move(direction + 180, 1);
+	}
+
+	void CallArachElevatorNorthTop()
+	{
+		if(arachElevatorNorthState == 0)
+		{
+			ClickCacheButton(sys.getEntity("arach_elev_north_top_button"));
+			ToggleArachElevatorNorth();			
+		}
+	}
+
+	void CallArachElevatorNorthBottom()
+	{
+		if(arachElevatorNorthState == 1)
+		{
+			ClickCacheButton(sys.getEntity("arach_elev_north_bottom_button"));
+			ToggleArachElevatorNorth();
+		}
+	}
+
+	void CallArachElevatorSouthTop()
+	{
+		if(arachElevatorSouthState == 0)
+		{
+			ClickCacheButton(sys.getEntity("arach_elev_south_top_button"));
+			ToggleArachElevatorSouth();			
+		}
+	}
+
+	void CallArachElevatorSouthBottom()
+	{
+		if(arachElevatorSouthState == 1)
+		{
+			thread ClickCacheButton(sys.getEntity("arach_elev_south_bottom_button1"));
+			ClickCacheButton(sys.getEntity("arach_elev_south_bottom_button2"));
+			ToggleArachElevatorSouth();
+		}
+	}
+	
+	void maggot_eat()
+	{
+		$maggot_snack.moveTo($maggot_snack_d1);
+		sys.wait(1);
+		$maggot_snack.moveTo($maggot_snack_d2);
+		sys.wait(.7);
+		$maggot_snack.moveTo($maggot_snack_d3);
+		sys.waitFor($maggot_snack);
+		$env_ragdoll_suit1_2.remove();
+	}
+	
+	void floorhatch_open()	
+	{		
+		sys.trigger($func_portal_1);
+		$floor_panel.move(-2, 4);
+		sys.waitFor($floor_panel);
+		$floor_panel.move(0, 60);		
+	}
+	
+	void floorhatch_close()	
+	{	
+		$floor_panel.move(180, 60);
+		sys.waitFor($floor_panel);
+		$floor_panel.move(-1, 4);
+		sys.waitFor($floor_panel);
+		sys.trigger($func_portal_1);		
+	}
+		
+	void maintenance_ladder()
+	{
+		sys.trigger($ladder_spkr);
+		$swingladder.rotateOnce ( '-90 0 0' );
+	}
+	
+	void PickupSwitchReplacement()
+	{	
+		$player1.startSoundShader("e1m3_1_pickupbox", SND_CHANNEL_ANY);
+
+		$upperff_console_panel_replacement.hide();
+		$upperff_console_investigate.hide();
+		$upperff_console_replace.show();
+	}
+	
+	void PlaceSwitchReplacement()
+	{		
+		sys.trigger($switch_beepboop_relay);
+		
+		$upperff_console_handle.show();
+		$upperff_console_green.show();
+		$upperff_console_red_light.show();
+		$upperff_console_green_light.show();
+		$upperff_console_panel.show();
+		$upperff_console.show();
+	}
+	
+	void InvestigateForceFieldSwitch()
+	{
+		thread ShowNPCSubtitles("Sam", "Seems to be broken.", 2);
+		sys.wait($player1.startSoundShader("sound/vo/player/general/SeemsToBeBroken.ogg", SND_CHANNEL_VOICE2 ));
+		sys.wait(.25);
+		$upperff_console_investigate.setKey("click_item", "1");
+	}		
+	
+	void PlayerDeadEnd2Sub()
+	{
+		ShowNPCSubtitles("Sam", "So...There's no way.\nThere are some really thick bars, like we suspected.", 7);
+		ShowNPCSubtitles("Sam", "Even if we snuck in the equipment necessary to break them, we would face a huge drop.", 5);	
+		ShowNPCSubtitles("Sam", "Could we rappel down using some rope, the stationed guards would find us in no time.", 4.25);
+	}
+
+	void SewerDeadEndTalkPart1()
+	{
+		$SpeakerPling.fadeSound (SND_CHANNEL_ANY, -100, 10);
+		
+		sys.trigger($SpeakerDarkAtmosphere);
+
+		$sewer_deadend_cam1_mover.moveTo($sewer_deadend_cam1_target);
+		sys.trigger($sewer_deadend_cam1);
+
+		sys.wait(6);
+		
+		$sewer_deadend_cam2_mover.moveTo($sewer_deadend_cam2_target);
+		sys.trigger($sewer_deadend_cam2);
+		$sewer_deadend_cam1_mover.stopMoving();
+
+		sys.wait(6);
+
+		$sewer_deadend_cam3_mover.moveTo($sewer_deadend_cam3_target);
+		sys.trigger($sewer_deadend_cam3);
+		$sewer_deadend_cam2_mover.stopMoving();
+
+		sys.wait(6);
+
+		sys.trigger($SpeakerPling);
+
+		sys.trigger($sewer_deadend_cam3);
+		$sewer_deadend_cam3_mover.stopMoving();
+
+		sys.wait(1);
+
+		thread ShowNPCSubtitles("Sam", "I'm here.", 2);
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Player1.ogg");
+		Beat(.75);
+	
+		thread ShowNPCSubtitles("Lee", "Wait. Say something again. Louder.", 2);
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Lee1.ogg");
+		CharacterSays($player1, "sound/shav/e1m3_1/walkie_talkie_beep.ogg");
+		Beat(.75);
+
+		thread ShowNPCSubtitles("Sam", "I'm here! By the exit...", 2);
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Player1_2.ogg");
+
+		Beat(.5);
+
+		thread ShowNPCSubtitles("Lee", "I think I can hear you. Two sec...", 2);
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Lee1_1.ogg");
+		CharacterSays($player1, "sound/shav/e1m3_1/walkie_talkie_beep.ogg");		
+		
+		Beat(1.5);
+		
+		sys.trigger($snd_lee_sliding_vent);
+		
+		Beat(6);
+		
+		thread ShowNPCSubtitles("Lee", "The ventilation route is a complete bust. No way through. So...?", 8);
+		CharacterSays($speaker_lee_vent, "sound/vo/e1m4/sewer/deadend/Lee2.ogg");
+		Beat(.5);
+		
+		thread PlayerDeadEnd2Sub();
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Player2.ogg");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "There are guards?", 2);
+		CharacterSays($speaker_lee_vent, "sound/vo/e1m4/sewer/deadend/Lee3.ogg");
+		Beat(.6);
+		
+		thread ShowNPCSubtitles("Sam", "Yup. And a searchlight.\nThis is the mountains all over again.", 3.25);
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Player3.ogg");
+		Beat(.4);
+		
+		thread ShowNPCSubtitles("Lee", "Ugh...don't remind me.\nI'm sorry.", 4);
+		CharacterSays($speaker_lee_vent, "sound/vo/e1m4/sewer/deadend/Lee4.ogg");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "Me too.", 2);
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Player4.ogg");
+		Beat(1.75);
+		
+		thread ShowNPCSubtitles("Lee", "Sam...could you sit down for a minute? I have something to say.", 5.15);
+		CharacterSays($speaker_lee_vent, "sound/vo/e1m4/sewer/deadend/Lee5.ogg");
+		Beat(.25);
+	
+		$sewer_dead_end_talk_part_2_item.setKey("click_item", "1");
+	}
+	
+	float sitting = 0;
+	void UpdateCameraAngle2()
+	{			
+		while(sitting == 1)
+		{						
+			vector angles = $player1.getViewAngles();
+			angles_y += 90;
+			$sewerexit_sit_camera.setAngles(angles);
+			sys.wait(GAME_FRAMETIME);
+		}
+	}
+
+	void CityCamShow(float num)
+	{
+		entity camera = sys.getEntity("sewer_deadend_cam" + num);
+		entity mover = sys.getEntity("sewer_deadend_cam" + num + "_mover");
+		entity target = sys.getEntity("sewer_deadend_cam" + num + "_target");
+
+		mover.stopMoving();
+		mover.restorePosition();
+		camera.setOrigin('0 0 0');
+		mover.moveTo(target);
+		sys.trigger(camera);
+
+		sys.wait(10);
+	}
+
+	float cityCamLooping = 1;
+	void CityCamLoop()
+	{
+		while(cityCamLooping)
+		{
+			CityCamShow(2);
+
+			if(cityCamLooping == 0)
+			{
+				break;
+			}
+
+			CityCamShow(4);
+
+			if(cityCamLooping == 0)
+			{
+				break;
+			}
+
+			CityCamShow(1);
+
+			if(cityCamLooping == 0)
+			{
+				break;
+			}
+
+			CityCamShow(3);
+			
+			if(cityCamLooping == 0)
+			{
+				break;
+			}
+
+			CityCamShow(5);
+
+		}
+
+		$SpeakerFindNothing.fadeSound (SND_CHANNEL_ANY, -100, 10);
+
+		sys.fadeTo('0 0 0', 1, 6);
+
+		sys.wait(6);
+
+		sys.trigger($Seweruwu2_intermediate_cam);
+
+		sys.wait(4);
+
+		sys.trigger($Seweruwu2_intermediate_cam);
+
+		sys.trigger($SpeakerFindNothing);
+		
+		$commscreen.hide();
+		$commscreen_offline.show();
+		$calloscreen_offline.hide();
+		$calloscreen_online.show();
+
+		// AFTER SEWER FLASHBACK END
+		sys.trigger($SwitchReplacementPickupClicker);
+		$miles_conf_door.setKey("no_touch", 0);		
+
+		sys.trigger($PostSeweruwu2_teleport);
+		
+		sys.fadeTo('0 0 0', 0, 3);
+
+		sys.wait(4);
+		
+		$e1m1_fce_guard_1.remove();
+		$e1m1_fce_guard_2.remove();
+
+		thread ShowNPCSubtitles("Sam", "Miles? I'll find him for you.", 3.15);
+		CharacterSays($player1, "sound/vo/e1m4/MilesCall/Player14.ogg");
+		
+		SpeakerAmbience_fadein2();
+		
+		sys.trigger($monster_demon_arachnotron_3);
+		sys.trigger($trigger_once_266);
+
+		sys.wait(3.5);
+		sys.trigger($scene_target_setinfluence_1);
+		$miles_conf_door.lock(0);	
+		sys.trigger($monster_flying_lostsoul_71);
+			
+		sys.wait(1);	
+		
+		sys.quickSave("Night Walk - Checkpoint 8");
+		
+		sys.wait(1);		
+	}
+	
+	void skipCinematic()
+	{
+		sys.trigger($comm_beep);
+		
+		$commscreen.hide();
+		$commscreen_offline.show();
+		$calloscreen_offline.hide();
+		$calloscreen_online.show();
+
+		// AFTER SEWER FLASHBACK END
+		sys.trigger($SwitchReplacementPickupClicker);
+		
+		thread ShowNPCSubtitles("Sam", "Miles? I'll find him for you.", 3);
+		CharacterSays($player1, "sound/vo/e1m4/MilesCall/Player14.ogg");
+		
+		sys.trigger($monster_demon_arachnotron_3);
+		sys.trigger($trigger_once_266);
+
+		sys.wait(3.5);
+		sys.trigger($monster_flying_lostsoul_71);
+			
+		sys.wait(1);	
+		
+		sys.quickSave("Night Walk - Checkpoint 8");
+		
+		sys.wait(1);	
+	}
+	
+	void LeeDeadend6Sub()
+	{
+		ShowNPCSubtitles("Lee", "You asked me why we're running...there's something I've been meaning to tell you.\nBut I've never found a way to say it.", 8);
+		ShowNPCSubtitles("Lee", "Do you remember back at the hospital? In the last few weeks?", 4.15);
+	}
+	
+	void LeeDeadend7Sub()
+	{
+		ShowNPCSubtitles("Lee", "Do you remember what kind of state mom was in?\nAll she could do was lie in bed.", 6.15);
+		ShowNPCSubtitles("Lee", "She couldn't talk, she couldn't even move her arms.\nThe staff had to turn her on her side.", 7);
+		ShowNPCSubtitles("Lee", "She was fed through a tube. Whenever she wasn't numbed by morphine she was in pain.\nShe was trapped in her mind.", 10.15);
+	}
+	
+	void LeeDeadend8Sub()
+	{
+		ShowNPCSubtitles("Lee", "Well, She wasn't living any kind of life worth living.\nShe literally couldn't do anything.", 7);
+		ShowNPCSubtitles("Lee", "Dad was gone most of the time. My brother, the fuck, didn't visit her.\nAll she did was lie in bed, looking at me.", 10);
+		ShowNPCSubtitles("Lee", "And there I was, looking back at her, hoping it was a smile behind those eyes.\nHoping she wasn't in pain.", 10);
+		ShowNPCSubtitles("Lee", "Hoping she didn't think of me as a complete failure.\nThat her family hadn't abandoned her in her worst hour.", 7.15);
+	}
+	
+	void LeeDeadend9Sub()
+	{
+		ShowNPCSubtitles("Lee", "So...but...every day the staff would come in.\nI saw exactly what they gave her for her pain and how they did it.", 9);
+		ShowNPCSubtitles("Lee", "60 milligrams of morphine, 4 times a day. Sometimes I sat there.\nWishing they would give her more and end it all right there.", 9.25);
+	}
+	
+	void LeeDeadend10Sub()
+	{
+		ShowNPCSubtitles("Lee", "But they didn't. Every time, 60 milligrams. Without fault.", 4.25);
+		
+		sys.wait(1);
+		
+		ShowNPCSubtitles("Lee", "So...one day I followed one of the nurses as she stashed the meds back into a room.", 6);
+		ShowNPCSubtitles("Lee", "And I thought nothing of it at first.\nBut...as time went on.", 4.2);
+		ShowNPCSubtitles("Lee", "Days of me looking into her eyes, trying to read them I felt a sudden connection to her.", 5.1);
+		ShowNPCSubtitles("Lee", "As if I felt what she felt...so I made up my mind.", 4.5);
+		
+		sys.wait(2);
+		
+		ShowNPCSubtitles("Lee", "The next day after they had given her her injections, I snuck into the storage place and grabbed a little extra.", 7.75);
+		ShowNPCSubtitles("Lee", "I went back and gave mom just a little more, looking into her eyes as I filled her body with painkiller.", 8.15);
+		ShowNPCSubtitles("Lee", "With poison. I couldn't read her.", 3.5);
+	}
+	
+	void LeeDeadend11Sub()
+	{
+		ShowNPCSubtitles("Lee", "But it made no difference. So the next day I gave her a little more.\nThen a little more. And a little more. Until.", 10);
+		ShowNPCSubtitles("Lee", "The day that it happened.\nI was looking into her eyes, stroking her hair.", 5);
+		ShowNPCSubtitles("Lee", "After giving her the injection, I kissed her on the forehead and said goodbye.\nFor the last time.", 7.15);
+	}
+	
+	void LeeDeadend12Sub()
+	{
+		ShowNPCSubtitles("Lee", "And I watched as life slowly left her eyes.\nI saw her glide away into nothing before I realized what I had done.", 9);
+		ShowNPCSubtitles("Lee", "I took the life of the woman who gave me mine.", 3);
+		ShowNPCSubtitles("Lee", "I...killed her. I killed my own mom...", 6);
+	}
+
+	void SewerDeadEndTalkPart2()
+	{
+		sys.trigger($SpeakerFindNothing);
+
+		sitting = 1;
+		thread UpdateCameraAngle2();			
+	
+		sys.fadeTo('1 1 1', 1, .0625);
+		sys.wait(0.0625);			
+		
+		sys.trigger($sewerexit_sit_teleport);
+		sys.trigger($sewerexit_sit_camera);		
+
+		sys.fadeTo('1 1 1', 0, .0625);
+
+		thread LeeDeadend6Sub();
+		CharacterSays($speaker_lee_vent, "sound/vo/e1m4/sewer/deadend/Lee6.ogg");
+		Beat(.75);
+		
+		thread ShowNPCSubtitles("Sam", "Yeah?", 2);
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Player5.ogg");
+		Beat(.6);
+		
+		thread LeeDeadend7Sub();
+		CharacterSays($speaker_lee_vent, "sound/vo/e1m4/sewer/deadend/Lee7.ogg");
+		Beat(.4);
+		
+		thread ShowNPCSubtitles("Sam", "I remember.", 2);
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Player6.ogg");
+		Beat(.75);
+		
+		thread CityCamLoop();
+
+		thread LeeDeadend8Sub();
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Lee8.ogg");
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "I'm sorry, Lee...", 2);
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Player7.ogg");
+		Beat(1.5); 
+		
+		thread LeeDeadend9Sub();
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Lee9.ogg");
+		Beat(.75);
+
+		thread ShowNPCSubtitles("Sam", "Lee...", 2);
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Player8.ogg");
+		Beat(.5);
+		
+		thread LeeDeadend10Sub();
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Lee10.ogg");
+		Beat(.75);
+		
+		thread LeeDeadend11Sub();
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Lee11.ogg");
+		Beat(1.5);
+		
+		thread LeeDeadend12Sub();
+		CharacterSays($player1, "sound/vo/e1m4/sewer/deadend/Lee12.ogg");
+		Beat(.5);
+
+		cityCamLooping = 0;		
+	}
+
+	void main3()
+	{
+		//CityCamLoop();		
+	}
+	
+	void main2()
+	{
+		//rotate start door slightly
+		$sewer_scene_gratedoor_1_mover.rotateOnce('0 -10 0');
+		$sewer_scene_gratedoor_1_mover.startSoundShader("e1m4_door_creek_1", SND_CHANNEL_ANY);
+		
+		sys.trigger($sewer_target_setinfluence_1);
+		
+		sys.wait(5);
+		
+		$player1.startSoundShader("sound/vo/e1m4/sewer/Player1.ogg", SND_CHANNEL_ANY);		
+	}
+	
+	void EnableArachLifts()
+	{	
+		$arach_elev_south_clicker_nope.hide();
+		$arach_elev_north_clicker_nope.hide();
+	
+		$arach_lifts_clicker.setKey("click_item", "0");
+		sys.trigger($arach_lift_whirr_spkr);
+		$arach_lifts_handle.rotateDownTo(X_AXIS, 0);
+		
+		sys.waitFor($arach_lifts_handle);
+		
+		$arach_elev_south_top_clicker.show();
+		$arach_elev_south_clicker.show();
+		$arach_elev_north_top_clicker.show();
+		$arach_elev_north_clicker.show();
+		$arach_elev_south_bottom_light.setColor(0, 0.5, 0);
+		$arach_elev_south_top_light.setColor(0, 0.5, 0);
+		$arach_elev_north_bottom_light.setColor(0, 0.5, 0);
+		$arach_elev_north_top_light.setColor(0, 0.5, 0);
+		$arach_elev_south_top_flare.setColor(0, 0.501961, 0);
+		$arach_elev_south_bottom_flare.setColor(0, 0.501961, 0);
+		$arach_elev_north_top_flare.setColor(0, 0.501961, 0);
+		$arach_elev_north_bottom_flare.setColor(0, 0.501961, 0);
+		$arach_elev_south_top_tex.setColor(0, 0.501961, 0);
+		$arach_elev_south_bottom_tex.setColor(0, 0.501961, 0);
+		$arach_elev_north_top_tex.setColor(0, 0.501961, 0);
+		$arach_elev_north_bottom_tex.setColor(0, 0.501961, 0);
+	}
+	
+	void ArachLifts_Denied()
+	{
+		$arach_elev_north_clicker_nope.setKey("click_item", "0");
+		$arach_elev_south_clicker_nope.setKey("click_item", "0");
+		sys.trigger($arach_lifts_disabled_spkr);
+		sys.wait(1);
+		sys.trigger($elevator_locked_spkr);
+		sys.wait(3);
+		$arach_elev_north_clicker_nope.setKey("click_item", "1");
+		$arach_elev_south_clicker_nope.setKey("click_item", "1");
+	}
+	
+	void Imp_Lift_Malfunction()
+	{
+		sys.trigger($target_setkeyval_1);
+		sys.trigger($target_setinfluence_8);
+		sys.trigger($poweroff_relay);
+		sys.trigger($emerpower_relay);
+		sys.trigger($sp_pwr_down);
+		$implift_gui_bot.setGuiParm( "gui_parm5", 4 );
+		$implift_gui_top.setGuiParm( "gui_parm5", 4 );
+		$implift_gui_bot_frm.setShaderParm( 7, 0 );
+		$implift_gui_top_frm.setShaderParm( 7, 0 );
+		
+		sys.wait(.7);
+		
+		sys.trigger($elegui_fadeout_spkr);
+		
+		sys.wait(2.3);
+		
+		$implift_gui_bot.hide();
+		$implift_gui_top.hide();
+		$implift_gui_bot_frm.setSkin( "skins/doorlight_shaderparmoff" );
+		$implift_gui_top_frm.setSkin( "skins/doorlight_shaderparmoff" );
+		
+		sys.trigger($impbreath_relay);
+		
+		sys.trigger($impattack_relay);	
+	}
+	
+	void Lift_Malfunction_Fix()
+	{
+		sys.trigger($emerpower_relay);
+		sys.wait(3.25);
+		sys.trigger($sp_pwr_up);
+		sys.trigger($target_setinfluence_8);
+		sys.wait(1.75);
+		sys.trigger($elegui_blink_spkr);
+		sys.trigger($poweroff_relay);
+		$implift_gui_bot_fix.show();
+		$implift_gui_top.show();
+		$implift_gui_bot_frm.setSkin( "skins/doorlight_shaderparmon" );
+		$implift_gui_top_frm.setSkin( "skins/doorlight_shaderparmon" );
+		sys.wait(.25);
+		$implift_gui_bot_fix.setGuiParm( "gui_parm5", 0 );
+		$implift_gui_top.setGuiParm( "gui_parm5", 0 );
+		$implift_gui_bot_frm.setShaderParm( 7, 1 );
+		$implift_gui_top_frm.setShaderParm( 7, 1 );
+		sys.trigger($target_setkeyval_2);	
+	}
+	
+	//===========================================
+	// START CHECKPOINTS
+	//===========================================
+	
+	void firstlift_checkpoint()
+	{
+		sys.quickSave("Night Walk - Checkpoint 6");
+	}
+	
+	void cargoliftup_checkpoint()
+	{
+		sys.quickSave("Night Walk - Checkpoint 7");
+	}
+	
+	void preimpcrawlers_checkpoint()
+	{
+		sys.quickSave("Night Walk - Checkpoint 9");
+	}
+	
+	void prearachfight_checkpoint()
+	{
+		sys.quickSave("Night Walk - Checkpoint 10");
+	}
+	
+	void ceilingdrop_checkpoint()
+	{
+		sys.quickSave("Night Walk - Checkpoint 11");
+	}
+	
+	//===========================================
+	// END CHECKPOINTS
+	//===========================================
+	
+	//===========================================
+	// RANDOM MONSTER SPAWNS
+	//===========================================		
+	
+	
+	void select_impcrawlconfig()
+	{
+		float impcrawlselect;
+
+		while (1)
+		{
+			impcrawlselect = sys.random(15);
+		
+				if (impcrawlselect <= 5){
+					sys.trigger ($impcrawl_config1);
+					//sys.println("impcrawl_config1 selected");
+					sys.wait(.5);
+				} else if (impcrawlselect >= 11){
+					sys.trigger ($impcrawl_config2);
+					//sys.println("impcrawl_config2 selected");
+					sys.wait(.5);
+				} 
+				  else {
+					sys.trigger ($impcrawl_config3);
+					//sys.println("impcrawl_config3 selected");
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_impcrawl_selection()
+	{
+		sys.killthread ("map_e1m4_1::select_impcrawlconfig");
+	}	
+	
+	void select_monsterconfig(float encounterNum)
+	{
+		float monsterselect;
+		entity monster_config_a = sys.getEntity("monster_config_a" + encounterNum);
+		entity monster_config_b = sys.getEntity("monster_config_b" + encounterNum);
+
+
+		while (1)
+		{
+			monsterselect = sys.random(15);
+		
+				if (monsterselect <= 8){
+					sys.trigger (monster_config_a);
+					//sys.println("monster_configa" + encounterNum + "selected");
+					sys.wait(.5);
+				} else {
+					sys.trigger (monster_config_b);
+					//sys.println("monster_configb" + encounterNum + "selected");
+					sys.wait(.5);
+				} 
+		}
+	}
+	
+	void select_monsterconfig1()
+	{
+		select_monsterconfig(1);
+	}		
+
+	void select_monsterconfig2()
+	{
+		select_monsterconfig(2);
+	}				
+	
+	void kill_monster_selection1()
+	{sys.killthread ("map_e1m4_1::select_monsterconfig1");}
+	
+	void kill_monster_selection2()
+	{sys.killthread ("map_e1m4_1::select_monsterconfig2");}
+	
+	//===========================================
+	// END RANDOM MONSTER SPAWNS
+	//===========================================
+	
+	void main()
+	{
+		//PlayCallowayMessage();
+
+		//SetCargoCoordinates();
+	
+		//sys.wait(1);	
+		
+		CargoLoop();
+		
+		thread select_impcrawlconfig();
+		thread select_monsterconfig1();
+		thread select_monsterconfig2();
+		
+		crane_1_pos = $crane_1.getWorldOrigin();
+		crane_2_pos = $crane_2.getWorldOrigin();
+		thread crane1loop();
+		thread crane2loop();
+
+		OpenStartCrawlspace();
+		sys.trigger($trigger_count_4);
+		sys.trigger($func_static_77865);
+		sys.trigger($func_static_72248);
+		ArachDoors("south", DOWN);
+		ArachDoors("north", DOWN);
+		$arach_elev_south_rotator.rotateOnce('0 -45 0');
+		$arach_elev_north_rotator.rotateOnce('0 45 0');
+		
+		$upperff_console_panel_replacement_mover.rotateOnce('0 -35 0');
+		
+		$swingladder.rotateOnce( '90 0 0' );		
+		
+		$arach_elev_south_top_clicker.hide();
+		$arach_elev_south_clicker.hide();
+		$arach_elev_north_top_clicker.hide();
+		$arach_elev_north_clicker.hide();
+		$arach_elev_south_bottom_light.setColor(0.5, 0, 0);
+		$arach_elev_south_top_light.setColor(0.5, 0, 0);
+		$arach_elev_north_bottom_light.setColor(0.5, 0, 0);
+		$arach_elev_north_top_light.setColor(0.5, 0, 0);
+		$arach_elev_south_top_flare.setColor(0.501961, 0, 0);
+		$arach_elev_south_bottom_flare.setColor(0.501961, 0, 0);
+		$arach_elev_north_top_flare.setColor(0.501961, 0, 0);
+		$arach_elev_north_bottom_flare.setColor(0.501961, 0, 0);
+		$arach_elev_south_top_tex.setColor(0.501961, 0, 0);
+		$arach_elev_south_bottom_tex.setColor(0.501961, 0, 0);
+		$arach_elev_north_top_tex.setColor(0.501961, 0, 0);
+		$arach_elev_north_bottom_tex.setColor(0.501961, 0, 0);
+		
+		$arach_lifts_handle.rotateUpTo(X_AXIS, 90);
+	}		
+
+	void fade_ferris(entity e, vector a, vector b, vector c)
+	{
+		crossFadeEnt (e, a, b, 4);
+		crossFadeEnt (e, b, c, 4);
+		crossFadeEnt (e, c, a, 4);
+	}
+
+	void fade_ferris_spoke(vector a, vector b, vector c)
+	{
+		float i = 0;
+		while(true)
+		{
+			vector from = a;
+			vector to = b;
+			vector col = a ;
+
+			while(i < 15)
+			{
+				entity e = sys.getEntity("ferris_wheel_spoke_1_light_" + (i + 1));
+				
+				e.setColor(1, 0, 1);
+			
+
+				i++;
+			}
+
+			sys.wait(4.0 / 15.0);
+		}
+	}
+
+	void ferris()
+	{
+		vector pink = '1 0 1';
+		vector cyan = '0 1 1';
+		vector yellow = '1 1 0';
+
+		float i = 0;
+		fade_ferris_spoke(pink,cyan,yellow);
+		
+	}
+}

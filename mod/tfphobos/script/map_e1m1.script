@@ -1,0 +1,1160 @@
+#include "script/map_e1m1_common.script"
+#include "script/map_e1m1_scanner.script"
+
+namespace map_e1m1
+{
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m1(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+	
+	void IntercomWeatherForecastSub()
+	{
+		ShowNPCSubtitles("AP", "Mars City weather forecast for tomorrow. November 16, 2145.\nMostly calm and clear. Temperatures around -120 celsius.", 11);
+	}
+	
+	void IntercomInvestigationSub()
+	{
+		ShowNPCSubtitles("AP", "An official Federal investigation is underway.\nFor everyone's safety, please stay calm and kindly cooperate.", 7.75);
+		ShowNPCSubtitles("AP", "Any questions should be taken with your nearest administrator or Federal Agent.", 4.8);
+		ShowNPCSubtitles("AP", "The UAC personally thanks everyone for their patience.", 3.9);
+	}
+	
+	void IntercomStressedSub()
+	{
+		ShowNPCSubtitles("AP", "Anyone feeling stressed or not their normal self, is encouraged by the UAC", 5.7);
+		ShowNPCSubtitles("AP", "To go to their nearest administrator for immediate assistance.", 3.8);
+	}
+	
+	void WhatHappenedhereSub()
+	{
+		ShowNPCSubtitles("...", "What happened here?", 2);
+	}
+	
+	void AngryWolfGuy()
+	{
+		ShowNPCSubtitles("Guy", "Hey asshole! Get out of here.", 3);
+	}
+	
+	void PizzaIncident()
+	{
+		$pizzablow.startSoundShader("sound/shav/e1m1/pizzasplat.ogg", SND_CHANNEL_ANY);
+		sys.trigger($pizzalight);
+		$microwave_rotator.rotateOnce('0 360 0');
+		sys.wait(5.8);
+		sys.trigger($pizzaburn);
+		sys.trigger($pizzablow);
+		sys.trigger($pizzasmoke);
+		sys.trigger($pizzalight);
+		sys.trigger($pizzafire);
+
+		sys.wait(1);
+		thread ShowNPCSubtitles("...", "Woops.", 2);
+		sys.trigger($pizzaoops);
+	}
+
+	void RailPainting()
+	{
+		$railpainting.startSoundShader("sound/shav/intro/thorn_06.ogg", SND_CHANNEL_ANY);
+	}
+
+	void ChangeMaxBoard()
+	{
+		$player1.startSoundShader("sound/shav/e1m1/whiteboard_erase.ogg", SND_CHANNEL_ANY);
+		sys.fadeTo('0 0 0', 1, 1);
+		sys.wait(1);
+		
+		sys.trigger($whiteboard_max_2);		
+		sys.trigger($whiteboard_max_1);		
+
+		sys.wait(1.7);
+
+		$player1.startSoundShader("sound/shav/e1m1/whiteboard_draw.ogg", SND_CHANNEL_ANY);
+		
+		sys.wait(.7);
+		
+		sys.trigger($whiteboard_max_3);
+		sys.trigger($whiteboard_max_2);
+
+		sys.wait(.5);
+
+		sys.fadeTo('0 0 0', 0, 1);
+
+		$player1.showConsequences();
+		sys.trigger($speaker_consequences);
+		
+		sys.wait(3);
+		sys.trigger($func_static_76550);
+		sys.trigger($func_door_1935);
+	}
+
+	void Doctor4Sub()
+	{
+		ShowNPCSubtitles("Dr. Nielsen", "I'm Dr. Nielsen. I'm here with special agent Samantha Miles.", 4.9);
+		ShowNPCSubtitles("Dr. Nielsen", "We'll need to examine the extend of your injuries.", 3.1);
+		ShowNPCSubtitles("Dr. Nielsen", "Please. Lay down on the table and we'll get started in just a few minutes.", 3.75);
+	}
+
+	void CallDoctor()
+	{
+		$doctordoor.lock(2);
+		sys.trigger($target_setkeyval_7);
+		sys.trigger($target_setshaderparm_2);
+
+		$intercom_button.move(0, 1);
+		$intercom_button.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+		sys.waitFor($intercom_button);
+		sys.wait(.125);
+		$intercom_button.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+		$intercom_button.move(180, 1);
+
+		sys.wait(0.7);
+
+		PhobosShowSubtitle_e1m1("...", "Hello?");
+		CharacterSays(playerC, "sound/vo/e1m1/doctorsappointment/Player1.ogg");
+		
+		Beat(0.5);
+		
+		PhobosShowSubtitle_e1m1("Dr. Nielsen", "Ehm. Hello?\nDid you take a wrong turn?");
+		CharacterSays(doctorC, "sound/vo/e1m1/doctorsappointment/Doctor1.ogg");
+		
+		Beat(0.5);
+		
+		PhobosShowSubtitle_e1m1("...", "I was told to go here. I hit my head. Apparently.\nI'm not sure how it happened.");
+		CharacterSays(playerC, "sound/vo/e1m1/doctorsappointment/Player2.ogg");
+		
+		Beat(0.5);
+		
+		PhobosShowSubtitle_e1m1("Dr. Nielsen", "State your name please.");
+		CharacterSays(doctorC, "sound/vo/e1m1/doctorsappointment/Doctor1_2.ogg");
+		
+		Beat(0.5);
+		
+		PhobosShowSubtitle_e1m1("...", "Ehm...I... I don't know.");
+		CharacterSays(doctorC, "sound/vo/e1m1/doctorsappointment/Player2_1.ogg");
+		
+		Beat(0.5);
+		
+		PhobosShowSubtitle_e1m1("Dr. Nielsen", "I see. Can you tell me where you are?");
+		CharacterSays(doctorC, "sound/vo/e1m1/doctorsappointment/Doctor2.ogg");
+		
+		PhobosShowSubtitle_e1m1("...", "I'm In your office? On Mars? I think...\nWhy do you...");
+		CharacterSaysInterupt(playerC, "sound/vo/e1m1/doctorsappointment/Player3.ogg", 0.5);
+		
+		PhobosShowSubtitle_e1m1("Dr. Nielsen", "Indulge me. It's standard procedure.\nCan you tell me who you are?");
+		CharacterSays(doctorC, "sound/vo/e1m1/doctorsappointment/Doctor3.ogg");
+		
+		Beat(1.3);
+		
+		PhobosShowSubtitle_e1m1("...", "I can't. I woke up in this place. With a huge headache.");
+		CharacterSays(playerC, "sound/vo/e1m1/doctorsappointment/Player4.ogg");		
+		
+		Beat(0.6);
+		
+		thread Doctor4Sub();
+		thread CharacterSays(doctorC, "sound/vo/e1m1/doctorsappointment/Doctor4.ogg");
+		
+		Beat(5.5);
+
+		sys.trigger($CallDoctorBlinkerRed);
+		sys.trigger($CallDoctorBlinkerGreen);
+		sys.trigger($target_entity_setcolor_13);
+
+		thread PrepareScannerBed();
+		Beat(2);
+		
+		Beat(4.5);
+		
+		PhobosShowSubtitle_e1m1("...", "Samantha Miles. Sounds familiar.");
+		CharacterSays(playerC, "sound/vo/e1m1/doctorsappointment/Player5.ogg");
+		sys.hideSubtitles();
+	}
+
+	void PowerUpLights()
+	{
+		sys.trigger($startup_alarm_speaker);
+		sys.trigger($start_alarm_lights);
+
+		sys.trigger($start_hall_light_1);
+		sys.trigger($start_hall_light_2);
+		sys.trigger($start_hall_light_3);
+		sys.trigger($start_hall_light_3_flare);
+		sys.trigger($start_hall_light_3_color);
+		sys.trigger($start_hall_light_speaker_3);	
+
+		sys.wait(.75);
+
+		float i = 1;
+		while(i < 9)
+		{
+			entity light = sys.getEntity("start_room_light_" + i);			
+			entity flare = sys.getEntity("start_room_light_flare_" + i);
+			entity speaker = sys.getEntity("start_room_light_speaker_" + i);									
+
+			sys.trigger(light);								
+            sys.trigger($start_room_light_color);
+			sys.trigger(speaker);
+
+			if(i < 6)
+			{
+				thread crossFadeEnt (flare, '0 0 0', '0.3 0.6 1', .5);
+				entity fx = sys.getEntity("start_room_light_fx_" + i);
+				sys.trigger(fx);				
+				sys.wait(.15);
+			}
+			else
+			{
+				thread crossFadeEnt (flare, '0 0 0', '0.48 0.27 0.05', .5);	
+				sys.wait(.25);
+			}
+			i++;
+		}		
+
+		sys.trigger($start_somadoor_relay);
+
+		sys.wait(2);		
+	}
+
+	float power1_state = 0;
+
+	void PowerUpStart()
+	{		
+		power1_state = 1;
+
+		float station = 1;
+		entity handle = sys.getEntity("power_station_handle_" + station);
+		entity gui = sys.getEntity("power_station_gui_" + station);
+		entity redPanelOff = sys.getEntity("power_station_redlight_off_" + station);
+		entity redPanelOn = sys.getEntity("power_station_redlight_on_" + station);
+		entity redLight = sys.getEntity("power_station_redlight_light_" + station);
+		entity greenPanelOff = sys.getEntity("power_station_greenlight_off_" + station);
+		entity greenPanelOn = sys.getEntity("power_station_greenlight_on_" + station);
+		entity greenLight = sys.getEntity("power_station_greenlight_light_" + station);
+		entity speaker_start = sys.getEntity("power_station_speaker_start_" + station);
+		entity speaker_loop = sys.getEntity("power_station_speaker_loop_" + station);
+		entity beep_speaker = sys.getEntity("power_station_beepspeaker_" + station);
+		
+		vector rv = handle.getVectorKey("rotaxis");
+		
+		handle.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+		handle.rotateOnce(rv * 90);
+		sys.waitFor(handle);
+		
+		thread ShowNPCSubtitles("...", "Let there be light.\nI hope.", 3);
+		CharacterSays(playerC, "sound/vo/player/general/LetThereBeLight.ogg");
+		
+		gui.hide();
+		
+		redPanelOff.show();
+		redPanelOn.hide();
+		redLight.hide();
+
+		greenPanelOff.hide();
+		greenPanelOn.show();
+		greenLight.show();
+
+		sys.trigger(speaker_start);
+		sys.trigger(beep_speaker);
+
+		sys.wait(2.75);
+				
+		sys.trigger(speaker_loop);
+
+		sys.wait(.5);
+		PowerUpLights();
+		
+		sys.trigger($trigger_open_box_relay);
+	}
+
+	void EnqueueUseButtonTip()
+	{
+		sys.wait(10);
+		if(power1_state == 0)
+		{
+			sys.trigger($tip_usebutton);
+		}
+	}
+
+	void OpenStartSomaDoor()
+	{
+		float number = 3;
+		entity door = sys.getEntity("somadoor_round_" + number);
+		entity portal = sys.getEntity("somadoor_portal_" + number);
+		
+		float state = door.getFloatKey("state");
+		float openDir = door.getFloatKey("openDir");
+		float closeDir = door.getFloatKey("closeDir");
+		vector rv = door.getVectorKey("rotateVector");
+
+		if( state == 0)
+		{
+			door.setKey("state", 2);
+
+			sys.trigger(portal);
+			
+			door.accelTime(1);
+			door.decelTime(1);
+			door.time(2.5);
+
+			door.startSoundShader ("al4_openslats_2s", SND_CHANNEL_VOICE);
+			door.rotateOnce(rv * 135);
+			sys.waitFor(door);
+			
+			door.accelTime(1);
+			door.decelTime(.5);
+			door.time(3.5);
+
+			door.startSoundShader ("sound/doors/large/hugedoor_01_open.wav", SND_CHANNEL_VOICE);
+			
+			door.move(openDir, 128);
+			door.rotateOnce(rv * 90);
+		
+			sys.waitFor(door);					
+
+			door.setKey("state", 1);
+			/*
+			sys.wait(5);
+
+			door.setKey("state", 2);
+			
+			door.startSoundShader ("sound/doors/large/hugedoor_01_close.wav", SND_CHANNEL_VOICE);
+			door.move(closeDir, 128);
+			door.rotateOnce(rv * -90);
+
+			sys.waitFor(door);
+
+			door.accelTime(1);
+			door.decelTime(1);
+			door.time(2.5);
+
+			door.startSoundShader ("al4_openslats_2s", SND_CHANNEL_VOICE);
+			door.rotateOnce(rv * -135);
+			sys.waitFor(door);
+
+			sys.trigger(portal);
+			
+			door.setKey("state", 0);
+			*/
+		}
+	}
+
+	void BoxPostCam()
+	{
+		sys.wait(.1);
+		$box_postscene_cameraMover.rotateOnce('0 -2 0');
+		$box_postscene_cameraMover.rotateOnce('0 0 -3');		
+		sys.wait(.5);
+		$box_postscene_cameraMover.rotateOnce('0 0 3');
+		$box_postscene_cameraMover.rotateOnce('0 2 0');		
+		sys.wait(.3);
+		$box_postscene_cameraMover.rotateOnce('0 -2 0');
+		$box_postscene_cameraMover.rotateOnce('0 0 -3');		
+		sys.wait(.1);
+		$box_postscene_cameraMover.rotateOnce('0 0 3');
+		$box_postscene_cameraMover.rotateOnce('0 2 0');		
+		sys.wait(.1);
+		$box_postscene_cameraMover.rotateOnce('0 -2 0');
+		$box_postscene_cameraMover.rotateOnce('0 0 -3');		
+		sys.wait(.9);
+		$box_postscene_cameraMover.rotateOnce('0 0 3');
+		$box_postscene_cameraMover.rotateOnce('0 2 0');		
+		sys.wait(.1);
+		$box_postscene_cameraMover.rotateOnce('0 -2 0');
+		$box_postscene_cameraMover.rotateOnce('0 0 -3');		
+		sys.wait(.8);
+		$box_postscene_cameraMover.rotateOnce('0 0 3');
+		$box_postscene_cameraMover.rotateOnce('0 2 0');
+		sys.wait(3);
+		sys.trigger($speaker_1037);
+	}
+
+	void BoxPostBlur()
+	{
+		float xm = 0.0016;
+		float ym = 0.00213333;
+
+		float xs = xm / 10;
+		float ys = ym / 10;
+
+		float xv = xm;
+		float yv = ym;
+
+		float c = 0;
+
+		while(c < 10)
+		{
+			xv += xs;
+			yv += ys;
+
+			$box_postscene_blur.setShaderParm(3, xv);
+			$box_postscene_blur.setShaderParm(4, yv);
+
+			sys.wait(.1);
+			c++;
+		}
+
+		c = 0;		
+
+		while(c < 10)
+		{
+			xv -= xs;
+			yv -= ys;
+
+			$box_postscene_blur.setShaderParm(3, xv);
+			$box_postscene_blur.setShaderParm(4, yv);
+
+			sys.wait(.1);
+			c++;
+		}
+
+		c = 0;
+
+		while(c < 10)
+		{
+			xv += xs;
+			yv += ys;
+
+			$box_postscene_blur.setShaderParm(3, xv);
+			$box_postscene_blur.setShaderParm(4, yv);
+
+			sys.wait(.1);
+			c++;
+		}
+
+		c = 0;
+		
+		while(c < 10)
+		{
+			xv -= xs;
+			yv -= ys;
+
+			$box_postscene_blur.setShaderParm(3, xv);
+			$box_postscene_blur.setShaderParm(4, yv);
+
+			sys.wait(.1);
+			c++;
+		}
+
+		c = 0;
+
+		while(c < 10)
+		{
+			xv += xs;
+			yv += ys;
+
+			$box_postscene_blur.setShaderParm(3, xv);
+			$box_postscene_blur.setShaderParm(4, yv);
+
+			sys.wait(.1);
+			c++;
+		}
+
+		c = 0;
+		
+		while(c < 10)
+		{
+			xv -= xs;
+			yv -= ys;
+
+			$box_postscene_blur.setShaderParm(3, xv);
+			$box_postscene_blur.setShaderParm(4, yv);
+
+			sys.wait(.1);
+			c++;
+		}
+
+		c = 0;
+
+		while(c < 10)
+		{
+			xv += xs;
+			yv += ys;
+
+			$box_postscene_blur.setShaderParm(3, xv);
+			$box_postscene_blur.setShaderParm(4, yv);
+
+			sys.wait(.1);
+			c++;
+		}
+
+		c = 0;
+
+		while(c < 20)
+		{
+			xv -= xs;
+			yv -= ys;
+
+			$box_postscene_blur.setShaderParm(3, xv);
+			$box_postscene_blur.setShaderParm(4, yv);
+
+			sys.wait(.1);
+			c++;
+
+
+		}
+
+		sys.fadeTo('0 0 0', .95, .75);
+
+		sys.wait(.1);
+
+		$box_postscene_blur.hide();
+
+		sys.wait(.1);
+
+		sys.fadeTo('0 0 0', 0, .75);
+	}
+
+	void EndBoxTrip()
+	{
+		if (map_intro::introSkipped == 1)
+		{
+			return;
+		}
+
+		$box_postscene_blur.show();
+
+		sys.trigger($box_postscene_fade1);
+
+		sys.trigger($target_setinfluence_5);
+
+		sys.wait(1);		
+
+		sys.wait(3);
+
+		thread BoxPostBlur();
+
+		sys.wait(3);
+
+		thread ShowNPCSubtitles("...", "Uh! My head.", 1.5);
+		sys.trigger($speaker_1037);
+
+		sys.wait(2);
+
+		sys.trigger($box_postscene_fade2);		
+		
+		sys.wait(4);		
+
+		sys.wait(4);		
+
+		sys.waitFor($box_postscene_cameraMover);
+
+		$box_postscene_cameraMover.moveTo($box_postscene_camdest);
+		$box_postscene_cameraMover.rotateOnce('90 0 0');		
+
+		sys.waitFor($box_postscene_cameraMover);
+		
+		sys.wait(.1);
+
+		sys.trigger($info_player_teleport_4);
+		sys.trigger($box_postscene_camera);
+
+		map_intro::activeCam = 0;
+		map_intro::introActive = 0;
+	}
+
+	void showTextCam(string text, entity e)
+	{		
+		e.setGuiParm("gui_parm1", text);
+		e.setGuiParm("gui_parm2", 0);
+		sys.trigger(e);
+
+		sys.wait(2);
+
+		sys.wait(4);
+
+		e.setGuiParm("gui_parm2", 1);
+		sys.trigger(e);
+
+		sys.wait(1);		
+	}
+
+	void showText(string text)
+	{
+		sys.wait(1);
+
+		float num = 1;
+		
+			entity e = sys.getEntity("cameraGui" + num);
+			thread showTextCam(text, e);
+			num++;	
+
+		sys.wait(7);
+	}
+
+	void SkipIntroSequence()
+	{
+		if (map_intro::canSkipIntro == 0 || map_intro::introSkipped == 1 || map_intro::introActive == 0)
+		{
+			return;
+		}
+		map_intro::introSkipped = 1;
+		map_intro::introActive = 0;
+		map_intro::canSkipIntro = 0;
+
+		// Terminate all possible intro threads
+		sys.killthread("map_e1m1::RunIntroGogo");
+		sys.killthread("map_e1m1::EnableSkipTimer");
+		sys.killthread("map_intro::Gogo");
+		sys.killthread("map_intro::turnOffHouseLights");
+		sys.killthread("map_intro::showText");
+		sys.killthread("map_intro::showTextCam");
+		sys.killthread("map_intro::ShowNPCSubtitles");
+		sys.killthread("map_intro::SubtitlesRunning");
+		sys.killthread("map_intro::Lee4Sub");
+		sys.killthread("map_intro::ExitWindow");
+		sys.killthread("map_intro::TalkFence");
+		sys.killthread("map_intro::BlueTunnel");
+		sys.killthread("map_e1m1::EndBoxTrip");
+		sys.killthread("map_e1m1::BoxPostBlur");
+
+		// Hide any lingering subtitles
+		sys.hideSubtitles();
+
+		// Safely toggle off any active camera
+		if (map_intro::activeCam == 1)
+		{
+			sys.trigger($introCamera);
+		}
+		else if (map_intro::activeCam == 2)
+		{
+			sys.trigger($BlueWorldCam);
+		}
+		else if (map_intro::activeCam == 3)
+		{
+			sys.trigger($box_postscene_camera);
+		}
+		map_intro::activeCam = 0;
+
+		// Teleport player directly to Mars bedroom start
+		sys.trigger($info_player_teleport_4);
+
+		// Set Mars influence & objectives
+		sys.trigger($target_setinfluence_5);
+
+		// Ensure PDA item is granted
+		sys.trigger($trigger_relay_69);
+
+		// Alarm clock rotated
+		$outro_alarmclock.rotateOnce('0 -35 0');
+
+		// Clean up post-scene blur and restore visual
+		$box_postscene_blur.hide();
+		sys.fadeTo('0 0 0', 0, 0.2);
+
+		$introCamera.stopSound(SND_CHANNEL_ANY, 0);
+		$player1.stopSound(SND_CHANNEL_ANY, 0);
+
+		sys.print("Phobos Mod: Intro sequence skipped!\n");
+	}
+
+	void EnableSkipTimer()
+	{
+		// Wait 2 seconds for the scene to settle and ignore any clicks from the menu
+		sys.wait(2.0);
+
+		if (map_intro::introSkipped == 0 && map_intro::introActive == 1)
+		{
+			map_intro::canSkipIntro = 1;
+			PhobosShowSubtitle_e1m1("", "[ Press SPACE or X to skip ]");
+			sys.wait(5.0);
+			if (map_intro::introSkipped == 0 && map_intro::introActive == 1)
+			{
+				sys.hideSubtitles();
+			}
+		}
+	}
+
+	void RunIntroGogo()
+	{
+		map_intro::Gogo();
+	}
+
+	void StartIntro()
+	{
+		$outro_alarmclock.rotateOnce('0 -35 0');
+		sys.trigger($trigger_relay_69);
+		
+		map_intro::introActive = 1;
+		map_intro::introSkipped = 0;
+		map_intro::canSkipIntro = 0;
+
+		thread EnableSkipTimer();
+
+		thread RunIntroGogo();
+	}
+
+	void StartPads()
+	{
+		$m1_pads.startSoundShader("e1m1_pads", SND_CHANNEL_ANY);
+	}
+
+	float Floor(float value, float max)
+	{
+		float i = max;
+
+		while(i > 0)
+		{
+			if(value < i && value > i - 1)
+				return i - 1;
+
+				i--;
+		}
+
+		return value;
+	}
+
+	void WindowGlitch(float num)
+	{		
+		entity monitor = sys.getEntity("intro_monitors_fake_" + num);
+		entity gui = sys.getEntity("intro_gui_flicker_" + num);
+
+		sys.trigger(gui);
+
+		sys.wait(1.8f);
+		sys.trigger(gui);	
+	}
+
+	void FakeWindowGlitches()
+	{
+		while(1)
+		{
+			float delay = sys.random(20) + 3;
+			sys.wait(delay);
+
+			float rnd = 56;
+			
+			sys.trigger($glitchspeaker);
+
+			float i = 0;
+			while(i < rnd)
+			{
+				float num = sys.random(8) + 1;
+				num = Floor(num, 9);
+
+				thread WindowGlitch(num);
+
+				sys.wait(.1);
+				i++;
+			}
+		}
+	}
+	
+	void SetupBoxCageSide(string prefix)
+	{
+		float i = 0;
+
+		while(i < 5)
+		{
+			entity shutter = sys.getEntity(prefix + (i+1));
+			entity rotator = sys.getEntity(prefix + "rotator_" + (i+1));
+
+			vector rv = rotator.getVectorKey("rot");
+						
+			rotator.rotateOnce(rv);
+			sys.waitFor(rotator);
+
+			shutter.bind(rotator);
+
+			rotator.accelTime(.25);
+			rotator.decelTime(.5);
+			rotator.time(3);
+			
+			i++;
+		}
+	}
+
+	void SetupBoxCage()
+	{
+		thread SetupBoxCageSide("box_shutter_southwest_");
+		thread SetupBoxCageSide("box_shutter_south_");
+		thread SetupBoxCageSide("box_shutter_southeast_");
+		thread SetupBoxCageSide("box_shutter_east_");
+		thread SetupBoxCageSide("box_shutter_northeast_");
+		thread SetupBoxCageSide("box_shutter_north_");
+		thread SetupBoxCageSide("box_shutter_northwest_");
+		thread SetupBoxCageSide("box_shutter_west_");		
+	}	
+
+	void OpenBoxCageSide(string prefix)
+	{
+		float i = 0;
+
+		while(i < 5)
+		{
+			entity shutter = sys.getEntity(prefix + "rotator_" + (i+1));
+			shutter.rotateOnce('0 0 -55');
+			
+			shutter.move(UP, (i) * 24 + 8);
+			
+			sys.wait(.25);
+
+			i++;
+		}
+	}
+
+	void OpenBoxCage()
+	{
+		thread ShowNPCSubtitles("...", "Hello? Anyone?\nWhat is this place?", 4);
+		sys.trigger($speaker_1023);
+		
+		sys.trigger($setup_talk_relay);
+		
+		$speaker_lightson_music.startSoundShader("e1m1_lightson", SND_CHANNEL_PDA);
+
+		thread OpenBoxCageSide("box_shutter_north_");		
+		$box_glass_wat.setKey("click_item", 1);		
+		
+		sys.wait(.5);
+		thread OpenBoxCageSide("box_shutter_northeast_");
+		thread OpenBoxCageSide("box_shutter_northwest_");
+		
+		sys.wait(.5);
+		thread OpenBoxCageSide("box_shutter_east_");
+		thread OpenBoxCageSide("box_shutter_west_");
+		sys.wait(.5);		
+
+		thread OpenBoxCageSide("box_shutter_south_");
+		thread OpenBoxCageSide("box_shutter_southeast_");
+		sys.wait(.5);
+		thread OpenBoxCageSide("box_shutter_southwest_");
+
+		sys.wait(1);		
+	}
+
+	void AnimateClockColon()
+	{
+		while(1)
+		{
+			sys.wait(.75);
+			sys.trigger($info_screen_time_colon);
+		}
+	}
+
+	void AnimateClock()
+	{
+		thread AnimateClockColon();
+
+		float currentTime = 0;
+
+		while(currentTime < 60)
+		{
+			float tens = Floor(currentTime / 10, 9);
+			float ones = currentTime % 10;
+
+			entity tensEntity = sys.getEntity("info_screen_time_" + tens + "x");
+			entity onesEntity = sys.getEntity("info_screen_time_x" + ones);
+			
+			tensEntity.show();
+			onesEntity.show();
+
+			sys.wait(60);
+
+			currentTime++;
+
+			if(currentTime < 60)
+			{
+				tensEntity.hide();
+				onesEntity.hide();
+			}
+		}
+	}
+
+	void SetupClock()
+	{
+		float i = 0;
+		while( i < 10)
+		{
+			if(i < 6)
+				sys.getEntity("info_screen_time_" + i + "x").hide();
+				
+			sys.getEntity("info_screen_time_x" + i).hide();
+
+			i++;
+		}
+	}
+
+	void SlideDoor()
+	{
+		$GlassDoor.move(180, 64);
+	}
+
+	void ShowerOff()
+	{		
+		$ShowerKnob.rotateOnce('0 0 45');
+		sys.wait(.5);					
+		$ShowerBeams.move(DOWN, 128);	
+		sys.wait(.75);
+		sys.trigger($speaker_130);	
+		sys.wait(.25);
+		sys.trigger($ShowerSplash);
+		sys.wait(.5);
+		sys.trigger($DrainSplash);
+		sys.waitFor($ShowerBeams);
+		$ShowerBeams.hide();		
+	}
+
+	void GrabSharpies()
+	{
+		thread ShowNPCSubtitles("...", "Hmm.", 2);
+		thread CharacterSays($player1, "sound/shav/e1m3/pickupbox.ogg");
+
+		sys.trigger($RemoveSharpies);
+		sys.trigger($speaker_1056);		
+		$whiteboard_max_1.setKey("click_item", 1);		
+	}
+
+	float needCode = 0;
+
+	void CodeTalk()
+	{
+		if(needCode == 0)
+		{			
+			thread ShowNPCSubtitles("...", "Seems to be a code.", 2);
+			sys.trigger($speaker_129);
+		}
+		else
+		{
+			thread ShowNPCSubtitles("...", "I guess that's the code.", 2);
+			sys.trigger($speaker_1061);
+		}
+	}
+
+	void NeedCode()
+	{
+		thread ShowNPCSubtitles("...", "I Should probably look for a code.", 2);
+		needCode = 1;
+	}	
+	
+	void WhatTheFuckSub()
+	{
+		ShowNPCSubtitles("...", "What the fuck?", 2);
+	}
+
+	void FederalApartmentSub()
+	{
+		ShowNPCSubtitles("...", "Federal Apartment? I guess it's not mine.\nUnless..", 4.25);
+	}
+	
+	void MarsViewSub()
+	{
+		ShowNPCSubtitles("...", "Where am I?", 2);
+	}
+	
+	void HelloShowerSub()
+	{
+		ShowNPCSubtitles("...", "Hello?", 2);
+	}
+	
+	void ThatDidItSub()
+	{
+		ShowNPCSubtitles("...", "That did it!", 2);
+	}
+	
+	void WhatsThisSub()
+	{
+		ShowNPCSubtitles("...", "What's this?", 2);
+	}
+	
+	void OkayQuestionSub()
+	{
+		ShowNPCSubtitles("...", "Okaayyy?", 2);
+	}
+	
+	void SymptomsSub()
+	{
+		ShowNPCSubtitles("...", "Those symptoms sound about right.", 2);
+	}
+	
+	void DoNotFeedTheMonkeysSub()
+	{
+		ShowNPCSubtitles("...", "Please do not feed the monkeys.", 2);
+	}
+	
+	void BoxGuyPrimary()
+	{
+		ShowNPCSubtitles("Security", "Sorry dude. This way is blocked.\nSome idiot placed all these boxes here and I'm trying to figure out where they should go.", 6.5);
+	}
+	
+	void BoxGuySecond1()
+	{
+		ShowNPCSubtitles("Security", "Don't even ask okay?\nI mean. Who just puts all these boxes here at random.", 5);
+	}
+	
+	void BoxGuySecond2()
+	{
+		ShowNPCSubtitles("Security", "Sorry man!\nI really need to get these boxes sorted out.", 4);
+	}
+	
+	void LobbyTrainGuardPrimary()
+	{
+		ShowNPCSubtitles("Security", "I'm sorry, the monorail system is being a fickle bitch.\n But we have guys working on it. I can't let you in pal.", 6.5);
+	}
+	
+	void LobbyTrainGuardSecond1()
+	{
+		ShowNPCSubtitles("Security", "No admittance.\nMove along.", 2);
+	}
+	
+	void LobbyTrainGuardSecond2()
+	{
+		ShowNPCSubtitles("Security", "Did the blow to your head impair your hearing?\nMove!", 3.5);
+	}
+	
+	void GetOutOfHereGuyPrimary()
+	{
+		ShowNPCSubtitles("Guy", "I'm getting off this rock.\n And you should too.", 5);
+	}
+	
+	void GetOutOfHereGuyTrigger()
+	{
+		ShowNPCSubtitles("Guy", "I gotta get out of here.", 3);
+	}
+	
+	void GetOutOfHereGuySecond1()
+	{
+		ShowNPCSubtitles("Guy", "If you're staying here.\nWatch your back.", 4);
+	}
+	
+	void GetOutOfHereGuySecond2()
+	{
+		ShowNPCSubtitles("Guy", "You should be careful.\nIt's not safe here. Tust no one.", 4.5);
+	}
+	
+	void MaybeVisitTheDoctorSub()
+	{
+		ShowNPCSubtitles("...", "I Should probably go visit the doctor now.", 2);
+	}
+	
+	void HeSeemsBusySub()
+	{
+		ShowNPCSubtitles("...", "He seems busy.", 2);
+	}
+	
+	void FollowRedLineSub()
+	{
+		ShowNPCSubtitles("...", "Follow the red line. Gotcha.", 2);
+	}
+	
+	void SnakeWayGuardPrimary()
+	{
+		ShowNPCSubtitles("FCE Soldier", "Can you believe these guys?\nThey may not be sabotaging the investigation. But helpful they aint.", 5.5);
+	}
+	
+	void SnakeWayGuardSecond1()
+	{
+		ShowNPCSubtitles("FCE Soldier", "I mean, everyone is trying to leave, but they won't tell us why.", 4);
+	}
+	
+	void SnakeWayGuardSecond2()
+	{
+		ShowNPCSubtitles("FCE Soldier", "Been stationed here long?\nI don't recognize you from the flight.", 4);	
+	}
+	
+	void JohnPrimary()
+	{
+		ShowNPCSubtitles("Guy", "I'm really trying to get this fixed quickly.\n So ehm. Do you mind?", 4);
+	}
+	
+	void JohnSecond1()
+	{
+		ShowNPCSubtitles("Guy", "You can fix this, you can stay and help.\nBut otherwise get going.", 4);
+	}
+	
+	void JohnSecond2()
+	{
+		ShowNPCSubtitles("Guy", "Why are you bothering me?\nCan't you see that I'm working?", 4);
+	}
+	
+	void LQGuardPrimary()
+	{
+		ShowNPCSubtitles("Security", "Your head. Are you okay? You should get that checked out down at the medical bay.\n Follow the signs. You can't miss it.", 8);
+	}
+	
+	void LQGuardSecond1()
+	{
+		ShowNPCSubtitles("Security", "You should really get that checked out.", 2);
+	}
+	
+	void LQGuardSecond2()
+	{
+		ShowNPCSubtitles("Security", "Tough guy huh.\nGet to the doctor already.", 3);
+	}
+	
+	void KwonPrimary()
+	{
+		ShowNPCSubtitles("Guy", "Marine Command is right around the corner.\nWhy don't you go bother someone there.", 4);
+	}
+	
+	void KwonSecond1()
+	{
+		ShowNPCSubtitles("Guy", "Listen. I'd love to talk, but I'm really busy.", 4);
+	}
+	
+	void KwonSecond2()
+	{
+		ShowNPCSubtitles("Guy", "What. Do I look like a tour director, leatherneck?", 4);
+	}
+
+	void FceGuardPrimary()
+	{
+		ShowNPCSubtitles("FCE Soldier", "Can't let you in without the right clearance, sir.\nWe control who gets in. Stand aside.", 6);
+	}
+
+	void FceGuardSecond1()
+	{
+		ShowNPCSubtitles("FCE Soldier", "I already told you to stand aside, sir.\nMove along.", 4);
+	}
+
+	void FceGuardSecond2()
+	{
+		ShowNPCSubtitles("FCE Soldier", "You are a special kind of stupid aren't you?!\nBEAT IT!", 3);
+	}
+	
+	float fceInvestigationReactionDone = 0;
+	void FceInvestigationReaction()
+	{
+		if(fceInvestigationReactionDone == 0)
+		{
+			thread ShowNPCSubtitles("...", "Investigation? I guess that explains all the feds.", 3.5);
+			CharacterSays(playerC, "sound/vo/player/general/InvestigationFeds.ogg");
+			fceInvestigationReactionDone = 1;
+		}
+	}
+	
+	void main()
+	{
+		$ShowerKnob.rotateOnce('0 0 -45');
+
+		SetupClock();
+		thread AnimateClock();
+
+		SetupBoxCage();
+		StartIntro();
+
+		thread FakeWindowGlitches();		
+
+		InitCommon();
+		InitScanner();		
+	}
+}

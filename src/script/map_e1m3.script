@@ -1,0 +1,1474 @@
+namespace map_e1m3
+{
+	float hangar_state = 0;
+	float goInfluenceLoop = 1;
+
+	float departureActive = 0;
+	float canSkipDeparture = 0;
+	float departureSkipped = 0;
+	float activeDepartureCam = 0;
+
+	void EnableDepartureSkipTimer()
+	{
+		sys.wait(1.5);
+		if (departureActive == 1 && departureSkipped == 0)
+		{
+			canSkipDeparture = 1;
+			PhobosShowSubtitle_e1m3("", "[ Press SPACE or X to skip ]");
+			sys.wait(5.0);
+			if (departureActive == 1 && departureSkipped == 0)
+			{
+				sys.hideSubtitles();
+			}
+		}
+	}
+
+	void SkipDepartureSequence()
+	{
+		if (canSkipDeparture == 0 || departureActive == 0 || departureSkipped == 1)
+		{
+			return;
+		}
+
+		departureSkipped = 1;
+		canSkipDeparture = 0;
+		departureActive = 0;
+
+		// Terminate departure & outro threads
+		sys.killthread("map_e1m3::fce_departure");
+		sys.killthread("map_e1m3::the_hangar_opening");
+		sys.killthread("map_e1m3::EnableDepartureSkipTimer");
+		sys.killthread("map_e1m3::FceChatterSub");
+
+		// Hide any lingering subtitles
+		sys.hideSubtitles();
+
+		// Stop sounds
+		$SpeakerDeparture.stopSound(SND_CHANNEL_ANY, 0);
+		$player1.stopSound(SND_CHANNEL_ANY, 0);
+
+		// Safely toggle active camera off
+		if (activeDepartureCam == 1)
+		{
+			sys.trigger($hangar_scene_camera_above);
+		}
+		else if (activeDepartureCam == 2)
+		{
+			sys.trigger($hangar_scene_camera_side);
+		}
+		else if (activeDepartureCam == 3)
+		{
+			sys.trigger($hangar_scene_camera_below);
+		}
+		else if (activeDepartureCam == 4)
+		{
+			sys.trigger($PreOutroCam);
+		}
+		activeDepartureCam = 0;
+
+		// Teleport player directly to outro room
+		sys.trigger($info_player_teleport_outro);
+		sys.wait(0.1);
+		sys.trigger($setinfluence_outro);
+
+		// Fade back to normal view
+		sys.fadeTo('0 0 0', 0, 0.2);
+
+		sys.print("Phobos Mod: FCE Departure cutscene skipped!\n");
+	}
+
+	void toggle_hangar_lights()
+	{
+		sys.trigger($hangar_alert);
+		sys.trigger($hangar_light_01);
+		sys.trigger($hangar_blink01);
+		sys.trigger($hangar_light_02);
+		sys.trigger($hangar_blink02);
+		sys.trigger($hangar_light_03);
+		sys.trigger($hangar_blink03);
+		sys.trigger($hangar_light_04);
+		sys.trigger($hangar_blink04);
+	}
+
+	void toggle_hangar()
+	{
+		toggle_hangar_lights();
+	
+		sys.wait(5);
+
+		if( hangar_state == 0 )
+		{
+			sys.trigger($hangar_portal);
+			$hangar_door01.move( 90, 384);
+			sys.wait(.5);
+			$hangar_door02.move( 270, 384);
+			$hangar_bit.move(270, 192);
+			
+			sys.waitFor($hangar_door02);
+						
+			hangar_state = 1;
+		}
+		else
+		{
+			$hangar_door01.move( 270, 384);
+			sys.wait(.5);
+			$hangar_door02.move( 90, 384);
+			$hangar_bit.move(90, 192);
+			
+			sys.waitFor($hangar_door02);
+			sys.trigger($hangar_portal);
+			
+			hangar_state = 0;				
+		}		
+		toggle_hangar_lights();
+	}
+
+	void GasLeakStoppedSubs()
+	{
+		PhobosShowSubtitle_e1m3("PA", "Gas leak stopped. Fire extinguished.");
+		sys.wait(3);
+		sys.hideSubtitles();
+	}
+
+	void StopFire()
+	{
+		sys.quickSave("They Had Other Plans - Checkpoint 2");
+		sys.wait(.25);
+		
+		$firehurt_rotator.rotateOnce('270 0 0');
+		sys.trigger($speaker_950);
+		sys.trigger($light_59042);
+		sys.trigger($hurtflame);
+		sys.trigger($firehurt_failsafe);
+		sys.trigger($firehurt_emitter);
+		sys.trigger($func_emitter_554);
+		sys.trigger($trigger_hurt_3);
+		sys.trigger($func_aas_obstacle_3);
+		sys.trigger($light_64726);
+		sys.trigger($speaker_1094);
+		sys.trigger($speaker_1095);
+		sys.trigger($light_64727);
+		sys.trigger($func_emitter_555);
+		sys.trigger($trigger_hurt_4);
+		sys.trigger($func_aas_obstacle_4);		
+		
+		sys.wait(2);
+		$firehurt_valve.startSoundShader("airlock_01", SND_CHANNEL_ANY);
+		sys.wait(2);
+		$firehurt_valve.startSoundShader("c1_pipedownbounce", SND_CHANNEL_ANY);
+
+		sys.trigger($func_emitter_340);
+		sys.trigger($func_emitter_341);
+		sys.trigger($func_emitter_342);
+		sys.trigger($func_emitter_343);
+		sys.trigger($func_emitter_344);
+		sys.trigger($func_emitter_345);
+		sys.trigger($func_emitter_346);
+		sys.trigger($func_emitter_354);
+
+		sys.wait(.5	);
+		sys.trigger($speaker_954);
+		sys.trigger($speaker_955);
+		sys.trigger($speaker_956);
+
+		sys.waitFor($firehurt_rotator);
+		$firehurt_valve.startSoundShader("co_m4_stop", SND_CHANNEL_ANY);
+		sys.wait(1.25);
+
+		thread GasLeakStoppedSubs();
+		sys.trigger($speaker_972);
+
+		$func_static_82841.remove();
+		$func_static_83267.show();
+		sys.trigger($trigger_relay_603);
+	}
+	
+	void blast_zsec()
+	{
+		$monster_zsec_machinegun_11.kill();
+	}
+	
+	void lockdown()
+	{
+		$func_door_2231.lock(2);
+		$func_door_2232.lock(2);
+		$func_door_2233.lock(2);
+		$func_door_2234.lock(2);
+		$func_door_2161.lock(2);
+		$func_door_2160.lock(2);
+		$func_door_2143.lock(2);
+		$func_door_2144.lock(2);
+		$func_door_2228.lock(2);
+		$func_door_2229.lock(2);
+		$func_door_2127.lock(2);
+		$func_door_2126.lock(2);
+		$func_door_2153.lock(2);
+		$func_door_2154.lock(2);
+	}
+	
+	void lights_fadeout2()
+	{
+		$light_58278.fadeOutLight(.5);
+		$light_58147.fadeOutLight(.5);
+		$light_58174.fadeOutLight(.5);
+		$light_63621.fadeOutLight(.5);
+		$light_63623.fadeOutLight(.5);
+		$light_58164.fadeOutLight(.5);
+		$light_58173.fadeOutLight(.5);
+		$light_63622.fadeOutLight(.5);
+		$light_63620.fadeOutLight(.5);
+		$light_58277.fadeOutLight(.5);
+		$light_58168.fadeOutLight(.5);
+		$light_58124.fadeOutLight(.5);
+		$light_58123.fadeOutLight(.5);
+		$light_58713.fadeOutLight(.5);
+		$light_58714.fadeOutLight(.5);
+		$light_58205.fadeOutLight(.5);
+		$light_58233.fadeOutLight(.5);
+		$light_58829.fadeOutLight(.5);
+		$light_58085.fadeOutLight(.5);
+		$light_58084.fadeOutLight(.5);
+		$light_58089.fadeOutLight(.5);
+		$light_58088.fadeOutLight(.5);
+		$light_58828.fadeOutLight(.5);
+		$light_58827.fadeOutLight(.5);
+		$light_58830.fadeOutLight(.5);
+		$light_58234.fadeOutLight(.5);
+		$light_63614.fadeOutLight(.5);
+		$light_63613.fadeOutLight(.5);
+		$light_58153.fadeOutLight(.5);
+		$light_63615.fadeOutLight(.5);
+		$light_63612.fadeOutLight(.5);
+		$light_58200.fadeOutLight(.5);
+		$light_58281.fadeOutLight(.5);
+		$light_58145.fadeOutLight(.5);
+		$light_58178.fadeOutLight(.5);
+		$light_63619.fadeOutLight(.5);
+		$light_63616.fadeOutLight(.5);
+		$light_58203.fadeOutLight(.5);
+		$light_58204.fadeOutLight(.5);
+		$light_63617.fadeOutLight(.5);
+		$light_63618.fadeOutLight(.5);
+		$light_58179.fadeOutLight(.5);
+		$light_58073.fadeOutLight(.5);
+		$light_58074.fadeOutLight(.5);
+		$light_58075.fadeOutLight(.5);
+		$light_58076.fadeOutLight(.5);
+		$light_58127.fadeOutLight(.5);
+		$light_58128.fadeOutLight(.5);
+		$light_58835.fadeOutLight(.5);
+		$light_58837.fadeOutLight(.5);
+		$light_58126.fadeOutLight(.5);
+		$light_58125.fadeOutLight(.5);
+		$light_58224.fadeOutLight(.5);
+		$light_59233.fadeOutLight(.5);
+		$light_58255.fadeOutLight(.5);
+		$light_59478.fadeOutLight(.5);
+		$light_59230.fadeOutLight(.5);
+		$light_59232.fadeOutLight(.5);
+		$light_59479.fadeOutLight(.5);
+		$light_59477.fadeOutLight(.5);
+		$light_59228.fadeOutLight(.5);
+		$light_59231.fadeOutLight(.5);
+		$light_59227.fadeOutLight(.5);
+		$light_58131.fadeOutLight(.5);
+		$light_58132.fadeOutLight(.5);
+		$light_59234.fadeOutLight(.5);
+		$light_58130.fadeOutLight(.5);
+		$light_59229.fadeOutLight(.5);
+		$light_58077.fadeOutLight(.5);
+		$light_58202.fadeOutLight(.5);
+		$light_58201.fadeOutLight(.5);
+		$light_58152.fadeOutLight(.5);
+		$light_58151.fadeOutLight(.5);
+		$light_58150.fadeOutLight(.5);	
+	}
+	
+	void lights_fadein2()
+	{
+		$light_58278.fadeInLight(5);
+		$light_58147.fadeInLight(5);
+		$light_58174.fadeInLight(5);
+		$light_63621.fadeInLight(5);
+		$light_63623.fadeInLight(5);
+		$light_58164.fadeInLight(5);
+		$light_58173.fadeInLight(5);
+		$light_63622.fadeInLight(5);
+		$light_63620.fadeInLight(5);
+		$light_58277.fadeInLight(5);
+		$light_58168.fadeInLight(5);
+		$light_58124.fadeInLight(5);
+		$light_58123.fadeInLight(5);
+		$light_58713.fadeInLight(5);
+		$light_58714.fadeInLight(5);
+		$light_58205.fadeInLight(5);
+		$light_58233.fadeInLight(5);
+		$light_58829.fadeInLight(5);
+		$light_58085.fadeInLight(5);
+		$light_58084.fadeInLight(5);
+		$light_58089.fadeInLight(5);
+		$light_58088.fadeInLight(5);
+		$light_58828.fadeInLight(5);
+		$light_58827.fadeInLight(5);
+		$light_58830.fadeInLight(5);
+		$light_58234.fadeInLight(5);
+		$light_63614.fadeInLight(5);
+		$light_63613.fadeInLight(5);
+		$light_58153.fadeInLight(5);
+		$light_63615.fadeInLight(5);
+		$light_63612.fadeInLight(5);
+		$light_58200.fadeInLight(5);
+		$light_58281.fadeInLight(5);
+		$light_58145.fadeInLight(5);
+		$light_58178.fadeInLight(5);
+		$light_63619.fadeInLight(5);
+		$light_63616.fadeInLight(5);
+		$light_58203.fadeInLight(5);
+		$light_58204.fadeInLight(5);
+		$light_63617.fadeInLight(5);
+		$light_63618.fadeInLight(5);
+		$light_58179.fadeInLight(5);
+		$light_58073.fadeInLight(5);
+		$light_58074.fadeInLight(5);
+		$light_58075.fadeInLight(5);
+		$light_58076.fadeInLight(5);
+		$light_58127.fadeInLight(5);
+		$light_58128.fadeInLight(5);
+		$light_58835.fadeInLight(5);
+		$light_58837.fadeInLight(5);
+		$light_58126.fadeInLight(5);
+		$light_58125.fadeInLight(5);
+		$light_58224.fadeInLight(5);
+		$light_59233.fadeInLight(5);
+		$light_58255.fadeInLight(5);
+		$light_59478.fadeInLight(5);
+		$light_59230.fadeInLight(5);
+		$light_59232.fadeInLight(5);
+		$light_59479.fadeInLight(5);
+		$light_59477.fadeInLight(5);
+		$light_59228.fadeInLight(5);
+		$light_59231.fadeInLight(5);
+		$light_59227.fadeInLight(5);
+		$light_58131.fadeInLight(5);
+		$light_58132.fadeInLight(5);
+		$light_59234.fadeInLight(5);
+		$light_58130.fadeInLight(5);
+		$light_59229.fadeInLight(5);
+		$light_58077.fadeInLight(5);
+		$light_58202.fadeInLight(5);
+		$light_58201.fadeInLight(5);
+		$light_58152.fadeInLight(5);
+		$light_58151.fadeInLight(5);
+		$light_58150.fadeInLight(5);	
+	}
+	
+	void lights_fadeout()
+	{
+		$light_9517.fadeOutLight(.5);
+        $light_9001.fadeOutLight(.5);
+        $light_51765.fadeOutLight(.5);
+        $light_51766.fadeOutLight(.5);
+        $light_9008.fadeOutLight(.5);
+        $light_7089.fadeOutLight(.5);
+        $light_51767.fadeOutLight(.5);
+        $light_58805.fadeOutLight(.5);
+        $light_58808.fadeOutLight(.5);
+        $light_58766.fadeOutLight(.5);
+        $light_58773.fadeOutLight(.5);
+        $light_9319.fadeOutLight(.5);
+        $light_9716.fadeOutLight(.5);
+        $light_9011.fadeOutLight(.5);
+        $light_58736.fadeOutLight(.5);
+        $light_58812.fadeOutLight(.5);
+        $light_9009.fadeOutLight(.5);
+        $light_58771.fadeOutLight(.5);
+        $light_58770.fadeOutLight(.5);
+        $light_7091.fadeOutLight(.5);
+        $light_9518.fadeOutLight(.5);
+        $light_9713.fadeOutLight(.5);
+        $light_9711.fadeOutLight(.5);
+        $light_9715.fadeOutLight(.5);
+        $light_9010.fadeOutLight(.5);
+        $light_58782.fadeOutLight(.5);
+        $light_58792.fadeOutLight(.5);
+        $light_58775.fadeOutLight(.5);
+        $light_58793.fadeOutLight(.5);
+        $light_58780.fadeOutLight(.5);
+        $light_58788.fadeOutLight(.5);
+        $light_59244.fadeOutLight(.5);
+        $light_57614.fadeOutLight(.5);
+        $light_57616.fadeOutLight(.5);
+        $light_57618.fadeOutLight(.5);
+		$light_57619.fadeOutLight(.5);
+		$light_57448.fadeOutLight(.5);
+        $light_57617.fadeOutLight(.5);
+        $light_57615.fadeOutLight(.5);
+        $light_58787.fadeOutLight(.5);
+        $light_57608.fadeOutLight(.5);
+        $light_57609.fadeOutLight(.5);
+        $light_57610.fadeOutLight(.5);
+        $light_57599.fadeOutLight(.5);
+        $light_57613.fadeOutLight(.5);
+        $light_57597.fadeOutLight(.5);
+        $light_57598.fadeOutLight(.5);
+        $light_57596.fadeOutLight(.5);
+        $light_56484.fadeOutLight(.5);
+        $light_57620.fadeOutLight(.5);
+        $light_56485.fadeOutLight(.5);
+        $light_58622.fadeOutLight(.5);
+        $light_59374.fadeOutLight(.5);
+        $light_59286.fadeOutLight(.5);
+        $light_57528.fadeOutLight(.5);
+        $light_56486.fadeOutLight(.5);
+        $light_57527.fadeOutLight(.5);
+        $light_57529.fadeOutLight(.5);
+        $light_56482.fadeOutLight(.5);
+        $light_56487.fadeOutLight(.5);
+        $light_59373.fadeOutLight(.5);
+		$light_64913.fadeOutLight(.5);
+        $light_57669.fadeOutLight(.5);
+        $light_56413.fadeOutLight(.5);
+        $light_56412.fadeOutLight(.5);
+        $light_56410.fadeOutLight(.5);
+        $light_56411.fadeOutLight(.5);
+        $light_56439.fadeOutLight(.5);
+        $light_57670.fadeOutLight(.5);
+        $light_56218.fadeOutLight(.5);
+        $light_56444.fadeOutLight(.5);
+        $light_56219.fadeOutLight(.5);
+        $light_57671.fadeOutLight(.5);
+        $light_58691.fadeOutLight(.5);
+        $light_56438.fadeOutLight(.5);
+        $light_57672.fadeOutLight(.5);
+        $light_56443.fadeOutLight(.5);
+        $light_59369.fadeOutLight(.5);
+        $light_56446.fadeOutLight(.5);
+        $light_56201.fadeOutLight(.5);
+        $light_56447.fadeOutLight(.5);
+        $light_56448.fadeOutLight(.5);
+        $tim_light_3797.fadeOutLight(.5);
+        $light_55797.fadeOutLight(.5);
+        $light_56409.fadeOutLight(.5);
+        $light_56408.fadeOutLight(.5);
+        $light_56407.fadeOutLight(.5);
+        $light_56406.fadeOutLight(.5);
+        $light_56405.fadeOutLight(.5);
+        $light_56404.fadeOutLight(.5);
+        $light_56437.fadeOutLight(.5);
+        $light_57667.fadeOutLight(.5);
+        $light_57678.fadeOutLight(.5);
+        $light_57668.fadeOutLight(.5);
+        $light_57666.fadeOutLight(.5);
+        $light_57665.fadeOutLight(.5);
+        $light_56254.fadeOutLight(.5);
+        $light_56255.fadeOutLight(.5);
+        $light_56249.fadeOutLight(.5);
+        $light_56250.fadeOutLight(.5);
+        $light_56251.fadeOutLight(.5);
+        $light_54893.fadeOutLight(.5);
+        $light_57449.fadeOutLight(.5);
+        $light_56245.fadeOutLight(.5);
+        $light_56420.fadeOutLight(.5);
+        $light_56244.fadeOutLight(.5);
+        $light_56182.fadeOutLight(.5);
+        $light_56419.fadeOutLight(.5);
+        $light_56231.fadeOutLight(.5);
+        $light_56259.fadeOutLight(.5);
+        $light_56248.fadeOutLight(.5);
+		$light_64906.fadeOutLight(.5);
+		$light_64973.fadeOutLight(.5);
+        $light_56247.fadeOutLight(.5);
+        $light_56258.fadeOutLight(.5);
+        $light_56252.fadeOutLight(.5);
+        $light_56256.fadeOutLight(.5);
+        $light_57451.fadeOutLight(.5);
+        $light_57450.fadeOutLight(.5);
+        $light_56198.fadeOutLight(.5);
+        $light_56194.fadeOutLight(.5);
+        $light_56209.fadeOutLight(.5);
+        $light_56196.fadeOutLight(.5);
+        $light_64182.fadeOutLight(.5);
+        $light_64217.fadeOutLight(.5);
+        $light_58689.fadeOutLight(.5);
+        $light_56494.fadeOutLight(.5);
+        $light_59372.fadeOutLight(.5);
+        $light_59448.fadeOutLight(.5);
+        $light_56495.fadeOutLight(.5);
+        $light_56497.fadeOutLight(.5);
+        $light_59441.fadeOutLight(.5);
+        $light_56496.fadeOutLight(.5);
+        $light_56493.fadeOutLight(.5);
+        $light_59445.fadeOutLight(.5);
+        $light_56498.fadeOutLight(.5);
+        $light_56264.fadeOutLight(.5);
+	}	
+	
+	void lights_fadein()
+	{
+		$light_9517.fadeInLight(3);
+        $light_9001.fadeInLight(3);
+        $light_51765.fadeInLight(3);
+        $light_51766.fadeInLight(3);
+        $light_9008.fadeInLight(3);
+        $light_7089.fadeInLight(3);
+        $light_51767.fadeInLight(3);
+        $light_58805.fadeInLight(3);
+        $light_58808.fadeInLight(3);
+        $light_58766.fadeInLight(3);
+        $light_58773.fadeInLight(3);
+        $light_9319.fadeInLight(3);
+        $light_9716.fadeInLight(3);
+        $light_9011.fadeInLight(3);
+        $light_58736.fadeInLight(3);
+        $light_58812.fadeInLight(3);
+        $light_9009.fadeInLight(3);
+        $light_58771.fadeInLight(3);
+        $light_58770.fadeInLight(3);
+        $light_7091.fadeInLight(3);
+        $light_9518.fadeInLight(3);
+        $light_9713.fadeInLight(3);
+        $light_9711.fadeInLight(3);
+        $light_9715.fadeInLight(3);
+        $light_9010.fadeInLight(3);
+        $light_58782.fadeInLight(3);
+        $light_58792.fadeInLight(3);
+        $light_58775.fadeInLight(3);
+        $light_58793.fadeInLight(3);
+        $light_58780.fadeInLight(3);
+        $light_58788.fadeInLight(3);
+        $light_59244.fadeInLight(3);
+        $light_57614.fadeInLight(3);
+        $light_57616.fadeInLight(3);
+        $light_57618.fadeInLight(3);
+		$light_57619.fadeInLight(3);
+		$light_57448.fadeInLight(3);
+        $light_57617.fadeInLight(3);
+        $light_57615.fadeInLight(3);
+        $light_58787.fadeInLight(3);
+        $light_57608.fadeInLight(3);
+        $light_57609.fadeInLight(3);
+        $light_57610.fadeInLight(3);
+        $light_57599.fadeInLight(3);
+        $light_57613.fadeInLight(3);
+        $light_57597.fadeInLight(3);
+        $light_57598.fadeInLight(3);
+        $light_57596.fadeInLight(3);
+        $light_56484.fadeInLight(3);
+        $light_57620.fadeInLight(3);
+        $light_56485.fadeInLight(3);
+        $light_58622.fadeInLight(3);
+        $light_59374.fadeInLight(3);
+        $light_59286.fadeInLight(3);
+        $light_57528.fadeInLight(3);
+        $light_56486.fadeInLight(3);
+        $light_57527.fadeInLight(3);
+        $light_57529.fadeInLight(3);
+        $light_56482.fadeInLight(3);
+        $light_56487.fadeInLight(3);
+        $light_59373.fadeInLight(3);
+		$light_64913.fadeInLight(3);
+        $light_57669.fadeInLight(3);
+        $light_56413.fadeInLight(3);
+        $light_56412.fadeInLight(3);
+        $light_56410.fadeInLight(3);
+        $light_56411.fadeInLight(3);
+        $light_56439.fadeInLight(3);
+        $light_57670.fadeInLight(3);
+        $light_56218.fadeInLight(3);
+        $light_56444.fadeInLight(3);
+        $light_56219.fadeInLight(3);
+        $light_57671.fadeInLight(3);
+        $light_58691.fadeInLight(3);
+        $light_56438.fadeInLight(3);
+        $light_57672.fadeInLight(3);
+        $light_56443.fadeInLight(3);
+        $light_59369.fadeInLight(3);
+        $light_56446.fadeInLight(3);
+        $light_56201.fadeInLight(3);
+        $light_56447.fadeInLight(3);
+        $light_56448.fadeInLight(3);
+        $tim_light_3797.fadeInLight(3);
+        $light_55797.fadeInLight(3);
+        $light_56409.fadeInLight(3);
+        $light_56408.fadeInLight(3);
+        $light_56407.fadeInLight(3);
+        $light_56406.fadeInLight(3);
+        $light_56405.fadeInLight(3);
+        $light_56404.fadeInLight(3);
+        $light_56437.fadeInLight(3);
+        $light_57667.fadeInLight(3);
+        $light_57678.fadeInLight(3);
+        $light_57668.fadeInLight(3);
+        $light_57666.fadeInLight(3);
+        $light_57665.fadeInLight(3);
+        $light_56254.fadeInLight(3);
+        $light_56255.fadeInLight(3);
+        $light_56249.fadeInLight(3);
+        $light_56250.fadeInLight(3);
+        $light_56251.fadeInLight(3);
+        $light_54893.fadeInLight(3);
+        $light_57449.fadeInLight(3);
+        $light_56245.fadeInLight(3);
+        $light_56420.fadeInLight(3);
+        $light_56244.fadeInLight(3);
+        $light_56182.fadeInLight(3);
+        $light_56419.fadeInLight(3);
+        $light_56231.fadeInLight(3);
+        $light_56259.fadeInLight(3);
+        $light_56248.fadeInLight(3);
+        $light_56247.fadeInLight(3);
+		$light_64906.fadeInLight(3);
+		$light_64973.fadeInLight(3);
+        $light_56258.fadeInLight(3);
+        $light_56252.fadeInLight(3);
+        $light_56256.fadeInLight(3);
+        $light_57451.fadeInLight(3);
+        $light_57450.fadeInLight(3);
+        $light_56198.fadeInLight(3);
+        $light_56194.fadeInLight(3);
+        $light_56209.fadeInLight(3);
+        $light_56196.fadeInLight(3);
+        $light_64182.fadeInLight(3);
+        $light_64217.fadeInLight(3);
+        $light_58689.fadeInLight(3);
+        $light_56494.fadeInLight(3);
+        $light_59372.fadeInLight(3);
+        $light_59448.fadeInLight(3);
+        $light_56495.fadeInLight(3);
+        $light_56497.fadeInLight(3);
+        $light_59441.fadeInLight(3);
+        $light_56496.fadeInLight(3);
+        $light_56493.fadeInLight(3);
+        $light_59445.fadeInLight(3);
+        $light_56498.fadeInLight(3);
+        $light_56264.fadeInLight(3);
+	}	
+	
+	void hide_guis()
+	{
+		$func_static_79823.hide();
+		$func_static_81212.hide();
+		$func_static_79866.hide();
+		$func_static_79712.hide();
+		$func_static_79711.hide();
+		$func_static_98743.hide();
+		$func_static_98741.hide();
+		$func_static_98748.hide();
+		$func_static_79714.hide();
+		$func_static_79713.hide();
+		$func_static_98742.hide();
+		$func_static_82925.hide();
+		$func_static_98747.hide();
+		$func_static_98746.hide();
+		$func_static_98745.hide();
+		$func_static_98744.hide();
+		$func_static_98871.show();
+		$func_static_98872.show();
+		$func_static_98873.show();
+	}
+	
+	void restore_guis()
+	{
+		$func_static_98872.hide();
+		$func_static_98873.hide();
+		$func_static_98871.hide();
+		$func_static_79823.show();
+		$func_static_81212.show();
+		$func_static_79866.show();
+		$func_static_79712.show();
+		$func_static_79711.show();
+		$func_static_98743.show();
+		$func_static_98741.show();
+		$func_static_98748.show();
+		$func_static_79714.show();
+		$func_static_79713.show();
+		$func_static_98742.show();
+		$func_static_82925.show();
+		$func_static_98747.show();
+		$func_static_98746.show();
+		$func_static_98745.show();
+		$func_static_98744.show();
+	}
+	
+	void officeglass_fall()	
+	{
+		$wallsec_swing.accelTime (.1);
+        $wallsec_swing.time (.25);
+        $wallsec_swing.rotateOnce ('0 0 -7');
+        sys.wait(.15);
+		sys.trigger($officeglass_relay1);
+        
+        $wallsec_swing2.accelTime (.1);
+        $wallsec_swing2.time (.25);
+        $wallsec_swing2.rotateOnce ('0 0 -11');
+		sys.wait(.1);
+		$ballistrade_swing.unbind();
+		$ballistrade_swing.accelTime (.1);
+        $ballistrade_swing.time (.3);
+        $ballistrade_swing.rotateOnce ('10 0 0');
+		sys.wait(.05);
+		sys.trigger($officeglass_relay2);
+		
+		sys.waitFor($ballistrade_swing);
+		sys.trigger($ballistrade_slam);
+		$ballistrade_swing.accelTime (0);
+        $ballistrade_swing.time (.07);
+        $ballistrade_swing.rotateOnce ('-2 0 0');
+		sys.waitFor($ballistrade_swing);
+		$ballistrade_swing.rotateOnce ('2 0 0');
+		sys.waitFor($ballistrade_swing);
+		$ballistrade_swing.time (.05);
+		$ballistrade_swing.rotateOnce ('-1 0 0');
+		sys.waitFor($ballistrade_swing);
+		$ballistrade_swing.rotateOnce ('1 0 0');
+		sys.trigger($trigger_once_368);
+	}
+	
+	void ceiling_collapse()
+	{
+		$ceilsec_swing.accelTime (.2);
+        $ceilsec_swing.time (.7);
+		$ceilsec_swing2.accelTime (0);
+        $ceilsec_swing2.time (.1);
+		$ceilsec_swing3.accelTime (0);
+        $ceilsec_swing3.time (.1);
+        $ceilsec_swing.rotateOnce ('0 0 27');		
+		sys.waitFor($ceilsec_swing);
+		$ceilsec_swing2.unbind();
+		$ceilsec_swing2.rotateOnce ('0 0 3.5');
+		$ceilsec_swing3.unbind();
+		$ceilsec_swing3.rotateOnce ('0 0 1.75');
+		sys.trigger($ceilsec_slam);
+		$ceilsec_swing.accelTime (0);
+        $ceilsec_swing.time (.15);
+        $ceilsec_swing.rotateOnce ('0 0 -4');
+		sys.waitFor($ceilsec_swing);
+		$ceilsec_swing.rotateOnce ('0 0 4');
+		sys.waitFor($ceilsec_swing);
+		sys.trigger($ceilsec_slam2);
+		$ceilsec_swing.time (.05);
+		$ceilsec_swing.rotateOnce ('0 0 -1');
+		sys.waitFor($ceilsec_swing);
+		$ceilsec_swing.rotateOnce ('0 0 1');
+		sys.trigger($trigger_relay_702);
+	}
+
+	void ceiling_collapse2()
+	{
+		$ceilsec_swingagain.unbind();
+		$ceilsec_swing2.bind($ceilsec_swingagain);
+		$ceilsec_swing3.bind($ceilsec_swingagain);
+		$ceilsec_swingagain.accelTime (.1);
+        $ceilsec_swingagain.time (.5);
+        $ceilsec_swingagain.rotateOnce ('0 0 -27');		
+		
+		sys.waitFor($ceilsec_swingagain);
+		sys.trigger($ceilsec_slam);
+		$ceilsec_swingagain.accelTime (0);
+        $ceilsec_swingagain.time (.15);
+        $ceilsec_swingagain.rotateOnce ('0 0 4');
+		sys.waitFor($ceilsec_swingagain);
+		$ceilsec_swingagain.rotateOnce ('0 0 -4');
+		sys.waitFor($ceilsec_swingagain);
+		sys.trigger($ceilsec_slam2);
+		$ceilsec_swingagain.time (.05);
+		$ceilsec_swingagain.rotateOnce ('0 0 1');
+		sys.waitFor($ceilsec_swingagain);
+		$ceilsec_swingagain.rotateOnce ('0 0 -1');
+		sys.trigger($ceilsec_clip);
+		sys.trigger($light_relay);
+	}
+	
+	void floorhatch_open()	
+	{			
+		sys.trigger($func_aas_obstacle_9);	
+		sys.trigger($func_portal_1);
+		$floor_panel.move(-2, 2);
+		sys.waitFor($floor_panel);
+		$floor_panel.move(180, 60);		
+	}
+	
+	void floorhatch_close()	
+	{			
+		$floor_panel.move(0, 60);
+		sys.waitFor($floor_panel);
+		$floor_panel.move(-1, 2);
+		sys.waitFor($floor_panel);
+		sys.trigger($func_portal_1);
+		sys.trigger($func_aas_obstacle_9);		
+	}
+	
+	void CloseDrawer01()
+	{
+		$drawer01.move(360, 20);
+	}
+
+	void CloseDrawer03()
+	{
+		$drawer03.move(180, 12);
+	}
+
+	void the_hangar_opening()
+	{
+		toggle_hangar();
+
+		sys.wait(1);
+		
+		sys.trigger($darkstar_speaker);		
+				
+		$darkstar_mover.move(UP, 2048);
+		$darkstar_mover.rotateOnce('25 145 0');
+		
+		sys.wait(12);
+
+		sys.wait(1);
+
+		sys.trigger($darkstar_speaker2);
+		
+		sys.trigger($func_emitter_333);
+		sys.trigger($func_emitter_334);
+		sys.trigger($func_emitter_335);
+		sys.trigger($func_emitter_336);
+		
+		$darkstar_mover.time(2);
+		$darkstar_mover.accelTime(.5);
+		$darkstar_mover.decelTime(.25);
+		$darkstar_mover.move(REL_BACK, 20480);
+
+		sys.wait(10.25);
+
+		$player1.startSoundShader("sound/shav/e1m3/leaving.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(1.6);
+		
+		sys.fadeTo('0 0 0', 1, .125);
+		
+		sys.wait(.15);
+		
+		activeDepartureCam = 4;
+		sys.trigger($PreOutroCam);
+
+		sys.wait(4);
+
+		sys.wait($player1.startSoundShader("sound/shav/intro/thorn_07.ogg", SND_CHANNEL_ANY));
+		
+		sys.wait(3);
+		
+		//lets go to outro
+		sys.trigger($PreOutroCam);
+		activeDepartureCam = 0;
+		departureActive = 0;
+		sys.trigger($info_player_teleport_outro);
+		sys.wait(.1);
+		sys.trigger($setinfluence_outro);
+		sys.fadeTo('0 0 0', 0, 1);
+	}
+	
+	void FceChatterSub()
+	{
+		sys.wait(5.7);
+	
+		PhobosShowSubtitle_e1m3("Special Agent Simmons", "Mars Depature T-8150. Special Agent Simmons here.");
+
+		sys.wait(3.7);
+
+		PhobosShowSubtitle_e1m3("Special Agent Simmons", "We had a delay due to some unexpected interference.\nIt has been taken care of. Ready for takeoff.");
+		
+		sys.wait(7.8);
+		
+		PhobosShowSubtitle_e1m3("Captain Rigel", "This is Captain Rigel of the Enforcer.\nAffirmative agent Simmons.");
+
+		sys.wait(4.4);
+		
+		PhobosShowSubtitle_e1m3("Captain Rigel", "You're expected at the Bulwark in 10 minutes.\nYou're clear for take-off.");
+
+		sys.wait(4.7);
+		
+		sys.hideSubtitles();
+	}
+	
+	void fce_departure()
+	{	
+		departureActive = 1;
+		departureSkipped = 0;
+		canSkipDeparture = 0;
+		activeDepartureCam = 0;
+		thread EnableDepartureSkipTimer();
+
+		goInfluenceLoop = 0;
+
+		thread the_hangar_opening();
+
+		thread FceChatterSub();
+		$player1.startSoundShader("sound/vo/e1m3/fce_departure_chatter.ogg", SND_CHANNEL_ANY);		
+
+		sys.wait(2.75);
+
+		sys.trigger($SpeakerDeparture);
+
+		sys.wait(2.5);
+		
+		sys.trigger($remove_monsters);
+		
+		activeDepartureCam = 1;
+		sys.trigger($hangar_scene_camera_above);
+		$hangar_scene_camera_above_mover.move(DOWN, 96);
+		$hangar_scene_camera_above_rotator.rotateOnce('0 15 0');
+
+		sys.wait(11);
+
+		activeDepartureCam = 2;
+		sys.trigger($hangar_scene_camera_side);
+		$hangar_scene_camera_side_mover.moveTo($func_static_99070_camdest);
+		$hangar_scene_camera_side_rotator.rotateOnce('0 -25 0');
+
+		sys.wait(9);
+
+		activeDepartureCam = 3;
+		sys.trigger($hangar_scene_camera_below);
+		$hangar_scene_camera_below_mover.move(DOWN, 384);
+		$hangar_scene_camera_below_rotator.rotateOnce('0 -270 0');		
+	}
+	
+	float dispensingCoffee = 0;
+
+	void HotCoffee()
+	{
+		if( dispensingCoffee == 0 )
+		{
+			dispensingCoffee =1;
+			$CoffeeGui.startSoundShader("al4_support_05s", SND_CHANNEL_ANY);
+			sys.trigger($CoffeeSteam);
+			sys.wait(1);
+			sys.trigger($CoffeeSteam);
+
+			sys.wait(.5);
+
+			dispensingCoffee =0;
+		}		
+	}
+
+	void trigger_klaxxon()	
+	{
+		sys.trigger($klaxxon1);
+		sys.trigger($klaxxon2);
+		sys.trigger($klaxxon3);
+		sys.trigger($klaxxon4);
+		sys.trigger($klaxxon5);
+		sys.trigger($klaxxon6);
+		sys.trigger($klaxxon15);
+		sys.trigger($klaxxon16);
+		sys.trigger($klaxxon17);
+		sys.trigger($klaxxon18);
+		sys.trigger($klaxxon19);
+		sys.trigger($klaxxon20);
+		sys.trigger($klaxxon21);
+		sys.trigger($klaxxon22);
+		sys.trigger($klaxxon23);
+		sys.trigger($klaxxon24);
+		sys.trigger($klaxxon25);
+		sys.trigger($klaxxon26);
+		sys.trigger($func_rotating_1);
+		sys.trigger($func_rotating_2);
+		sys.trigger($func_rotating_3);
+		sys.trigger($func_rotating_8);
+		sys.trigger($func_rotating_9);
+		sys.trigger($func_rotating_10);
+		sys.trigger($func_rotating_11);
+		sys.trigger($func_rotating_12);
+		sys.trigger($func_rotating_13);
+		sys.trigger($speaker_995);
+	}
+	
+	void alarm_volume()
+	{
+		$speaker_995.fadeSound (SND_CHANNEL_ANY, -5, 10);
+	}
+	
+	void alarm_volume2()
+	{
+		$speaker_995.fadeSound (SND_CHANNEL_ANY, -9, 10);
+	}	
+
+	void power_switch()		
+	{
+		sys.trigger($emerg_switch_sp);
+		$power_reset_switch.move(-1, 8);
+
+		sys.wait(1.5);
+
+		sys.trigger($power_station_speaker_start_1);
+		sys.wait(2.75);
+		sys.trigger($power_up_sp);
+		sys.trigger($power_station_speaker_loop_1);		
+	}
+
+	void TriggerInfluence1()
+	{
+		if(goInfluenceLoop == 1)
+			sys.trigger($target_setinfluence_1);
+	}
+
+	void InfluenceLoop()
+	{
+		while(goInfluenceLoop == 1)
+		{
+			TriggerInfluence1();
+			sys.wait(1);
+			TriggerInfluence1();
+			sys.wait(1.5);
+			TriggerInfluence1();
+			sys.wait(.75);
+			TriggerInfluence1();
+			sys.wait(.25);
+			TriggerInfluence1();
+			sys.wait(2.25);
+			TriggerInfluence1();
+			sys.wait(.25);
+			TriggerInfluence1();
+			sys.wait(.75);
+		}
+	}
+	
+	void quake_emergencylights()	
+	{			
+		sys.trigger($light_64833);
+		sys.trigger($light_64832);
+		sys.trigger($light_64834);
+		sys.trigger($light_64831);
+		sys.trigger($light_64830);
+		sys.trigger($light_64829);
+		sys.trigger($light_64828);
+		sys.trigger($light_64827);
+		sys.trigger($light_64815);
+		sys.trigger($light_64809);
+		sys.trigger($light_64810);
+		sys.trigger($light_64816);
+		sys.trigger($light_64817);
+		sys.trigger($light_64818);
+		sys.trigger($light_64819);
+		sys.trigger($light_64820);
+		sys.trigger($light_64839);
+		sys.trigger($light_64842);
+		sys.trigger($light_64844);
+		sys.trigger($light_64843);
+		sys.trigger($light_64840);
+		sys.trigger($light_64841);
+		sys.trigger($light_64849);
+		sys.trigger($light_64850);
+		sys.trigger($light_64851);
+		sys.trigger($light_64852);
+		sys.trigger($light_64845);
+		sys.trigger($light_64846);
+		sys.trigger($light_64847);
+		sys.trigger($light_64848);
+		sys.trigger($light_64857);
+		sys.trigger($light_64856);
+		sys.trigger($light_64858);
+		sys.trigger($light_64855);
+		sys.trigger($light_64865);
+		sys.trigger($light_64866);
+		sys.trigger($light_64863);
+		sys.trigger($light_64864);
+		sys.trigger($light_64859);
+		sys.trigger($light_64837);
+		sys.trigger($light_64860);
+		sys.trigger($light_64862);
+		sys.trigger($light_64861);
+		sys.trigger($light_64853);
+		sys.trigger($light_64854);
+		sys.trigger($light_64835);
+		sys.trigger($light_64836);
+		sys.trigger($light_64838);
+		sys.trigger($emerg_switch_sp);
+		sys.wait(1);
+		sys.trigger($klaxxon1);
+		sys.trigger($klaxxon2);
+		sys.trigger($klaxxon3);
+		sys.trigger($klaxxon4);
+		sys.trigger($klaxxon5);
+		sys.trigger($klaxxon6);
+		sys.trigger($klaxxon15);
+		sys.trigger($klaxxon16);
+		sys.trigger($klaxxon17);
+		sys.trigger($klaxxon18);
+		sys.trigger($klaxxon19);
+		sys.trigger($klaxxon20);
+		sys.trigger($klaxxon21);
+		sys.trigger($klaxxon22);
+		sys.trigger($klaxxon23);
+		sys.trigger($klaxxon24);
+		sys.trigger($klaxxon25);
+		sys.trigger($klaxxon26);
+		sys.trigger($func_rotating_1);
+		sys.trigger($func_rotating_2);
+		sys.trigger($func_rotating_3);
+		sys.trigger($func_rotating_8);
+		sys.trigger($func_rotating_9);
+		sys.trigger($func_rotating_10);
+		sys.trigger($func_rotating_11);
+		sys.trigger($func_rotating_12);
+		sys.trigger($func_rotating_13);
+	}
+	
+	void first_lockdown()
+	{
+		$func_door_2090.lock(2);
+		$func_door_2091.lock(2);
+		$func_door_2225.lock(2);
+		$func_door_1939.lock(2);
+		$func_door_1938.lock(2);
+		$func_door_2093.lock(2);
+		$func_door_2078.lock(2);
+	}
+	
+	void wolfegg()
+	{			
+		$wolfdoor.open();
+		sys.waitFor($wolfdoor);
+		sys.trigger($wolfspeaker);
+		sys.trigger($wolfluence);			
+	}
+
+	void showTextWait(string text, float waitTime)
+	{
+		$func_static_83451.setGuiParm("gui_parm1", text);
+		$func_static_83451.setGuiParm("gui_parm2", 0);
+		sys.trigger($func_static_83451);
+
+		sys.wait(2);
+
+		sys.wait(waitTime);
+
+		$func_static_83451.setGuiParm("gui_parm2", 1);
+		sys.trigger($func_static_83451);
+
+		sys.wait(1);
+	}
+	
+	//===========================================
+	// START CHECKPOINTS
+	//===========================================
+	
+	void poweron_checkpoint()
+	{
+		sys.quickSave("They Had Other Plans - Checkpoint 1");
+	}
+	
+	void postgasleak_checkpoint()
+	{
+		sys.quickSave("They Had Other Plans - Checkpoint 3");
+	}
+	
+	void prepainelemental_checkpoint()
+	{
+		sys.quickSave("They Had Other Plans - Checkpoint 4");
+	}
+	
+	void postpainelemental_checkpoint()
+	{
+		sys.quickSave("They Had Other Plans - Checkpoint 5");
+	}
+	
+	//===========================================
+	// END CHECKPOINTS
+	//===========================================
+		
+		
+	//===========================================
+	// RANDOM MONSTER SPAWNS
+	//===========================================		
+	
+	void select_monsterconfig(float encounterNum)
+	{
+		float monsterselect;
+		entity monster_config_a = sys.getEntity("monster_config_a" + encounterNum);
+		entity monster_config_b = sys.getEntity("monster_config_b" + encounterNum);
+
+
+		while (1)
+		{
+			monsterselect = sys.random(15);
+		
+				if (monsterselect <= 8){
+					sys.trigger (monster_config_a);
+					//sys.println("monster_configa" + encounterNum + "selected");
+					sys.wait(.5);
+				} else {
+					sys.trigger (monster_config_b);
+					//sys.println("monster_configb" + encounterNum + "selected");
+					sys.wait(.5);
+				} 
+		}
+	}
+	
+	void select_monsterconfig2()
+	{
+		select_monsterconfig(2);
+	}		
+	
+	void select_monsterconfig3()
+	{
+		select_monsterconfig(3);
+	}	
+	
+	void select_monsterconfig4()
+	{
+		select_monsterconfig(4);
+	}	
+	
+	void select_monsterconfig5()
+	{
+		select_monsterconfig(5);
+	}		
+	
+	void select_monsterconfig6()
+	{
+		select_monsterconfig(6);
+	}	
+	
+	void select_monsterconfig7()
+	{
+		select_monsterconfig(7);
+	}	
+	
+	void select_monsterconfig8()
+	{
+		select_monsterconfig(8);
+	}		
+	
+	void select_monsterconfig9()
+	{
+		select_monsterconfig(9);
+	}	
+	
+	void select_monsterconfig10()
+	{
+		select_monsterconfig(10);
+	}	
+	
+	void select_monsterconfig11()
+	{
+		select_monsterconfig(11);
+	}		
+	
+	void select_monsterconfig12()
+	{
+		select_monsterconfig(12);
+	}	
+	
+	void select_monsterconfig13()
+	{
+		select_monsterconfig(13);
+	}	
+	
+	void kill_monster_selection2()
+	{sys.killthread ("map_e1m3::select_monsterconfig2");}
+
+	void kill_monster_selection3()
+	{sys.killthread ("map_e1m3::select_monsterconfig3");}	
+
+	void kill_monster_selection4()
+	{sys.killthread ("map_e1m3::select_monsterconfig4");}	
+
+	void kill_monster_selection5()
+	{sys.killthread ("map_e1m3::select_monsterconfig5");}
+
+	void kill_monster_selection6()
+	{sys.killthread ("map_e1m3::select_monsterconfig6");}	
+
+	void kill_monster_selection7()
+	{sys.killthread ("map_e1m3::select_monsterconfig7");}	
+
+	void kill_monster_selection8()
+	{sys.killthread ("map_e1m3::select_monsterconfig8");}
+
+	void kill_monster_selection9()
+	{sys.killthread ("map_e1m3::select_monsterconfig9");}	
+
+	void kill_monster_selection10()
+	{sys.killthread ("map_e1m3::select_monsterconfig10");}		
+
+	void kill_monster_selection11()
+	{sys.killthread ("map_e1m3::select_monsterconfig11");}
+
+	void kill_monster_selection12()
+	{sys.killthread ("map_e1m3::select_monsterconfig12");}	
+
+	void kill_monster_selection13()
+	{sys.killthread ("map_e1m3::select_monsterconfig13");}			
+	
+	void monsterconfig1()
+	{
+		float monsterselect1;
+
+		while (1)
+		{
+			monsterselect1 = sys.random(15);
+		
+				if (monsterselect1 <= 5){
+					sys.trigger ($monster_config1);
+					sys.println("monster_config1 selected");
+					sys.wait(.5);
+				} else if (monsterselect1 >= 11){
+					sys.trigger ($monster_config2);
+					sys.println("monster_config2 selected");
+					sys.wait(.5);
+				} 
+				  else {
+					sys.trigger ($monster_config3);
+					sys.println("monster_config3 selected");
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_monster_selection1()
+	{
+		sys.killthread ("map_e1m3::monsterconfig1");
+	}	
+	
+	//===========================================
+	// END RANDOM MONSTER SPAWNS
+	//===========================================
+	
+	void main()
+	{
+		sys.trigger($trigger_count_9);
+		
+		thread select_monsterconfig2();
+		thread select_monsterconfig3();
+		
+		sys.wait(15);
+		
+		thread select_monsterconfig4();
+		thread select_monsterconfig5();
+		
+		sys.wait(30);
+		
+		thread monsterconfig1();
+		thread select_monsterconfig6();
+		thread select_monsterconfig7();
+		thread select_monsterconfig10();
+		
+		sys.wait(10);
+		
+		thread select_monsterconfig8();
+		thread select_monsterconfig9();
+		
+		sys.wait(7);
+		
+		thread select_monsterconfig11();
+		thread select_monsterconfig12();
+		thread select_monsterconfig13();
+		
+		$outro_alarmclock.rotateOnce('0 -35 0');
+		$outro_signthing.rotateOnce('0 25 0');
+		$outro_phone_model.rotateOnce('0 -15 0');
+	}	
+
+	float musicRequest = 0;
+	float musicState = 0;
+	float currentBeat = 0;	
+
+	void MusicProg()
+	{
+		float waitTime = GAME_FRAMETIME;
+		musicState = 0;
+
+		currentBeat = $m3_action_music_speaker1.startSoundShader("e1m3_idle_loop", SND_CHANNEL_ANY);
+		while(musicRequest == 1)
+		{			
+			sys.wait(currentBeat);
+		}
+
+		$m3_action_music_speaker1.fadeSound(SND_CHANNEL_ANY, -60, 5);
+		currentBeat = $m3_action_music_speaker2.startSoundShader("e1m3_idle_to_action_long", SND_CHANNEL_ANY);
+		sys.wait(currentBeat);
+		
+		currentBeat = $m3_action_music_speaker3.startSoundShader("e1m3_action_idle_loop", SND_CHANNEL_ANY);		
+		while(musicRequest == 2 || musicState == 0)
+		{
+			sys.wait(currentBeat);
+			musicState = 1;
+		}
+
+		currentBeat = $m3_action_music_speaker4.startSoundShader("e1m3_action_idle_normal_transition", SND_CHANNEL_ANY);
+		
+		$m3_action_music_speaker3.fadeSound(SND_CHANNEL_ANY, -60, 5);
+		sys.wait(currentBeat);
+		currentBeat = $m3_action_music_speaker5.startSoundShader("e1m3_action_normal_loop", SND_CHANNEL_ANY);
+		while(musicRequest == 3 || musicState == 1)
+		{
+			sys.wait(currentBeat);
+			musicState = 2;
+		}
+
+		$m3_action_music_speaker5.fadeSound(SND_CHANNEL_ANY, -60, 8);
+		sys.wait(.25);
+		currentBeat = $m3_action_music_speaker6.startSoundShader("e1m3_action_ending", SND_CHANNEL_ANY);		
+
+		sys.wait(5);
+		$m3_action_music_speaker1.stopSound(SND_CHANNEL_ANY, false);
+		$m3_action_music_speaker2.stopSound(SND_CHANNEL_ANY, false);
+		$m3_action_music_speaker3.stopSound(SND_CHANNEL_ANY, false);
+		$m3_action_music_speaker4.stopSound(SND_CHANNEL_ANY, false);
+		$m3_action_music_speaker5.stopSound(SND_CHANNEL_ANY, false);		
+
+		/*
+		while(1)
+		{
+			//sys.print("LOOP START -> MState: " + musicState);
+
+			if(musicState == 1)
+			{
+				currentBeat = $m3_action_music_speaker1.startSoundShader("e1m3_idle_loop", SND_CHANNEL_ANY);
+				musicState++;
+			}
+			else if(musicState == 3)
+			{
+				$m3_action_music_speaker1.fadeSound(SND_CHANNEL_ANY, -60, 5);
+				currentBeat = $m3_action_music_speaker2.startSoundShader("e1m3_idle_to_action_long", SND_CHANNEL_ANY);				
+				musicState++;
+			}
+			else if(musicState == 4)
+			{
+				$m3_action_music_speaker1.stopSound(SND_CHANNEL_ANY, false);
+				sys.wait(1);
+				currentBeat = $m3_action_music_speaker3.startSoundShader("e1m3_action_idle_loop", SND_CHANNEL_ANY);
+				musicState++;
+			}
+			else if(musicState == 6)						
+			{
+				currentBeat = $m3_action_music_speaker4.startSoundShader("e1m3_action_idle_normal_transition", SND_CHANNEL_ANY);				
+								
+				$m3_action_music_speaker3.fadeSound(SND_CHANNEL_ANY, -60, 5);
+				sys.wait(currentBeat);
+				currentBeat = $m3_action_music_speaker5.startSoundShader("e1m3_action_normal_loop", SND_CHANNEL_ANY);
+				musicState++;
+			}
+			else if(musicState == 8)
+			{
+				$m3_action_music_speaker5.fadeSound(SND_CHANNEL_ANY, -60, 8);
+				sys.wait(1);
+				currentBeat = $m3_action_music_speaker6.startSoundShader("e1m3_action_ending", SND_CHANNEL_ANY);
+				musicState++;
+
+				sys.wait(5);
+				$m3_action_music_speaker5.stopSound(SND_CHANNEL_ANY, false);
+				break;
+			}			
+			sys.wait(currentBeat);
+		}
+		*/
+	}
+
+	void MusicProgInc()
+	{
+		musicRequest++;
+		/*if(musicRequest == 1)
+		{
+			thread MusicProg();
+		}*/
+	}
+}

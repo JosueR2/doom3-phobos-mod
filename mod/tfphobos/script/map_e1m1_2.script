@@ -1,0 +1,758 @@
+﻿namespace map_e1m1_2
+{
+	float COLD = 0;
+	float STARTUP = 1;
+	float SLOWDOWN = 2;
+	float STARTANDSTOP = 3;
+
+	float STATIONRIGHT = 1;
+	float STATIONLEFT = 2;
+	float STATIONBOTH = 3;
+
+	float TRAIN_SPEED_FAST = 550;
+	float TRAIN_SPEED_SLOW = 117.25;
+
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m1_2(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+	
+	void IntercomSmokeFreeSub()
+	{
+		ShowNPCSubtitles("Ap", "Mars City is a smoke free facility. Please smoke only in the designated areas.\nThank you for your coorporation.", 7.25);
+	}
+
+	void IntercomCreditsSub()
+	{
+		ShowNPCSubtitles("AP", "Attention UAC Personnel.\nInterested in earning more credits?", 5);
+		ShowNPCSubtitles("AP", "Volunteer at Delta Labs today.\nSee your service branch director for more details.", 6);
+	}
+	
+	void WhatsGoingOnHereSub()
+	{
+		ShowNPCSubtitles("Sam", "What's going on here?", 2);
+		sys.wait(8);
+		ShowNPCSubtitles("AP", "Arriving at....Recreation...", 7);
+	}
+	
+	void IGuessIMetYourHostilesSub()
+	{
+		ShowNPCSubtitles("Sam", "I guess I met your hostiles Samantha.", 2);
+	}
+	
+	void HolyShitSub()
+	{
+		ShowNPCSubtitles("Sam", "Holy shit!", 2);
+	}
+	
+	void ThisIsBadSub()
+	{
+		ShowNPCSubtitles("Sam", "This is bad. This is so bad!", 2);
+	}
+
+	void CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+
+	float CharacterSays2(entity characterEntity, string line)
+	{
+		return characterEntity.startSoundShader(line, SND_CHANNEL_ANY);
+	}
+	
+	void CharacterSaysInterupt(entity characterEntity, string line, float interrupt)
+    {
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY) - interrupt);
+    }
+
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}
+
+	float firstSpline = 0;
+
+	void MoveTrainSpline(entity train, entity speaker, entity speaker2, entity brakes, float distance, float desiredSpeed, float moveType, entity spline, float gl)
+	{		
+		float adTime = 5.546f;
+
+		if(gl == 1)
+			adTime = 2;
+
+		float acceleration = desiredSpeed / adTime;
+		
+		float accel = 0;
+		float decel = 0;
+
+		float totalAdTime = 0;
+		float distanceTraveled = 0.0f;
+
+		float adDis = 0.5f * acceleration * adTime * adTime;
+
+		if( moveType == STARTUP || moveType == STARTANDSTOP )
+		{
+			train.accelTime(adTime);
+			accel = 1;
+			distanceTraveled += adDis;
+			totalAdTime += adTime;
+		}
+		else
+			train.accelTime(0);
+
+		if( moveType == SLOWDOWN || moveType == STARTANDSTOP )		
+		{
+			train.decelTime(adTime);
+			decel = 1;
+			distanceTraveled += adDis;
+			totalAdTime += adTime;
+		}
+		else
+			train.decelTime(0);		
+
+		float remainingDistance  = distance-distanceTraveled;
+		float remainingTime = remainingDistance / desiredSpeed;
+		float moveTime = totalAdTime + remainingTime;
+
+		if(gl == 1)
+		{
+			moveTime = 16;
+			remainingTime = 12;
+		}		
+
+		train.time(moveTime);
+				if(gl == 1)
+			train.disableSplineAngles();
+
+		train.startSpline(spline);
+		if(firstSpline == 0)
+			train.removeInitialSplineAngles();
+		
+		firstSpline++;
+
+		float spentTime = 0;
+
+		if(accel == 1)
+		{
+			speaker.startSoundShader("sound/shav/general/pfft.ogg", SND_CHANNEL_BODY);
+			speaker2.stopSound(SND_CHANNEL_BODY2, false);
+			sys.wait(speaker.startSoundShader("sound/shav/e1m1/train_speedup.ogg", SND_CHANNEL_BODY2) - 0.2);
+		}
+
+		speaker2.startSoundShader("sound/shav/e1m1/train_travel.ogg", SND_CHANNEL_BODY2);
+		
+		if(remainingTime > 0.2)
+		{			
+			sys.wait(remainingTime + 0.2);
+		}
+
+		if(decel == 1 && gl == 0)
+		{		
+			speaker2.stopSound(SND_CHANNEL_BODY2, false);
+			sys.trigger(brakes);
+			sys.wait(speaker.startSoundShader("sound/shav/e1m1/train_slowdown.ogg", SND_CHANNEL_BODY2) - 0.2);
+			speaker.startSoundShader("sound/shav/general/pfft.ogg", SND_CHANNEL_BODY);
+			sys.wait(.1);
+			speaker2.startSoundShader("sound/shav/e1m1/train_idle.ogg", SND_CHANNEL_BODY2);
+		}		
+
+		sys.waitFor(train);
+	}
+
+	void RotateTrain(entity anchor, vector rotation)
+	{
+		$Looptrain1.bind(anchor);
+		anchor.rotateOnce(rotation);
+		sys.waitFor(anchor);
+		$Looptrain1.unbind();		
+	}
+	
+	void DockTrain(float stationSide)
+	{
+		// Open Doors
+		if( stationSide == STATIONLEFT || stationSide == STATIONBOTH)
+		{
+			$Looptrain1_OuterDoor1.open();
+		}
+
+		if( stationSide == STATIONRIGHT || stationSide == STATIONBOTH)
+		{
+			$Looptrain1_OuterDoor2.open();			
+		}		
+	}
+
+	void DisembarkTrain(float stationSide)
+	{
+		// Close Doors
+		if( stationSide == STATIONLEFT || stationSide == STATIONBOTH)
+		{
+			$Looptrain1_OuterDoor1.close();			
+		}
+
+		if( stationSide == STATIONRIGHT || stationSide == STATIONBOTH)
+		{
+			$Looptrain1_OuterDoor2.close();
+		}
+
+		sys.wait(3);
+	}
+
+	void StartRail()
+	{
+		$train_button.move(90, 1);
+		$train_button.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+		sys.waitFor($train_button);
+		sys.wait(.125);
+		$train_button.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+		$train_button.move(270, 1);
+		
+		DisembarkTrain(STATIONRIGHT);
+		
+		sys.wait(0.1);
+
+		thread ShowNPCSubtitles("AP", "Train leaving station.", 2.1);
+		sys.wait(CharacterSays2($train_speaker_announcer, "sound/vo/e1m1/IntercomTrainLeavingStation.ogg"));
+
+		sys.wait(.25);
+		entity train = sys.getEntity("Looptrain1");
+		entity speaker = sys.getEntity("train_speaker");
+		entity speaker2 = sys.getEntity("train_speaker2");
+		entity brakes = sys.getEntity("train_brakes");
+		
+		firstSpline = 0;
+		MoveTrainSpline(train, speaker, speaker2, brakes, 1504+509.117+400+1064+75.36+75.36+376.8, TRAIN_SPEED_SLOW, STARTANDSTOP,$spline_administration1,0);
+		
+		sys.wait(1);
+		sys.trigger($gaylevatorv2_alert);
+		sys.trigger($gaylevatorv2_light01);
+		sys.trigger($gaylevatorv2_blink01);
+		sys.trigger($gaylevatorv2_light02);
+		sys.trigger($gaylevatorv2_blink02);
+
+		sys.wait(3);
+		
+		thread MoveTrainSpline(train, speaker, speaker2, brakes, 384, TRAIN_SPEED_FAST, STARTANDSTOP, $spline_administration2,1);
+		$gaylevatorv2.move(DOWN, 384);
+		sys.waitFor($gaylevatorv2);
+
+		sys.wait(1);
+		
+		sys.trigger($gaylevatorv2_alert);
+		sys.trigger($gaylevatorv2_light01);
+		sys.trigger($gaylevatorv2_blink01);
+		sys.trigger($gaylevatorv2_light02);
+		sys.trigger($gaylevatorv2_blink02);
+		
+		MoveTrainSpline(train, speaker, speaker2, brakes, 5176, TRAIN_SPEED_FAST, STARTANDSTOP, $spline_administration3,0);
+		DockTrain(STATIONRIGHT);
+	}
+
+	void AnnounceTrainAdmin()
+	{
+		thread ShowNPCSubtitles("AP", "Arriving at Administration.", 3.25);
+		sys.wait(CharacterSays2($train_speaker_announcer, "sound/vo/e1m1/IntercomTrainArrivingAt.ogg"));
+		sys.wait(.25);
+		sys.wait(CharacterSays2($train_speaker_announcer, "sound/vo/e1m1/IntercomTrainAdministration.ogg"));
+		sys.wait(1);
+		sys.quickSave("Stranger in a Strange Land - Checkpoint 3");
+	}
+
+	void IntroTrain()
+	{
+		sys.trigger($speaker_1091);
+		
+		sys.fadeIn('0 0 0', 3.25);
+		
+		$commscreen_online.show();
+		
+		sys.wait(5.25);
+
+		sys.trigger($func_earthquake_1);
+		
+		sys.wait(.5);
+		
+		$commscreen_online.hide();
+		
+		sys.fadeOut('0 0 0', .25);
+		
+		sys.wait(4.25);
+		
+		$commscreen_online.show();
+		sys.fadeIn('0 0 0', 3.25);
+
+		sys.wait(4);
+		
+		sys.trigger($radiocaller);
+		sys.trigger($train_radio_blinker_tex);
+		sys.trigger($train_radio_blinker_light);
+		$Comm_Holder.setKey ("click_item", "1");
+	}
+
+	float basketBallState = 0;
+
+	void BasketBallIn()
+	{
+		basketBallState = 1;
+	}
+
+	void BasketBallOut()
+	{
+		basketBallState = 0;
+	}
+
+	float scoreCycleState = 0;
+	
+	void ScoreLight_Glow(string team, float lightNum)
+	{		
+		entity dust = sys.getEntity("scorelight_" + team + "_dust_" + lightNum);
+		entity flare = sys.getEntity("scorelight_" + team + "_flare_" + lightNum);
+		entity light = sys.getEntity("scorelight_" + team + "_light_" + lightNum);
+		entity texOn = sys.getEntity("scorelight_" + team + "_tex_on_" + lightNum);
+		entity texOff = sys.getEntity("scorelight_" + team + "_tex_off_" + lightNum);
+
+		dust.show();
+		light.show();
+		flare.show();
+		texOn.show();
+		texOff.hide();
+
+		sys.wait(.125);
+
+		dust.hide();
+		light.hide();
+		flare.hide();
+		texOn.hide();
+		texOff.show();
+	}
+
+	void ScoreLight_Cycle(string team, float iterations)
+	{
+		if(scoreCycleState == 0)
+		{
+			scoreCycleState = 1;		
+			thread crossFadeEnt ($bball_court_light_1, '0.49 0.54 0.61', '0.12 0.14 0.15', .5);
+			thread crossFadeEnt ($bball_court_light_2, '0.49 0.54 0.61', '0.12 0.14 0.15', .5);
+			thread crossFadeEnt ($bball_court_light_3, '0.49 0.54 0.61', '0.12 0.14 0.15', .5);
+			thread crossFadeEnt ($bball_court_light_4, '0.49 0.54 0.61', '0.12 0.14 0.15', .5);
+
+			float i = 0;
+		
+			while(i < iterations)
+			{
+				float l = 1;
+
+				while(l < 10)
+				{
+					thread ScoreLight_Glow(team, l);
+					sys.wait(.05);
+					l++;
+				}
+				i++;
+			}
+
+			thread crossFadeEnt ($bball_court_light_1, '0.12 0.14 0.15', '0.49 0.54 0.61', .5);
+			thread crossFadeEnt ($bball_court_light_2, '0.12 0.14 0.15', '0.49 0.54 0.61', .5);
+			thread crossFadeEnt ($bball_court_light_3, '0.12 0.14 0.15', '0.49 0.54 0.61', .5);
+			crossFadeEnt ($bball_court_light_4, '0.12 0.14 0.15', '0.49 0.54 0.61', .5);
+
+			scoreCycleState = 0;
+		}
+	}
+
+	float blueScoreMajor = 0;
+	float blueScoreMinor = 0;
+
+	void ScorePointBlue()
+	{
+		thread ScoreLight_Cycle("blue", 16);
+		blueScoreMinor++;
+
+		if(blueScoreMinor == 10)
+		{	
+			blueScoreMinor = 0;
+			blueScoreMajor++;
+		}
+
+		float digit = 0;
+		while(digit < 10)
+		{
+			sys.getEntity("scoreboard_blue_" + digit).hide();
+			sys.getEntity("scoreboard_blue_0_" + digit).hide();
+
+			digit++;
+		}
+
+		sys.getEntity("scoreboard_blue_" + blueScoreMajor).show();
+		sys.getEntity("scoreboard_blue_0_" + blueScoreMinor).show();
+	}
+
+	float redScoreMajor = 0;
+	float redScoreMinor = 0;
+
+	void ScorePointRed()
+	{
+		thread ScoreLight_Cycle("red", 16);
+		redScoreMinor++;
+
+		if(redScoreMinor == 10)
+		{	
+			redScoreMinor = 0;
+			redScoreMajor++;
+		}
+
+		float digit = 0;
+		while(digit < 10)
+		{
+			sys.getEntity("scoreboard_red_" + digit).hide();
+			sys.getEntity("scoreboard_red_0_" + digit).hide();
+
+			digit++;
+		}
+
+		sys.getEntity("scoreboard_red_" + redScoreMajor).show();
+		sys.getEntity("scoreboard_red_0_" + redScoreMinor).show();
+	}
+	
+	void cokemachine_fall()
+	{
+		$cokemachine_swing.accelTime (.4);
+        $cokemachine_swing.time (.5);
+        $cokemachine_swing.rotateOnce ('0 0 90');
+        sys.waitFor ($cokemachine_swing);
+		sys.trigger($cokemachine_slam);
+		sys.trigger($cokemachine_dust);
+                
+        $cokemachine_swing.accelTime (.05);
+        $cokemachine_swing.time (.05);
+        $cokemachine_swing.rotateOnce ('0 0 -4');
+        sys.waitFor ($cokemachine_swing);
+        $cokemachine_swing.rotateOnce ('0 0 4');
+        sys.waitFor ($cokemachine_swing);
+
+        $cokemachine_swing.time (.05);
+        $cokemachine_swing.rotateOnce ('0 0 -2');
+        sys.waitFor ($cokemachine_swing);
+        $cokemachine_swing.rotateOnce ('0 0 2');
+	}
+
+	void EnterStation()
+	{
+		sys.wait(.75);
+		sys.trigger($speaker_1020);
+	}
+	
+	void Miles2Sub()
+	{
+		PhobosShowSubtitle_e1m1_2("Miles", "We've got hostiles! We're encountering heavy resistance from an unknown source.\nOn Mars and on Phobos.");
+		
+		sys.wait(6);
+		
+		PhobosShowSubtitle_e1m1_2("Miles", "We currently don't have a precise origin of the attack.");
+		
+		sys.wait(3.5);
+		
+		PhobosShowSubtitle_e1m1_2("Miles", "But we suspect the controversy surrounding the Union Aerospace owned Delta labs to have played a major part.");
+				
+		sys.wait(5);
+				
+		PhobosShowSubtitle_e1m1_2("Miles", "As a high ranking officer, my situation has changed.\nBut yours doesn't have to.");		
+		
+		sys.wait(5.5);
+		
+		PhobosShowSubtitle_e1m1_2("Miles", "I have arranged for your transportation to the Bulwark.");
+		
+		sys.wait(2);
+		
+		PhobosShowSubtitle_e1m1_2("Miles", "A shuttle will be awaiting your arrival.\nThe pilot, Frank, is an old friend of mine.");
+	}
+	
+	void Miles3Sub()
+	{
+		PhobosShowSubtitle_e1m1_2("Miles", "The Hostiles! They're unlike anything I've ever seen.\nI...I must admit I'm in shock of this whole situation.");
+		
+		sys.wait(8);
+		
+		PhobosShowSubtitle_e1m1_2("Miles", "We were suspicious of their efforts...and...commitment to...\nBut nothing like this.");
+		
+		sys.wait(5.5);
+		
+		PhobosShowSubtitle_e1m1_2("Miles", "I mean the scale. It's insane!");
+	}
+	
+	void Miles4Sub()
+	{
+		PhobosShowSubtitle_e1m1_2("Miles", "I'm sorry. I can't answer all your questions right now.");
+		
+		sys.wait(3);
+		
+		PhobosShowSubtitle_e1m1_2("Miles", "All you need to know is. Shoot on sight.\nYou will know when you see them.");
+		
+		sys.wait(6);
+		
+		PhobosShowSubtitle_e1m1_2("Miles", "I'm currently transferring to our flagship, but please.\nPlease contact me later. When you can.");
+		
+		sys.wait(6.25);
+		
+		PhobosShowSubtitle_e1m1_2("Miles", "And Sam.");
+	}
+
+	void AnswerCall()
+	{
+		sys.trigger($radiocaller);
+
+		entity radio = sys.getEntity("comm_snapin");
+		entity playerC = sys.getEntity("player1");
+
+		playerC.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+
+		$commscreen_online.hide();
+		sys.wait(.1);
+		$commscreen_radio.setGuiParm("gui_parm41", 1);
+		sys.trigger($commscreen_radio);
+		$commscreen_radio.show();
+
+		sys.trigger($train_radio_blinker_tex);
+		sys.trigger($train_radio_blinker_light);
+		
+		sys.wait(2);
+		
+		PhobosShowSubtitle_e1m1_2("Miles", "Sam!");
+		CharacterSays(radio, "sound/vo/e1m1_2/MilesCall1/Miles1.ogg");		
+		
+		Beat(.25);
+		
+		PhobosShowSubtitle_e1m1_2("Sam", "Miles! What's going on?");
+		CharacterSays(playerC, "sound/vo/e1m1_2/MilesCall1/Player1.ogg");
+		
+		Beat(.75);
+		
+		thread Miles2Sub();		
+		sys.wait(CharacterSays2(radio, "sound/vo/e1m1_2/MilesCall1/Miles2.ogg") - .5f);
+		
+		PhobosShowSubtitle_e1m1_2("Sam", "Frank who? Wait. Hostiles?\nWhoa whoa you're going a mile a minute.");
+		CharacterSays(playerC, "sound/vo/e1m1_2/MilesCall1/Player2.ogg");
+		
+		Beat(.5);
+		
+		thread Miles3Sub();		
+		CharacterSays(radio, "sound/vo/e1m1_2/MilesCall1/Miles3.ogg");
+		
+		Beat(.25);
+		
+		sys.trigger($stranger_speaker);
+		
+		PhobosShowSubtitle_e1m1_2("Sam", "Wait. What are you talking about?\nWhat's going on?");
+		CharacterSays(playerC, "sound/vo/e1m1_2/MilesCall1/Player3.ogg");
+		
+		Beat(.5);
+		
+		thread Miles4Sub();		
+		CharacterSays(radio, "sound/vo/e1m1_2/MilesCall1/Miles4.ogg");
+		
+		Beat(.25);
+		
+		PhobosShowSubtitle_e1m1_2("Sam", "I...");
+		CharacterSays(playerC, "sound/vo/e1m1_2/MilesCall1/Player4.ogg");
+		
+		Beat(.05);
+		
+		thread ShowNPCSubtitles("Miles", "Stay safe!", 2);
+		CharacterSays(radio, "sound/vo/e1m1_2/MilesCall1/Miles5.ogg");
+		
+		Beat(.25);
+		
+		playerC.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+		
+		Beat(.25);
+		$commscreen_radio.hide();
+		$commscreen_offline.show();
+		sys.trigger($comm_snapin);
+		Beat(1.25);
+
+		thread ShowNPCSubtitles("Sam", "Great. That's just fantastic.\nSamantha how are you?", 4);
+		CharacterSays(playerC, "sound/vo/e1m1_2/MilesCall1/Player5.ogg");
+		
+		sys.wait(3);
+
+		CharacterSays2(playerC, "sound/shav/e1m1/powerfuck.ogg");		
+
+		float lTime = .25;
+		
+		thread crossFadeEnt ($rail_intro_tunnel_light_1, '0 0 0', '0.043137 0.05098 0.062745', lTime);
+		thread crossFadeEnt ($rail_intro_light_1, '0 0 0', '1 0.45 0', lTime);
+		thread crossFadeEnt ($rail_intro_light_2, '0 0 0', '1 0.45 0', lTime);
+		thread crossFadeEnt ($rail_intro_fixture_1, '0 0 0', '1 0.9608 0.2235', lTime);
+		thread crossFadeEnt ($rail_intro_fixture_2, '0 0 0', '1 0.9608 0.2235', lTime);
+		sys.trigger($rail_intro_fx_1);
+		sys.trigger($rail_intro_fx_2);
+		
+		sys.wait(.125);
+		
+		thread crossFadeEnt ($rail_tunnel_over_train_tex, '0 0 0', '1 1 1', lTime);
+		thread crossFadeEnt ($rail_tunnel_over_train_light, '0 0 0', '0.58 0.62 0.71', lTime);
+		thread crossFadeEnt ($rail_intro_tunnel_light_2, '0 0 0', '0.043137 0.05098 0.062745', lTime);
+		thread crossFadeEnt ($rail_intro_light_3, '0 0 0', '1 0.45 0', lTime);
+		thread crossFadeEnt ($rail_intro_light_4, '0 0 0', '1 0.45 0', lTime);
+		thread crossFadeEnt ($rail_intro_fixture_3, '0 0 0', '1 0.9608 0.2235', lTime);
+		thread crossFadeEnt ($rail_intro_fixture_4, '0 0 0', '1 0.9608 0.2235', lTime);
+		sys.trigger($rail_intro_fx_3);
+		sys.trigger($rail_intro_fx_4);
+
+		sys.wait(.75);
+
+		thread crossFadeEnt ($rail_intro_tunnel_light_3, '0 0 0', '0.043137 0.05098 0.062745', lTime);
+		thread crossFadeEnt ($rail_intro_light_5, '0 0 0', '1 0.45 0', lTime);
+		thread crossFadeEnt ($rail_intro_light_6, '0 0 0', '1 0.45 0', lTime);
+		thread crossFadeEnt ($rail_intro_fixture_5, '0 0 0', '1 0.9608 0.2235', lTime);
+		thread crossFadeEnt ($rail_intro_fixture_6, '0 0 0', '1 0.9608 0.2235', lTime);
+		sys.trigger($rail_intro_fx_5);
+		sys.trigger($rail_intro_fx_6);
+
+		sys.wait(.75);
+
+		thread crossFadeEnt ($rail_intro_tunnel_light_4, '0 0 0', '0.043137 0.05098 0.062745', lTime);
+		thread crossFadeEnt ($rail_intro_light_7, '0 0 0', '1 0.45 0', lTime);
+		thread crossFadeEnt ($rail_intro_light_8, '0 0 0', '1 0.45 0', lTime);
+		thread crossFadeEnt ($rail_intro_fixture_7, '0 0 0', '1 0.9608 0.2235', lTime);
+		thread crossFadeEnt ($rail_intro_fixture_8, '0 0 0', '1 0.9608 0.2235', lTime);
+		sys.trigger($rail_intro_fx_7);
+		sys.trigger($rail_intro_fx_8);
+
+		sys.wait(1);
+		
+		thread crossFadeEnt ($rail_tunnel_door_tex_2, '0 0 0', '1 1 1', lTime);
+		thread crossFadeEnt ($rail_tunnel_door_light_2, '0 0 0', '1 0.94 0.63', lTime);
+		thread crossFadeEnt ($rail_tunnel_door_flare_2, '0 0 0', '0.466667 0.411765 0', lTime);
+		
+		sys.wait(1);
+
+		thread crossFadeEnt ($rail_tunnel_door_tex_1, '0 0 0', '1 1 1', lTime);
+		thread crossFadeEnt ($rail_tunnel_door_light_1, '0 0 0', '1 0.94 0.63', lTime);
+		thread crossFadeEnt ($rail_tunnel_door_flare_1, '0 0 0', '0.466667 0.411765 0', lTime);
+
+		sys.wait(2);
+		sys.trigger($rail_fx);
+
+		sys.wait(2);
+
+		sys.trigger($speaker_1010);
+		sys.trigger($st_train_speaker2);
+
+		MoveTrainSpline(sys.getEntity("StartTrain"), sys.getEntity("st_train_speaker"), sys.getEntity("st_train_speaker2"), sys.getEntity("st_train_brakes"), 1696, 120, STARTANDSTOP, $spline_start,0);
+		
+		sys.quickSave("Stranger in a Strange Land - Checkpoint 1");
+		sys.trigger($target_setinfluence_1);
+
+		$StartTrainDoor.open();
+	}
+
+	void TrafficLightFuck()
+	{
+		float tState = 0;
+
+		while(1)
+		{
+			float delay = sys.random(2) + .125;
+			sys.wait(delay);
+
+			if(tState == 0)
+			{
+				thread crossFadeEnt ($railtrack_signal_two_light_top, '.75 0 0', '0 0 0', .125);
+				thread crossFadeEnt ($railtrack_signal_two_lamp_top, '1 1 1', '0 0 0', .125);
+				thread crossFadeEnt ($railtrack_signal_two_flare_top, '.75 0 0', '0 0 0', .125);
+
+				sys.wait(.125);
+
+				thread crossFadeEnt ($railtrack_signal_two_light_bottom, '0 0 0', '0 .75 0', .125);
+				thread crossFadeEnt ($railtrack_signal_two_lamp_bottom, '0 0 0', '1 1 1', .125);
+				thread crossFadeEnt ($railtrack_signal_two_flare_bottom, '0 0 0', '0 .75 0', .125);
+
+				sys.wait(.125);
+			}
+			else
+			{
+				thread crossFadeEnt ($railtrack_signal_two_light_bottom, '0 .75 0', '0 0 0', .125);
+				thread crossFadeEnt ($railtrack_signal_two_lamp_bottom, '1 1 1', '0 0 0', .125);
+				thread crossFadeEnt ($railtrack_signal_two_flare_bottom, '0 .75 0', '0 0 0', .125);
+
+				sys.wait(.125);
+
+				thread crossFadeEnt ($railtrack_signal_two_light_top, '0 0 0', '.75 0 0', .125);
+				thread crossFadeEnt ($railtrack_signal_two_lamp_top, '0 0 0', '1 1 1', .125);
+				thread crossFadeEnt ($railtrack_signal_two_flare_top, '0 0 0', '.75 0 0', .125);
+
+				sys.wait(.125);
+			}
+
+			tState = (tState + 1) % 2;
+		}
+	}
+
+	void track_switch()
+	{
+		sys.trigger($track_zap1);
+		sys.trigger($track_switch_spkr);
+		$track_pivot.rotateOnce ('180 0 0');
+		sys.waitFor($track_pivot);
+		
+		thread crossFadeEnt ($railtrack_signal_four_light_top, '.75 0 0', '0 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_four_lamp_top, '1 1 1', '0 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_four_flare_top, '.75 0 0', '0 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_four_light_bottom, '0 0 0', '0 .75 0', .125);
+		thread crossFadeEnt ($railtrack_signal_four_lamp_bottom, '0 0 0', '1 1 1', .125);
+		thread crossFadeEnt ($railtrack_signal_four_flare_bottom, '0 0 0', '0 .75 0', .125);
+		thread crossFadeEnt ($railtrack_signal_three_light_top, '0 0 0', '.75 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_three_lamp_top, '0 0 0', '1 1 1', .125);
+		thread crossFadeEnt ($railtrack_signal_three_flare_top, '0 0 0', '.75 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_three_light_bottom, '0 .75 0', '0 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_three_lamp_bottom, '1 1 1', '0 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_three_flare_bottom, '0 .75 0', '0 0 0', .125);
+				
+		sys.trigger($track_zap2);
+	}
+	
+	//===========================================
+	// START CHECKPOINTS
+	//===========================================
+	
+	void postmall_checkpoint()
+	{
+		sys.quickSave("Stranger in a Strange Land - Checkpoint 2");
+	}
+	
+	void postadminfight_checkpoint()
+	{
+		sys.quickSave("Stranger in a Strange Land - Checkpoint 4");
+	}
+	
+	//===========================================
+	// END CHECKPOINTS
+	//===========================================
+	
+	void main()
+	{	
+		$TrainButtonHolder.rotateOnce('0 0 -15');
+		thread TrafficLightFuck();
+		DockTrain(STATIONRIGHT);		
+	}
+}

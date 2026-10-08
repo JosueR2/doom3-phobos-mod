@@ -1,0 +1,3234 @@
+namespace map_e1m5
+{	
+	#define RC_NORTH	1
+	#define	RC_EAST		2
+	#define RC_SOUTH	4
+	#define	RC_WEST		8
+
+	#define SEWERS_DRAINS_STATE_NONE 0
+	#define SEWERS_DRAINS_STATE_A1 1
+	#define SEWERS_DRAINS_STATE_A2 2
+	#define SEWERS_DRAINS_STATE_A3 3
+	
+	#define SEWERS_A1_BRIDGE_SECONDWING 2
+	#define SEWERS_A2_BRIDGE_SECONDWING 2
+	#define SEWERS_A3_BRIDGE_SECONDWING 4
+	#define SEWERS_A1_ROOM 1
+	#define SEWERS_A2_ROOM 2
+	#define SEWERS_A3_ROOM 3
+	
+	float sewers_drains_state = 3;
+	float sewers_a1_bridge_direction;
+	float sewers_a2_bridge_direction;
+	float sewers_a3_bridge_direction;
+	
+	float sewers_a1_bridge_lock = 1;
+	float sewers_a2_bridge_lock = 1;
+	float sewers_a3_bridge_lock = 1;
+
+	vector motel_light_thunder_color = '0.51 0.26 0.22';
+
+	void showTextCam(string text, entity e)
+	{
+		e.setGuiParm("gui_parm1", text);
+		e.setGuiParm("gui_parm2", 0);
+		sys.trigger(e);
+
+		sys.fadeTo('0 0 0', 0, 2);
+
+		sys.wait(7);
+
+		e.setGuiParm("gui_parm2", 1);
+		sys.trigger(e);
+
+		sys.fadeTo('0 0 0', 1, 1);
+
+		sys.wait(1);
+	}
+	
+	void showText(string text)
+	{
+		entity e = sys.getEntity("cameraGui1");
+		showTextCam(text, e);
+	}	
+
+	float GetRandom(float min, float variance)
+	{
+		return sys.random(variance) + min;
+	}
+
+	void LockBridgeDoor(float room, float direction)
+	{
+		entity door			= sys.getEntity("sewers_a" + room + "_" + direction + "_door");
+		entity doorframe	= sys.getEntity("sewers_a" + room + "_" + direction + "_doorframe");
+		entity doorlights	= sys.getEntity("sewers_a" + room + "_" + direction + "_doorlights");
+		
+		door.lock(2);
+		doorframe.setShaderParm(7, 0);
+		doorlights.setColor(0.5, 0, 0);
+	}
+	
+	void OpenBridgeDoor(float room, float direction)
+	{		
+		entity door			= sys.getEntity("sewers_a" + room + "_" + direction + "_door");
+		entity doorframe	= sys.getEntity("sewers_a" + room + "_" + direction + "_doorframe");
+		entity doorlights	= sys.getEntity("sewers_a" + room + "_" + direction + "_doorlights");
+		
+		door.lock(0);
+		doorframe.setShaderParm(7, 1);
+		doorlights.setColor(0, 0.5, 0);
+	}
+	
+	float TurnABridge(float room, float direction, float wing)
+	{		
+		entity sewerControls = sys.getEntity("sewers_a" + room + "_controls");
+
+		sewerControls.setGuiParm ("gui_parm13", 1);
+		sys.trigger(sewerControls);
+
+		float directionOne = direction;
+		float directionTwo = direction * wing;
+		if( directionTwo > RC_WEST )
+			directionTwo = directionTwo / (RC_WEST * 2);
+
+		LockBridgeDoor(room, directionOne);
+		LockBridgeDoor(room, directionTwo);
+
+		entity bridgeCore = sys.getEntity("sewers_a" + room + "_bridgecore");
+		bridgeCore.rotateOnce('0 -90 0');
+		sys.waitFor(bridgeCore);
+
+		direction = direction * 2;
+		if( direction > RC_WEST )
+			direction = RC_NORTH;
+		
+		directionOne = direction;
+		directionTwo = direction * wing;
+		if( directionTwo > RC_WEST )
+			directionTwo = directionTwo / (RC_WEST * 2);
+		
+		OpenBridgeDoor(room, directionOne);
+		OpenBridgeDoor(room, directionTwo);
+
+		sewerControls.setGuiParm ("gui_parm13", 0);
+		sys.trigger(sewerControls);		
+
+		return direction;
+	}
+
+	void FloodgateBrightLight()
+	{
+		sys.wait(.25);
+
+		sys.fadeTo('1 1 1', 1, .25);
+
+		sys.wait(1);
+
+		sys.fadeTo('1 1 1', 0, 1.25);
+
+		$player1.startSoundShader("sound/shav/e1m5/floodgate_boom.ogg", SND_CHANNEL_ANY);		
+		sys.trigger($SpeakerFloodgateMusic);
+
+		sys.wait(1.5);
+
+		sys.fadeTo('1 1 1', 1, 4.25);
+
+		sys.wait(4.5);
+
+		sys.fadeTo('1 1 1', 0, 4);
+	}
+	
+	void UpdateMaps()
+	{		
+		$sewermap01.setGuiParm ("gui_parm12", sewers_a1_bridge_direction);
+		$sewermap02.setGuiParm ("gui_parm12", sewers_a1_bridge_direction);
+		$sewermap03.setGuiParm ("gui_parm12", sewers_a1_bridge_direction);
+		$sewermap04.setGuiParm ("gui_parm12", sewers_a1_bridge_direction);
+		$sewermap05.setGuiParm ("gui_parm12", sewers_a1_bridge_direction);
+		
+		$sewermap01.setGuiParm ("gui_parm13", sewers_a2_bridge_direction);
+		$sewermap02.setGuiParm ("gui_parm13", sewers_a2_bridge_direction);
+		$sewermap03.setGuiParm ("gui_parm13", sewers_a2_bridge_direction);
+		$sewermap04.setGuiParm ("gui_parm13", sewers_a2_bridge_direction);
+		$sewermap05.setGuiParm ("gui_parm13", sewers_a2_bridge_direction);
+		
+		$sewermap01.setGuiParm ("gui_parm14", sewers_a3_bridge_direction);
+		$sewermap02.setGuiParm ("gui_parm14", sewers_a3_bridge_direction);
+		$sewermap03.setGuiParm ("gui_parm14", sewers_a3_bridge_direction);
+		$sewermap04.setGuiParm ("gui_parm14", sewers_a3_bridge_direction);
+		$sewermap05.setGuiParm ("gui_parm14", sewers_a3_bridge_direction);
+		
+		sys.trigger($sewermap01);		
+		sys.trigger($sewermap02);		
+		sys.trigger($sewermap03);		
+		sys.trigger($sewermap04);		
+		sys.trigger($sewermap05);		
+	}
+	
+	void UnlockA1Bridge()
+	{
+		sewers_a1_bridge_lock = 2;
+	}
+	
+	void UnlockA2Bridge()
+	{
+		sewers_a2_bridge_lock = 2;
+	}
+	
+	void UnlockA3Bridge()
+	{
+		sewers_a3_bridge_lock = 2;
+	}
+	
+	void TurnA1Bridge()
+	{
+		if( sewers_a1_bridge_lock == 2 )
+		{	
+			sewers_a1_bridge_direction = TurnABridge( SEWERS_A1_ROOM, sewers_a1_bridge_direction, SEWERS_A1_BRIDGE_SECONDWING);
+		
+			UpdateMaps();
+		}
+	}
+	
+	void TurnA2Bridge()
+	{
+		if( sewers_a2_bridge_lock == 2 )
+		{	
+			sewers_a2_bridge_direction = TurnABridge( SEWERS_A2_ROOM, sewers_a2_bridge_direction, SEWERS_A2_BRIDGE_SECONDWING);
+			UpdateMaps();
+		}
+	}
+	
+	void TurnA3Bridge()
+	{
+		if( sewers_a3_bridge_lock == 2 )
+		{	
+			sewers_a3_bridge_direction = TurnABridge( SEWERS_A3_ROOM, sewers_a3_bridge_direction, SEWERS_A3_BRIDGE_SECONDWING);
+			UpdateMaps();
+		}
+	}
+			
+	void OpenSewerDrainHatch(float state)
+	{
+		if( state == SEWERS_DRAINS_STATE_NONE )
+		{			
+			return;
+		}
+				
+		entity upperHatch = sys.getEntity("sewers_a" + state + "_hatch_upper");
+		entity lowerHatch = sys.getEntity("sewers_a" + state + "_hatch_lower");
+		entity portal = sys.getEntity("sewers_a" + state + "_hatch_portal");			
+	
+		sys.trigger(portal);
+		upperHatch.move(UP, 48);
+		lowerHatch.move(DOWN, 48);
+		sys.waitFor(upperHatch);
+	}
+	
+	void CloseSewerDrainHatch(float state)
+	{
+		if( state == SEWERS_DRAINS_STATE_NONE )
+		{			
+			return;
+		}
+		entity upperHatch = sys.getEntity("sewers_a" + state + "_hatch_upper");
+		entity lowerHatch = sys.getEntity("sewers_a" + state + "_hatch_lower");
+		entity portal = sys.getEntity("sewers_a" + state + "_hatch_portal");			
+	
+		upperHatch.move(DOWN, 48);
+		lowerHatch.move(UP, 48);
+		sys.waitFor(upperHatch);
+		sys.trigger(portal);
+	}
+
+	entity GetSewerPos(float sds)
+	{
+		if(sds == 0)		
+			return sys.getEntity("sewer_none_pos");
+			
+		return sys.getEntity("sewer_a" + sds + "_pos");
+	}
+
+	entity GetSewerLight(float sds)
+	{
+		if(sds == 0)		
+			return sys.getEntity("sewers_none_light");
+			
+		return sys.getEntity("sewers_a" + sds + "_light");
+	}
+
+	entity GetSewerLightPos1(float sds)
+	{					
+		return sys.getEntity("sewers_a" + sds + "_poslight1");
+	}
+
+	entity GetSewerLightPos2(float sds)
+	{			
+		return sys.getEntity("sewers_a" + sds + "_poslight2");
+	}
+
+	void DrainASubs(float sds)
+	{
+		if(sds == 0){
+			PhobosShowSubtitle_e1m5("PA", "Drain closed.");
+		}
+		if(sds == 1){
+			PhobosShowSubtitle_e1m5("PA", "A1 Open.");
+		}
+		if(sds == 2){
+			PhobosShowSubtitle_e1m5("PA", "A2 Open.");
+		}
+		if(sds == 3){
+			PhobosShowSubtitle_e1m5("PA", "A3 Open.");
+		}
+
+		sys.wait(2);
+		sys.hideSubtitles();
+	}
+
+	string GetSewerSound(float sds)
+	{
+		thread DrainASubs(sds);
+		if(sds == 0)
+			return "sound/shav/e1m5/drainnone.ogg";
+		
+		return "sound/shav/e1m5/draina" + sds + ".ogg";
+	}
+	
+	float sewercontrolsactive = 0;
+	float sewerlightactive = 0;
+
+	void SewerLightBlink(entity sl, entity slp1, entity slp2)
+	{
+		sewerlightactive = 1;
+		while(sewerlightactive==1)
+		{
+			sl.setColor(0.55, 0.55, 0.15);
+			slp1.setColor(0.35, 0.35, 0.05);
+			slp2.setColor(0.35, 0.35, 0.05);
+			sys.wait(.2);			
+			sl.setColor(0.15, 0.15, 0.15);
+			slp1.setColor(0.35, 0.05, 0.05);
+			slp2.setColor(0.35, 0.05, 0.05);
+			sys.wait(.2);
+		}
+		sl.setColor(0.05, 0.35, 0.05);
+		slp1.setColor(0.05, 0.35, 0.05);
+		slp2.setColor(0.05, 0.35, 0.05);
+	}
+
+	void SewerLightBlinkA(entity sl)
+	{
+		sewerlightactive = 1;
+		while(sewerlightactive==1)
+		{
+			sl.setColor(0.55, 0.55, 0.15);
+			sys.wait(.2);			
+			sl.setColor(0.15, 0.15, 0.15);
+			sys.wait(.2);
+		}
+		sl.setColor(0.15, 0.55, 0.15);
+	}
+
+	void ToggleSewerDrains()
+	{				
+		if( sewercontrolsactive == 0)
+		{
+			$Drain_Control_Switch.setKey("click_item", "0");
+
+			sewercontrolsactive = 1;
+			thread CloseSewerDrainHatch( sewers_drains_state );	
+			
+			entity sl = GetSewerLight(sewers_drains_state);
+			sl.setColor(0.25, 0.05, 0.05);
+
+			if( sewers_drains_state != 0 )
+			{
+				entity slp1 = GetSewerLightPos1(sewers_drains_state);
+				entity slp2 = GetSewerLightPos2(sewers_drains_state);			
+			
+				slp1.setColor(0.35, 0.05, 0.05);
+				slp2.setColor(0.35, 0.05, 0.05);
+			}
+			sewers_drains_state = sewers_drains_state + 1;
+			if( sewers_drains_state > SEWERS_DRAINS_STATE_A3 )
+				sewers_drains_state = SEWERS_DRAINS_STATE_NONE;		
+
+			$sewer_handle.moveTo(GetSewerPos(sewers_drains_state));
+			$sewer_handle.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);		
+
+			sl = GetSewerLight(sewers_drains_state);
+			
+			if( sewers_drains_state != 0)
+			{
+				entity slp12 = GetSewerLightPos1(sewers_drains_state);
+				entity slp22 = GetSewerLightPos2(sewers_drains_state);
+
+				thread SewerLightBlink(sl, slp12, slp22);
+			}
+			else
+				thread SewerLightBlinkA(sl);
+
+			OpenSewerDrainHatch( sewers_drains_state );
+
+			$sewer_drains_speaker.startSoundShader(GetSewerSound(sewers_drains_state), SND_CHANNEL_ANY);
+			
+			sewerlightactive = 0;		
+
+			sys.wait(1);			
+
+			sewercontrolsactive = 0;			
+
+			$Drain_Control_Switch.setKey("click_item", "1");
+		}
+	}
+	
+	void service_ladder()
+	{
+		sys.trigger($ladder_slick);
+		sys.trigger($func_static_68003);
+		$func_static_68012.show();
+		sys.trigger($func_static_67909);
+		$func_mover_63.move( 90, 176 );
+		sys.trigger($speaker_983);
+		sys.waitFor($func_mover_63);
+		sys.trigger($trigger_relay_206);
+		$func_mover_62.move( -1, 256 );
+		sys.trigger($speaker_984);		
+	}
+
+	void elev_hatch1()
+	{
+		sys.trigger($openhatch_1);
+		$func_mover_67.rotateDownTo(Z_AXIS, 270);
+		$func_mover_68.rotateUpTo(Z_AXIS, 90);
+	}
+
+	void elev_hatch1_close()
+	{
+		sys.trigger($closehatch_1);
+		$func_mover_67.rotateUpTo(Z_AXIS, 0);
+		$func_mover_68.rotateDownTo(Z_AXIS, 0);
+	}
+
+
+	#define GBO_NORTH 0
+	#define GBO_EAST 1
+	#define GBO_SOUTH 2
+	#define GBO_WEST 3
+
+	float goobridge_01_arm01 = GBO_EAST;
+	float goobridge_01_arm02 = GBO_SOUTH;
+
+	float goobridge_02_arm01 = GBO_EAST;
+	float goobridge_02_arm02 = GBO_SOUTH;
+
+	float goobridge_03_arm01 = GBO_EAST;
+	float goobridge_03_arm02 = GBO_SOUTH;
+
+	float goobridge_04_arm01 = GBO_EAST;
+	float goobridge_04_arm02 = GBO_SOUTH;
+
+	void DetractArm(string armName, float armDirection, string inout)//float bridgeNum, float armNum, float dir)
+	{		
+		entity arm = sys.getEntity(armName);
+		entity light = sys.getEntity(armName + "_light");
+		entity flare = sys.getEntity(armName + "_flare");
+		entity tex = sys.getEntity(armName + "_tex");
+		entity steam1a = sys.getEntity(armName + "_steam1a");
+		entity steam2a = sys.getEntity(armName + "_steam2a");
+		entity steam1b = sys.getEntity(armName + "_steam1b");
+		entity steam2b = sys.getEntity(armName + "_steam2b");
+		entity armPos = sys.getEntity(armName + "_" + inout);
+		entity alarm = sys.getEntity(armName + "_speaker");
+		entity drip = sys.getEntity(armName + "_drip");		
+
+		thread crossFadeEnt (steam1a, '0 0 0', '0.411765 0.290196 0.27451', .35);
+		thread crossFadeEnt (steam2a, '0 0 0', '0.411765 0.290196 0.27451', .35);
+		thread crossFadeEnt (steam1b, '0 0 0', '0.160 0.120 0.040', .35);
+		thread crossFadeEnt (steam2b, '0 0 0', '0.160 0.120 0.040', .35);
+
+		arm.startSoundShader ("al4_cushions", SND_CHANNEL_ANY );
+
+		sys.wait(.25);
+
+		thread crossFadeEnt (steam1a, '0.411765 0.290196 0.27451', '0 0 0', .35);
+		thread crossFadeEnt (steam2a, '0.411765 0.290196 0.27451', '0 0 0', .35);
+		thread crossFadeEnt (steam1b, '0.160 0.120 0.040', '0 0 0', .35);
+		thread crossFadeEnt (steam2b, '0.160 0.120 0.040', '0 0 0', .35);
+
+		sys.wait(.5);
+
+		light.On();		
+		tex.show();
+		flare.show();
+		alarm.startSoundShader ("geoff_alarm", SND_CHANNEL_ANY );
+
+		sys.wait(0.4);
+		
+		thread crossFadeEnt (steam1a, '0 0 0', '0.411765 0.290196 0.27451', .35);
+		thread crossFadeEnt (steam2a, '0 0 0', '0.411765 0.290196 0.27451', .35);
+		thread crossFadeEnt (steam1b, '0 0 0', '0.160 0.120 0.040', .35);
+		thread crossFadeEnt (steam2b, '0 0 0', '0.160 0.120 0.040', .35);
+	
+		arm.moveTo(armPos);
+
+		sys.trigger(drip);
+
+		sys.waitFor(arm);
+
+		thread crossFadeEnt (steam1a, '0.411765 0.290196 0.27451', '0 0 0', .35);
+		thread crossFadeEnt (steam2a, '0.411765 0.290196 0.27451', '0 0 0', .35);
+		thread crossFadeEnt (steam1b, '0.160 0.120 0.040', '0 0 0', .35);
+		thread crossFadeEnt (steam2b, '0.160 0.120 0.040', '0 0 0', .35);
+
+		sys.wait(.5);
+
+		thread crossFadeEnt (steam1a, '0 0 0', '0.411765 0.290196 0.27451', .35);
+		thread crossFadeEnt (steam2a, '0 0 0', '0.411765 0.290196 0.27451', .35);
+		thread crossFadeEnt (steam1b, '0 0 0', '0.160 0.120 0.040', .35);
+		thread crossFadeEnt (steam2b, '0 0 0', '0.160 0.120 0.040', .35);
+		arm.startSoundShader ("al4_cushions", SND_CHANNEL_ANY );
+
+		sys.wait(.25);		
+
+		thread crossFadeEnt (steam1a, '0.411765 0.290196 0.27451', '0 0 0', .35);
+		thread crossFadeEnt (steam2a, '0.411765 0.290196 0.27451', '0 0 0', .35);
+		thread crossFadeEnt (steam1b, '0.160 0.120 0.040', '0 0 0', .35);
+		thread crossFadeEnt (steam2b, '0.160 0.120 0.040', '0 0 0', .35);
+
+		light.Off();		
+		tex.hide();
+		flare.hide();
+		alarm.stopSound(SND_CHANNEL_ANY,0);
+	}
+
+	float goobridge_01_roundabout = 0;
+	float goobridge_02_roundabout = 0;
+	float goobridge_03_roundabout = 0;
+	float goobridge_04_roundabout = 0;
+	float bridgemaps_animation1 = 0;
+	float bridgemaps_animation2 = 0;
+	float bridgemaps_animation3 = 0;
+	float bridgemaps_animation4 = 0;
+
+	void FlashRoundAboutButton(entity ol, entity oll)
+	{
+		ol.setColor(1,1,0);
+		oll.show();
+		
+		sys.wait(0.125);
+		
+		ol.setColor(0.5,0,0);
+		oll.hide();
+	}
+
+	void StartRoundAbout1()
+	{
+		string goobridgeName = "goobridge_01";
+		entity ol0 = sys.getEntity(goobridgeName +"_led1");
+		entity ol1 = sys.getEntity(goobridgeName + "_led2");
+		entity ol2 = sys.getEntity(goobridgeName + "_led3");
+		entity ol3 = sys.getEntity(goobridgeName + "_led0");
+
+		entity oll0 = sys.getEntity(goobridgeName + "_ledlight1");
+		entity oll1 = sys.getEntity(goobridgeName + "_ledlight2");
+		entity oll2 = sys.getEntity(goobridgeName + "_ledlight3");
+		entity oll3 = sys.getEntity(goobridgeName + "_ledlight0");
+
+		goobridge_01_roundabout = 1;
+		while(goobridge_01_roundabout == 1 )
+		{
+			float i = 0;			
+			while(i < 4 && goobridge_01_roundabout ==1)
+			{
+				if(i == 0 )
+				{
+					FlashRoundAboutButton(ol0,oll0);				
+				}
+				else if(i == 1 )
+				{
+					FlashRoundAboutButton(ol1,oll1);				
+				}
+				else if(i == 2 )
+				{
+					FlashRoundAboutButton(ol2,oll2);
+				}
+				else
+				{
+					FlashRoundAboutButton(ol3,oll3);
+				}
+				i++;
+			}
+		}
+	}
+
+	void StartRoundAbout2()
+	{
+		string goobridgeName = "goobridge_02";
+		entity ol0 = sys.getEntity(goobridgeName +"_led1");
+		entity ol1 = sys.getEntity(goobridgeName + "_led2");
+		entity ol2 = sys.getEntity(goobridgeName + "_led3");
+		entity ol3 = sys.getEntity(goobridgeName + "_led0");
+
+		entity oll0 = sys.getEntity(goobridgeName + "_ledlight1");
+		entity oll1 = sys.getEntity(goobridgeName + "_ledlight2");
+		entity oll2 = sys.getEntity(goobridgeName + "_ledlight3");
+		entity oll3 = sys.getEntity(goobridgeName + "_ledlight0");
+
+		goobridge_02_roundabout = 1;
+		while(goobridge_02_roundabout == 1 )
+		{
+			float i = 0;			
+			while(i < 4 && goobridge_02_roundabout ==1)
+			{
+				if(i == 0 )
+				{
+					FlashRoundAboutButton(ol0,oll0);				
+				}
+				else if(i == 1 )
+				{
+					FlashRoundAboutButton(ol1,oll1);				
+				}
+				else if(i == 2 )
+				{
+					FlashRoundAboutButton(ol2,oll2);
+				}
+				else
+				{
+					FlashRoundAboutButton(ol3,oll3);
+				}
+				i++;
+			}
+		}
+	}
+
+	void StartRoundAbout3()
+	{
+		string goobridgeName = "goobridge_03";
+		entity ol0 = sys.getEntity(goobridgeName +"_led1");
+		entity ol1 = sys.getEntity(goobridgeName + "_led2");
+		entity ol2 = sys.getEntity(goobridgeName + "_led3");
+		entity ol3 = sys.getEntity(goobridgeName + "_led0");
+
+		entity oll0 = sys.getEntity(goobridgeName + "_ledlight1");
+		entity oll1 = sys.getEntity(goobridgeName + "_ledlight2");
+		entity oll2 = sys.getEntity(goobridgeName + "_ledlight3");
+		entity oll3 = sys.getEntity(goobridgeName + "_ledlight0");
+
+		goobridge_03_roundabout = 1;
+		while(goobridge_03_roundabout == 1 )
+		{
+			float i = 0;			
+			while(i < 4 && goobridge_03_roundabout ==1)
+			{
+				if(i == 0 )
+				{
+					FlashRoundAboutButton(ol0,oll0);				
+				}
+				else if(i == 1 )
+				{
+					FlashRoundAboutButton(ol1,oll1);				
+				}
+				else if(i == 2 )
+				{
+					FlashRoundAboutButton(ol2,oll2);
+				}
+				else
+				{
+					FlashRoundAboutButton(ol3,oll3);
+				}
+				i++;
+			}
+		}
+	}
+
+	void StartRoundAbout4()
+	{
+		string goobridgeName = "goobridge_04";
+		entity ol0 = sys.getEntity(goobridgeName +"_led1");
+		entity ol1 = sys.getEntity(goobridgeName + "_led2");
+		entity ol2 = sys.getEntity(goobridgeName + "_led3");
+		entity ol3 = sys.getEntity(goobridgeName + "_led0");
+
+		entity oll0 = sys.getEntity(goobridgeName + "_ledlight1");
+		entity oll1 = sys.getEntity(goobridgeName + "_ledlight2");
+		entity oll2 = sys.getEntity(goobridgeName + "_ledlight3");
+		entity oll3 = sys.getEntity(goobridgeName + "_ledlight0");
+
+		goobridge_04_roundabout = 1;
+		while(goobridge_04_roundabout == 1 )
+		{
+			float i = 0;			
+			while(i < 4 && goobridge_04_roundabout ==1)
+			{
+				if(i == 0 )
+				{
+					FlashRoundAboutButton(ol0,oll0);				
+				}
+				else if(i == 1 )
+				{
+					FlashRoundAboutButton(ol1,oll1);				
+				}
+				else if(i == 2 )
+				{
+					FlashRoundAboutButton(ol2,oll2);
+				}
+				else
+				{
+					FlashRoundAboutButton(ol3,oll3);
+				}
+				i++;
+			}
+		}
+	}
+
+	void SetMapLight(entity light, float red, float green, float blue)
+	{		
+		light.setColor(red, green, blue);
+	}
+
+	entity GetMapLight(float num, float silo, float dir)
+	{		
+		return sys.getEntity("c" + num + "_s" + silo + "_d" + dir);
+	}
+
+	void ClearMapLight(entity light)
+	{
+		SetMapLight(light, 0, 0.05f, 0);
+	}
+
+	void FlashMapLight(entity light)
+	{
+		SetMapLight(light, 0, 1, 0);
+	}
+
+	void OldMapLight(entity light)
+	{
+		SetMapLight(light, 1, 1, 0);
+	}
+
+	float IsAnimating(float b)
+	{
+		float animating = 0;
+
+		if(b == 1 && bridgemaps_animation1 == 1)
+			animating = 1;
+		else if(b == 2 && bridgemaps_animation2 == 1)
+			animating = 1;
+		else if(b == 3 && bridgemaps_animation3 == 1)
+			animating = 1;
+		else if(b == 4 && bridgemaps_animation4 == 1)
+			animating = 1;
+		
+		return animating;
+	}
+
+	void AnimateMap(float num, float armState1, float armState2, float b)
+	{
+		entity bridge;
+		entity arm1;
+		entity arm2;
+		entity arm3;
+
+		float s = 0;
+		while(s < 4)
+		{
+			entity bridgeLight = sys.getEntity("c" + num + "_s" + (s + 1));
+
+			if(s + 1 == b)
+				bridge = bridgeLight;
+
+			entity tunnelLight = sys.getEntity("c" + num + "_s" + (s + 1) + "_" + ((s + 2 ) % 4));			
+
+			float d = 0;
+			while(d < 4)
+			{	
+				entity armLight = GetMapLight(num, s + 1, d);				
+
+				if(s + 1 == b && d == armState1)									
+					arm1 = armLight;
+
+				if(s + 1 == b && d == armState2)
+					arm2 = armLight;
+
+				if(s + 1 == b && d == (armState2 + 1) % 4)
+					arm3 = armLight;
+
+					d++;
+			}
+			s++;
+		}
+	
+		while(IsAnimating(b) == 1)
+		{
+			OldMapLight(bridge);
+			OldMapLight(arm1);
+			OldMapLight(arm2);
+
+			sys.wait(.5);
+
+			ClearMapLight(bridge);
+			ClearMapLight(arm1);
+			ClearMapLight(arm2);
+
+			sys.wait(.25);
+
+			FlashMapLight(bridge);
+			FlashMapLight(arm2);
+			FlashMapLight(arm3);
+
+			sys.wait(.5);
+
+			ClearMapLight(bridge);
+			ClearMapLight(arm2);
+			ClearMapLight(arm3);
+
+			sys.wait(.25);
+		}
+	}
+
+	void AnimateMaps(float armState1, float armState2, float b)
+	{
+		if(b == 1)
+			bridgemaps_animation1 = 1;
+		else if(b == 2)
+			bridgemaps_animation2 = 1;
+		else if(b == 3)
+			bridgemaps_animation3 = 1;
+		else if(b == 4)
+			bridgemaps_animation4 = 1;
+
+		float c = 0;
+		while(c < 3)
+		{
+			thread AnimateMap(c + 1, armState1, armState2, b);
+			c++;
+		}
+	}
+
+	void UpdateMapPath(float silo, float armState1, float armState2)
+	{
+		float c = 0;
+		while(c < 3)
+		{
+			FlashMapLight(sys.getEntity("c" + (c+1) + "_s" + (silo)));			
+
+			FlashMapLight(GetMapLight(c+1,silo,armState1));
+			FlashMapLight(GetMapLight(c+1,silo,armState2));
+
+			ClearMapLight(GetMapLight(c+1,silo,(armState2 + 1) % 4));
+			ClearMapLight(GetMapLight(c+1,silo,(armState2 + 2) % 4));
+
+			c++;
+		}
+	}
+
+	void UpdateMapCompletion()
+	{
+		float c = 0;
+		while(c < 3)
+		{
+			entity s12 = sys.getEntity("c" + (c+1) + "_s1_2");
+			entity s23 = sys.getEntity("c" + (c+1) + "_s2_3");
+			entity s34 = sys.getEntity("c" + (c+1) + "_s3_4");
+			entity s41 = sys.getEntity("c" + (c+1) + "_s4_1");
+
+			if((goobridge_01_arm01 == 0 || goobridge_01_arm01 == 3) && (goobridge_04_arm01 == 1 || goobridge_04_arm01 == 2))
+				FlashMapLight(s41);
+			else
+				ClearMapLight(s41);
+
+			if((goobridge_02_arm01 == 3 || goobridge_02_arm01 == 0) && (goobridge_03_arm01 == 1 || goobridge_03_arm01 == 2))
+				FlashMapLight(s23);
+			else
+				ClearMapLight(s23);
+
+			if((goobridge_01_arm01 == 2 || goobridge_01_arm01 == 3) && (goobridge_02_arm01 == 0 || goobridge_02_arm01 == 1))
+				FlashMapLight(s12);
+			else
+				ClearMapLight(s12);
+
+			if((goobridge_03_arm01 == 0 || goobridge_03_arm01 == 1) && (goobridge_04_arm01 == 2 || goobridge_04_arm01 == 3))
+				FlashMapLight(s34);
+			else
+				ClearMapLight(s34);
+
+			c++;
+		}
+	}
+
+	void StopRoundAbout1()
+	{
+		goobridge_01_roundabout = 0;
+	}
+
+	void StopRoundAbout2()
+	{
+		goobridge_02_roundabout = 0;
+	}
+
+	void StopRoundAbout3()
+	{
+		goobridge_03_roundabout = 0;
+	}
+
+	void StopRoundAbout4()
+	{
+		goobridge_04_roundabout = 0;
+	}
+
+	void StopMapAnimation1()
+	{
+		bridgemaps_animation1 = 0;
+	}
+
+	void StopMapAnimation2()
+	{
+		bridgemaps_animation2 = 0;
+	}
+
+	void StopMapAnimation3()
+	{
+		bridgemaps_animation3 = 0;
+	}
+
+	void StopMapAnimation4()
+	{
+		bridgemaps_animation4 = 0;
+	}	
+
+	void RotateBridge(string goobridgeName, float armState1, float armState2, float b)
+	{
+		entity bridgeGui = sys.getEntity(goobridgeName + "_gui");		
+
+		float buttonPos = armState1;		
+		float buttonPos2 = (buttonPos+1) % 4;
+
+		entity b1 = sys.getEntity(goobridgeName + "_button_" + buttonPos);
+		entity b2 = sys.getEntity(goobridgeName + "_button_" + buttonPos2);
+		
+		entity mainPart = sys.getEntity(goobridgeName + "_main");
+		entity lower_dest = sys.getEntity(goobridgeName + "_downpos");
+		entity upper_dest = sys.getEntity(goobridgeName + "_uppos");
+		vector failsafe = upper_dest.getWorldOrigin();
+		
+		b2.show();
+		sys.wait(.01);
+		b1.hide();		
+
+		entity ol1 = sys.getEntity(goobridgeName + "led" + armState1);
+		entity ol2 = sys.getEntity(goobridgeName + "led" + armState2);
+		ol1.setColor(0.5,0,0);
+		ol2.setColor(0.5,0,0);
+
+		thread AnimateMaps(armState1, armState2, b);
+
+		if(b == 1)
+			thread StartRoundAbout1();
+		else if(b == 2)
+			thread StartRoundAbout2();			
+		if(b == 3)
+			thread StartRoundAbout3();
+		if(b == 4)
+			thread StartRoundAbout4();
+
+		b2.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);		
+
+		sys.wait(1);
+		
+		//while(1)
+		{
+		//sys.wait(2);		
+
+		thread DetractArm(goobridgeName + "_arm1", armState1, "in");
+		sys.wait(.5);
+		thread DetractArm(goobridgeName + "_arm2", armState2, "in");		
+		sys.wait(.5);
+		
+		sys.wait(2);
+		
+		mainPart.moveTo(lower_dest);
+
+		sys.wait(1);
+
+		mainPart.rotateOnce('0 -90 0');
+		
+		sys.wait(4);				
+
+		armState1 = (armState1 + 1) % 4;		
+		armState2 = (armState2 + 1) % 4;
+		
+		sys.wait(.5);	
+		
+		mainPart.moveTo(upper_dest);
+		
+		sys.wait(2);
+		
+		thread DetractArm(goobridgeName + "_arm1", armState1, "out");	
+
+		sys.wait(.5);
+		
+		DetractArm(goobridgeName + "_arm2", armState2, "out");								
+
+		if(b == 1)
+		{
+			thread StopRoundAbout1();		
+			thread StopMapAnimation1();
+		}
+		else if(b == 2)
+		{
+			thread StopRoundAbout2();
+			thread StopMapAnimation2();
+		}
+		if(b == 3)
+		{
+			thread StopRoundAbout3();
+			thread StopMapAnimation3();
+		}
+		if(b == 4)
+		{
+			thread StopRoundAbout4();
+			thread StopMapAnimation4();
+		}
+
+		sys.wait(.25);
+
+		entity nl1 = sys.getEntity(goobridgeName + "_led" + armState1);
+		entity nl2 = sys.getEntity(goobridgeName + "_led" + armState2);
+		nl1.setColor(0,0.5,0);
+		nl2.setColor(0,0.5,0);
+
+		UpdateMapPath(b, armState1, armState2);
+		
+		mainPart.setWorldOrigin(failsafe);
+
+		sys.wait(.5);		
+
+			bridgeGui.setKey("click_item", "1");
+		}
+	}
+
+	float hasTriggeredObjective = 0;
+	float initBridge4Done = 0;
+	float initBridge1Done = 0;
+	void TriggerBridgeObjective()
+	{
+		if(hasTriggeredObjective == 0)
+		{
+			sys.trigger($item_objective_3);
+			hasTriggeredObjective = 1;
+		}
+	}
+
+	float goobridge_01_lock = 0;
+	float goobridge_02_lock = 0;
+	float goobridge_03_lock = 0;
+	float goobridge_04_lock = 0;
+	
+	void BridgeL1LockSubs()
+	{
+		PhobosShowSubtitle_e1m5("PA", "Bridge in Silo 1 is locked.");
+		sys.wait(3);
+		sys.hideSubtitles();
+	}
+
+	void RotateBridge1()
+	{
+		if(goobridge_01_lock == 1)
+		{
+			thread BridgeL1LockSubs();
+			sys.wait($goobridge_01_lockspeaker.startSoundShader("sound/shav/e1m5/bridge1lock.ogg", SND_CHANNEL_ANY));
+			$goobridge_01_gui.setKey("click_item", "1");
+		}
+		else
+		{
+			if(initBridge1Done == 1)
+			{
+				TriggerBridgeObjective();
+			}
+
+			sys.trigger($goobridge_01_triggercount_relay);
+			RotateBridge("goobridge_01", goobridge_01_arm01, goobridge_01_arm02, 1);
+			goobridge_01_arm01 = (goobridge_01_arm01 + 1) % 4;		
+			goobridge_01_arm02 = (goobridge_01_arm02 + 1) % 4;			
+
+			UpdateMapCompletion();
+		}
+	}
+
+	void BridgeL2LockSubs()
+	{
+		PhobosShowSubtitle_e1m5("PA", "Bridge in Silo 2 is locked.");
+		sys.wait(3);
+		sys.hideSubtitles();
+	}
+
+	void RotateBridge2()
+	{
+		if(goobridge_02_lock == 1)
+		{
+			thread BridgeL2LockSubs();
+			sys.wait($goobridge_02_lockspeaker.startSoundShader("sound/shav/e1m5/bridge2lock.ogg", SND_CHANNEL_ANY));
+			$goobridge_02_gui.setKey("click_item", "1");
+		}
+		else
+		{
+			RotateBridge("goobridge_02", goobridge_02_arm01, goobridge_02_arm02, 2);
+			goobridge_02_arm01 = (goobridge_02_arm01 + 1) % 4;		
+			goobridge_02_arm02 = (goobridge_02_arm02 + 1) % 4;			
+
+			UpdateMapCompletion();
+		}
+	}
+
+	void BridgeL3LockSubs()
+	{
+		PhobosShowSubtitle_e1m5("PA", "Bridge in Silo 3 is locked.");
+		sys.wait(3);
+		sys.hideSubtitles();
+	}
+
+	void RotateBridge3()
+	{
+		if(goobridge_03_lock == 1)
+		{
+			thread BridgeL3LockSubs();
+			sys.wait($goobridge_03_lockspeaker.startSoundShader("sound/shav/e1m5/bridge3lock.ogg", SND_CHANNEL_ANY));
+			$goobridge_03_gui.setKey("click_item", "1");
+		}
+		else
+		{
+			RotateBridge("goobridge_03", goobridge_03_arm01, goobridge_03_arm02, 3);
+			goobridge_03_arm01 = (goobridge_03_arm01 + 1) % 4;		
+			goobridge_03_arm02 = (goobridge_03_arm02 + 1) % 4;			
+
+			UpdateMapCompletion();
+		}
+	}
+
+	void BridgeL4LockSubs()
+	{
+		PhobosShowSubtitle_e1m5("PA", "Bridge in Silo 4 is locked.");
+		sys.wait(3);
+		sys.hideSubtitles();
+	}
+
+	void RotateBridge4()
+	{
+		if(goobridge_04_lock == 1)
+		{
+			thread BridgeL4LockSubs();
+			sys.wait($goobridge_04_lockspeaker.startSoundShader("sound/shav/e1m5/bridge4lock.ogg", SND_CHANNEL_ANY));
+			$goobridge_04_gui.setKey("click_item", "1");
+		}
+		else
+		{
+			if(initBridge4Done == 1)
+			{
+				TriggerBridgeObjective();
+			}
+
+			RotateBridge("goobridge_04", goobridge_04_arm01, goobridge_04_arm02, 4);
+			goobridge_04_arm01 = (goobridge_04_arm01 + 1) % 4;		
+			goobridge_04_arm02 = (goobridge_04_arm02 + 1) % 4;			
+
+			UpdateMapCompletion();
+		}
+	}
+
+	void LockBridgeMap(float b, float armState1, float armState2, float red, float green)
+	{
+		float c = 0;
+		while(c < 3)
+		{
+			entity bridgeLight = sys.getEntity("c" + (c + 1) + "_s" + b);
+			bridgeLight.setColor(red,green,0);
+
+			entity light = sys.getEntity("c" + (c + 1) + "_s" + b + "_d" + armState1);
+			light.setColor(red,green,0);
+
+			light = sys.getEntity("c" + (c + 1) + "_s" + b + "_d" + armState2);
+			light.setColor(red,green,0);
+
+			c++;
+		}	
+	}
+
+	void InitBridge1()
+	{
+		RotateBridge1();
+		RotateBridge1();
+
+		goobridge_01_lock = 1;
+		initBridge1Done = 1;
+
+		LockBridgeMap(1, goobridge_01_arm01, goobridge_01_arm02, 1, 0);
+	}
+
+	void InitBridge2()
+	{
+		RotateBridge2();
+
+		goobridge_02_lock = 1;
+		
+		LockBridgeMap(2, goobridge_02_arm01, goobridge_02_arm02, 1, 0);
+	}
+
+	void InitBridge3()
+	{
+		RotateBridge3();
+
+		goobridge_03_lock = 1;
+		
+		LockBridgeMap(3, goobridge_03_arm01, goobridge_03_arm02, 1, 0);
+	}
+
+	void InitBridge4()
+	{
+		RotateBridge4();
+		RotateBridge4();
+		RotateBridge4();
+
+		goobridge_04_lock = 1;
+		initBridge4Done = 1;
+		
+		LockBridgeMap(4, goobridge_04_arm01, goobridge_04_arm02, 1, 0);
+	}
+
+	void ToggleBridgeLock1()
+	{
+				goobridge_01_lock = 2;
+				
+				$goobridge_01_switch.rotateOnce('0 0 -90');				
+
+				sys.waitFor($goobridge_01_switch);
+				sys.trigger($goobridge_01_unlock);
+				goobridge_01_lock = 0;
+
+				$goobridge_01_switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+
+				LockBridgeMap(1, goobridge_01_arm01, goobridge_01_arm02, 0, 1);
+				
+				sys.trigger($Silo_Relay_1);
+
+				sys.wait(.25);
+
+				$goobridge_01_switch.startSoundShader("al4_paddles", SND_CHANNEL_ANY);
+	}
+
+	void ToggleBridgeLock2()
+	{
+				goobridge_02_lock = 2;
+
+				$Silo_Lock_Switch2.setKey("click_item", "0");
+				$goobridge_02_switch.rotateOnce('90 0 0');				
+
+				sys.waitFor($goobridge_02_switch);
+				sys.trigger($goobridge_02_unlock);
+				goobridge_02_lock = 0;
+				
+				$goobridge_02_switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+
+				LockBridgeMap(2, goobridge_02_arm01, goobridge_02_arm02, 0, 1);
+				
+				sys.trigger($Silo_Relay_2);
+
+				sys.wait(.25);
+
+				$goobridge_02_switch.startSoundShader("al4_paddles", SND_CHANNEL_ANY);
+	}
+
+	void ToggleBridgeLock3()
+	{
+				goobridge_03_lock = 2;
+
+				$Silo_Lock_Switch3.setKey("click_item", "0");
+				$goobridge_03_switch.rotateOnce('0 0 90');				
+
+				sys.waitFor($goobridge_03_switch);
+				sys.trigger($goobridge_03_unlock);
+				goobridge_03_lock = 0;
+				
+				$goobridge_03_switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+
+				LockBridgeMap(3, goobridge_03_arm01, goobridge_03_arm02, 0, 1);
+				
+				sys.trigger($Silo_Relay_3);
+
+				sys.wait(.25);
+
+				$goobridge_03_switch.startSoundShader("al4_paddles", SND_CHANNEL_ANY);
+	}
+
+	void ToggleBridgeLock4()
+	{
+				goobridge_04_lock = 2;
+
+				$Silo_Lock_Switch4.setKey("click_item", "0");
+				$goobridge_04_switch.rotateOnce('-90 0 0');				
+
+				sys.waitFor($goobridge_04_switch);
+				sys.trigger($goobridge_04_unlock);
+				goobridge_04_lock = 0;
+				
+				$goobridge_04_switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+
+				LockBridgeMap(4, goobridge_04_arm01, goobridge_04_arm02, 0, 1);
+				
+				sys.trigger($Silo_Relay_4);
+
+				sys.wait(.25);
+
+				$goobridge_04_switch.startSoundShader("al4_paddles", SND_CHANNEL_ANY);
+	}
+
+	void goobridge_01_enabletrigs()
+	{
+		$goobridge_01_soultrig.enable();
+		$trigger_once_419.enable();
+	}
+
+	void goobridge_01_disabletrigs()
+	{
+		$goobridge_01_soultrig.disable();
+		$trigger_once_419.disable();
+	}
+
+	void Initiatingpump3Subs()
+	{
+		PhobosShowSubtitle_e1m5("PA", "Initiating pump 3.");
+		sys.wait(2.5);
+		sys.hideSubtitles();
+	}
+
+	void Pump3startedSubs()
+	{
+		PhobosShowSubtitle_e1m5("PA", "Pump 3 started.");
+		sys.wait(2.5);
+		sys.hideSubtitles();
+	}
+
+	void GoPistonGo()
+	{
+		$Piston_Switch.setKey("click_item", "0");	
+
+		$pistonhandle.moveTo($pistoncontrol_onpos);
+		$pistonhandle.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+		
+		$pistoncontrol_off.hide();
+				
+		sys.waitFor($pistonhandle);
+
+		$pistoncontrol_on.show();
+
+		sys.wait(.5);
+
+		thread Initiatingpump3Subs();
+		$pistonvoice.startSoundShader("sound/shav/e1m5/initiatingpump3.ogg", SND_CHANNEL_ANY);		
+
+		sys.wait(5);
+
+		$pistondoor_rotator.rotateOnce('0 43 0');
+		$pistonhandle.startSoundShader("sound/doors/Idoor1_open.wav", SND_CHANNEL_ANY);		
+
+		sys.wait(2);		
+
+		sys.trigger($pistonspeaker);
+		
+		sys.wait(1);
+
+		thread Pump3startedSubs();
+		$pistonvoice.startSoundShader("sound/shav/e1m5/pump3started.ogg", SND_CHANNEL_ANY);
+
+		while(1)
+		{
+			$pistonelev.move(DOWN, 256);
+			sys.waitFor($pistonelev);
+			$pistonelev.move(UP, 256);
+			sys.waitFor($pistonelev);					
+		}
+	}
+	
+	float shutter1 = 0;
+	void shutter1open()	
+	{
+		$shutter1.move(-2, 128);
+		sys.trigger($shutter_portal_1);
+		sys.waitFor ($shutter1);
+	
+		thread crossFadeEnt ($shutterlight_1, '0.09 0.19 0.27', '0.27 0.19 0.09', .5);
+	}
+	
+	void shutter1close()	
+	{
+		$shutter1.move(-1, 128);
+		sys.waitFor ($shutter1);
+		sys.trigger($shutter_portal_1);
+	
+		thread crossFadeEnt ($shutterlight_1, '0.27 0.19 0.09', '0.09 0.19 0.27', .5);
+	}
+
+	void shutter1toggle()
+	{
+		if(shutter1 == 0)
+		{
+			shutter1 = 2;
+
+			shutter1open();
+
+			shutter1 = 1;
+		}
+		else if(shutter1 == 1)
+		{
+			shutter1 = 2;
+
+			shutter1close();
+
+			shutter1 = 0;
+		}
+	}
+	
+	float shutter2 = 0;
+	void shutter2open()	
+	{
+		$shutter2.move(-2, 128);
+		sys.trigger($shutter_portal_2);
+		sys.waitFor ($shutter2);
+	
+		thread crossFadeEnt ($shutterlight_2, '0.09 0.19 0.27', '0.27 0.19 0.09', .5);
+	}
+	
+	void shutter2close()	
+	{
+		$shutter2.move(-1, 128);
+		sys.waitFor ($shutter2);
+		sys.trigger($shutter_portal_2);
+	
+		thread crossFadeEnt ($shutterlight_2, '0.27 0.19 0.09', '0.09 0.19 0.27', .5);
+	}
+
+	void shutter2toggle()
+	{
+		if(shutter2 == 0)
+		{
+			shutter2 = 2;
+
+			shutter2open();
+
+			shutter2 = 1;
+		}
+		else if(shutter2 == 1)
+		{
+			shutter2 = 2;
+
+			shutter2close();
+
+			shutter2 = 0;
+		}
+	}
+	
+	float shutter3 = 1;
+	void shutter3open()	
+	{
+		$shutter3.move(-2, 128);
+		sys.trigger($shutter_portal_3);
+		sys.waitFor ($shutter3);
+	
+		thread crossFadeEnt ($shutterlight_3, '0.09 0.19 0.27', '0.27 0.19 0.09', .5);
+	}
+	
+	void shutter3close()	
+	{
+		$shutter3.move(-1, 128);
+		sys.waitFor ($shutter3);
+		sys.trigger($shutter_portal_3);
+	
+		thread crossFadeEnt ($shutterlight_3, '0.27 0.19 0.09', '0.09 0.19 0.27', .5);
+	}
+
+	void shutter3toggle()
+	{
+		if(shutter3 == 0)
+		{
+			shutter3 = 2;
+
+			shutter3open();
+
+			shutter3 = 1;
+		}
+		else if(shutter3 == 1)
+		{
+			shutter3 = 2;
+
+			shutter3close();
+
+			shutter3 = 0;
+		}
+	}
+	
+	void OpensmFloodGate()	
+	{
+		$Small_Floodgate_Switch.setKey("click_item", "0");
+		$floodgate1switch.rotateOnce('0 0 -90');
+		$floodgate1switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);	
+			
+		sys.waitFor($floodgate1switch);
+
+		sys.trigger($func_door_1959);
+	}			
+
+	void spectrum_tunnel ()	
+	{	
+		sys.trigger($spectrum_tunnel_relay);
+		sys.trigger($spectrum_tunnel_speaker);
+		sys.trigger($spectrum_tunnel_light);
+		$spectrum_tunnel_mover.move(90, 1536);
+		sys.waitFor($spectrum_tunnel_mover);
+		sys.trigger($spectrum_tunnel_light);
+		$spectrum_tunnel_mover.restorePosition();	
+	}
+
+	void GoFloodgateGo()
+	{
+		$floodgateswitcharoo.move(0, 12);
+		$floodgateswitcharoo.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+		
+		sys.trigger($target_lock_2);
+		
+		sys.wait(2);
+
+		sys.trigger($RelayMyFloodGate);
+	}
+	
+	void ToggleTunnelFloodgates()
+	{
+		sys.trigger($Floodgate_Toggle_Relay);
+	}
+	
+	void GoFloodgateGo2()
+	{
+		$floodgateswitcharoo2.rotateOnce('-90 0 0');				
+		$floodgateswitcharoo2.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+		sys.trigger($func_door_1961);
+		sys.trigger($func_door_1840);
+	}
+		
+	void GoFloodgateGo2_rev()
+	{
+		$floodgateswitcharoo2.rotateOnce('90 0 0');				
+		$floodgateswitcharoo2.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+		sys.trigger($func_door_1961);
+		sys.trigger($func_door_1840);
+	}
+	
+	void mover_startsound (entity ent) {
+		ent.startSoundShader ("m1_start", SND_CHANNEL_VOICE);
+		sys.wait (0.75);
+		ent.startSoundShader ("m1_loop", SND_CHANNEL_VOICE2);
+	}
+
+	void mover_stopsound (entity ent) {
+		ent.startSoundShader ("m1_stop", SND_CHANNEL_VOICE2);
+		ent.startSoundShader ("rec1_pump_endclack_01", SND_CHANNEL_ITEM );
+	}
+	
+	void pump_piston1_start ()
+	{
+		while (1)
+		{ 
+				$pump_piston1.accelTime (.5);
+				$pump_piston1.decelTime (.2);
+				$pump_piston1.time (1);
+				thread mover_startsound ($pump_piston1);
+				$pump_piston1.move (DOWN, 96);
+				sys.waitFor ($pump_piston1);
+				mover_stopsound ($pump_piston1);
+		        
+				sys.wait (1);
+		        
+				$pump_piston1.accelTime (.5);
+				$pump_piston1.decelTime (.8);
+				
+				thread mover_startsound ($pump_piston1);
+				
+				$pump_piston1.time (1.6);
+				$pump_piston1.move (UP, 96);
+				sys.waitFor ($pump_piston1);
+				
+				mover_stopsound ($pump_piston1);
+		}
+	}
+
+	void pump_piston2_start ()
+	{
+		while (1)
+		{              
+				$pump_piston2.time (1.5);
+				thread mover_startsound ($pump_piston2);
+				$pump_piston2.move (DOWN, 96);
+				sys.waitFor ($pump_piston2);
+				mover_stopsound ($pump_piston2);
+
+				sys.wait (.5);
+
+				$pump_piston2.time (2);
+				thread mover_startsound ($pump_piston2);
+				$pump_piston2.move (UP, 96);
+				sys.waitFor ($pump_piston2);
+				mover_stopsound ($pump_piston2);
+				sys.wait (.5);
+		}
+	}
+	
+	void pump_piston1_nozzle1 ()
+	{
+		while (1)
+		{ 
+				$pump1nozzle1.move(225, 16);
+				sys.waitFor ($pump1nozzle1);
+				$pump1nozzle1.move(45, 16);
+				sys.waitFor ($pump1nozzle1);
+		}
+	}
+	
+	void pump_piston1_nozzle2 ()
+	{
+		while (1)
+		{ 
+				$pump1nozzle2.move(135, 16);
+				sys.waitFor ($pump1nozzle2);
+				$pump1nozzle2.move(315, 16);
+				sys.waitFor ($pump1nozzle2);
+		}
+	}
+	
+	void select_monsterconfig1()
+	{
+		float monsterselect1;
+
+		while (1)
+		{
+			monsterselect1 = sys.random(15);
+		
+				if (monsterselect1 <= 5){
+					sys.trigger ($monster_select_count1a);
+					sys.wait(.5);
+				} else if (monsterselect1 >= 11){
+					sys.trigger ($monster_select_count1b);
+					sys.wait(.5);
+				} else {
+					sys.trigger ($monster_select_count1c);
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_monster_selection1()
+	{
+		sys.killthread ("map_e1m5::select_monsterconfig1");
+	}	
+		
+	void select_monsterconfig2()
+	{
+		float monsterselect2;
+
+		while (1)
+		{
+			monsterselect2 = sys.random(15);
+		
+				if (monsterselect2 <= 5){
+					sys.trigger ($monster_select_count2a);
+					sys.wait(.5);
+				} else if (monsterselect2 >= 11){
+					sys.trigger ($monster_select_count2b);
+					sys.wait(.5);
+				} else {
+					sys.trigger ($monster_select_count2c);
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_monster_selection2()
+	{
+		sys.killthread ("map_e1m5::select_monsterconfig2");
+	}	
+	
+	void select_monsterconfig3()
+	{
+		float monsterselect3;
+
+		while (1)
+		{
+			monsterselect3 = sys.random(15);
+		
+				if (monsterselect3 <= 8){
+					sys.trigger ($monster_select_count3a);
+					sys.wait(1);
+				}  
+				  else {
+					sys.trigger ($monster_select_count3b);
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_monster_selection3()
+	{
+		sys.killthread ("map_e1m5::select_monsterconfig3");
+	}
+	
+	
+	void select_monsterconfig4()
+	{
+		float monsterselect4;
+
+		while (1)
+		{
+			monsterselect4 = sys.random(15);
+		
+				if (monsterselect4 <= 8){
+					sys.trigger ($monster_select_count4a);
+					sys.wait(1);
+				}  
+				  else {
+					sys.trigger ($monster_select_count4b);
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_monster_selection4()
+	{
+		sys.killthread ("map_e1m5::select_monsterconfig4");
+	}
+	
+	void select_monsterconfig5()
+	{
+		float monsterselect5;
+
+		while (1)
+		{
+			monsterselect5 = sys.random(15);
+		
+				if (monsterselect5 <= 8){
+					sys.trigger ($monster_select_count5a);
+					sys.wait(1);
+				}  
+				  else {
+					sys.trigger ($monster_select_count5b);
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_monster_selection5()
+	{
+		sys.killthread ("map_e1m5::select_monsterconfig5");
+	}
+	
+		void select_monsterconfig6()
+	{
+		float monsterselect6;
+
+		while (1)
+		{
+			monsterselect6 = sys.random(15);
+		
+				if (monsterselect6 <= 5){
+					sys.trigger ($monster_select_count6a);
+					sys.wait(.5);
+				} else if (monsterselect6 >= 11){
+					sys.trigger ($monster_select_count6b);
+					sys.wait(.5);
+				} else {
+					sys.trigger ($monster_select_count6c);
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_monster_selection6()
+	{
+		sys.killthread ("map_e1m5::select_monsterconfig6");
+	}	
+	
+	void select_monsterconfigs()
+	{
+		thread select_monsterconfig4();
+		sys.wait(4.5);
+		thread select_monsterconfig2();
+		sys.wait(4);
+		thread select_monsterconfig3();
+		sys.wait(5);
+		thread select_monsterconfig5();
+	}
+	
+	void select_triteconfig()
+	{
+		thread select_monsterconfig6();
+	}
+	
+	float PUMPS_RUNNING = 1;
+	
+	void cycle_pump(float pump_num) {
+	
+	entity slime_pump = sys.getEntity("slime_pump_" + pump_num);
+	entity speaker_pump = sys.getEntity("speaker_pump" + pump_num);
+		
+		
+		sys.wait(1);
+		while( PUMPS_RUNNING ) {
+			slime_pump.time(3);
+			slime_pump.move( UP, 96 );
+			sys.waitFor( slime_pump );
+			sys.trigger(speaker_pump);
+			slime_pump.time(1);
+			slime_pump.move( DOWN, 96 );
+			sys.waitFor( slime_pump );
+		}
+	}
+
+	void cycle_pump1() {
+	
+	 cycle_pump(1);
+	
+	}
+	
+	void cycle_pump2() {
+	
+	 cycle_pump(2);
+	
+	}
+	
+	void cycle_pump3() {
+	
+	 cycle_pump(3);
+	
+	}
+	
+	void cycle_pump4() {
+	
+	 cycle_pump(4);
+	
+	}
+	
+	float hideSubTime = 0;
+	// Motel scene stuff below
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m5(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+
+	void LeeTexts(string text)
+	{
+		float textTime = sys.strLength(text) * 0.125;
+
+		sys.showTextTyping();
+		sys.wait(textTime);
+		sys.hideTextTyping();
+		sys.showTextMessage(text, 0);
+	}
+
+	void CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+	
+	float CharacterSays_NoWait(entity characterEntity, string line)
+	{
+		return characterEntity.startSoundShader(line, SND_CHANNEL_ANY);
+	}
+	
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}
+
+	void precache()
+	{
+		sys.cacheSoundShader ("switch_02");
+	}
+
+	void HideUnderBed()
+	{
+		$hide_curtain_clicker.setKey("click_item", "1");
+		$hide_bathroom_clicker.setKey("click_item", "1");
+	
+		sys.disableItemGroup("motel_hiding");
+
+		thread ShowSubtitles("Sam", "Could lead to something so awkward.", 2);
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/player23.ogg");
+
+		sys.enableItemGroups();
+	}
+	
+	float trainSequenceState = 1;
+	vector camera_train_anchor_position;
+
+	void UpdateTrainView()
+	{
+		vector lastBobAngle = '0 0 0';		
+		vector lastBobMove = '0 0 0';
+
+		while(trainSequenceState)
+		{
+			vector angle = $player1.getViewAngles() - lastBobAngle;
+			lastBobAngle = $camera_train_bobber.getAngles();
+			$player1.setViewAngles(angle + lastBobAngle);
+
+			vector position = $player1.getWorldOrigin() - lastBobMove;
+			lastBobMove = $camera_train_bobber.getWorldOrigin() - camera_train_anchor_position;
+			$player1.setOrigin(position + lastBobMove);
+
+			sys.wait(GAME_FRAMETIME);
+		}
+		
+	}
+
+	void ContinueWithTheExtraLights()
+	{
+		float i = 0;
+		while(i++ < 4)
+		{
+			$train_out_window_light_mover.move(90, 480);
+			sys.waitFor($train_out_window_light_mover);
+			$train_out_window_light_mover.setOrigin($train_out_window_light_anchor.getOrigin());
+		}
+	}
+
+	void GrabLights()
+	{
+		sys.wait(3);
+		ContinueWithTheExtraLights();
+	}
+
+	float train_in_tunnel = 1;
+	void TrainTrip()
+	{	
+		float tunnel_frac = 0.9;
+		float train_frac = 0.1;
+		float total_distance = 628;
+		float segment_distance = 152;
+		float tunnel_distance = 544*2;
+		float total_speed = 200;
+		float train_speed = total_speed * train_frac;
+		float tunnel_speed = total_speed * tunnel_frac;
+
+		while(train_in_tunnel)
+		{
+			$train_out_window_light_mover.move(90, 480);
+			$PortalTrain_Mover.move(270, segment_distance * train_frac);
+			$PortalTrain_Mover_Tunnel.move(90, segment_distance * tunnel_frac);
+			sys.waitFor($PortalTrain_Mover);
+			$train_out_window_light_mover.setOrigin($train_out_window_light_anchor.getOrigin());
+			$PortalTrain_Mover.setOrigin($PortalTrain_Mover_Anchor.getOrigin());
+			$PortalTrain_Mover_Tunnel.setOrigin($PortalTrain_Mover_Tunnel_Anchor.getOrigin());
+		}
+
+		thread ContinueWithTheExtraLights();
+		$PortalTrain_Mover.move(270, total_distance);
+		$PortalTrain_Mover_Tunnel.move(90, tunnel_distance);
+
+		float train_time = total_distance/train_speed;
+		float tunnel_time = tunnel_distance/tunnel_speed;
+
+		sys.wait(train_time-tunnel_time);
+
+		thread GrabLights();
+		
+		$PortalTrain_Mover_Tunnel_2.move(90, tunnel_distance);
+
+		train_in_tunnel = 1;
+		sys.waitFor($PortalTrain_Mover);
+
+		while(train_in_tunnel)
+		{
+			$train_out_window_light_mover.move(90, 480);
+			$PortalTrain_Mover.move(270, segment_distance * train_frac);
+			$PortalTrain_Mover_Tunnel_2.move(90, segment_distance * tunnel_frac);
+			sys.waitFor($PortalTrain_Mover);
+			$train_out_window_light_mover.setOrigin($train_out_window_light_anchor.getOrigin());
+			$PortalTrain_Mover.setOrigin($PortalTrain_Mover_Anchor_2.getOrigin());
+			$PortalTrain_Mover_Tunnel_2.setOrigin($PortalTrain_Mover_Tunnel_Anchor_2.getOrigin());
+		}
+	}
+
+	void StartTrainStuff()
+	{		
+		sys.trigger($PortalTrain);
+
+		$camera_train_pendulum.setNeverDormant(1);
+		$camera_train_bobber.setNeverDormant(1);
+		$camera_train_anchor.setNeverDormant(1);
+
+
+		thread TrainTrip();				
+
+		$hide_closet_clicker.setKey("click_item", 1);
+		$hide_closet_clicker.setKey("item_action", "Open");
+		$hide_closet_clicker.setKey("call", "map_e1m5::GoToTrain");
+		
+		sys.trigger($motel_closet_clip);
+		sys.trigger($motel_closet_light);		
+		sys.trigger($train_slider_left);
+		sys.trigger($train_slider_right);		
+
+		sys.trigger($train_speaker_1);
+		sys.trigger($train_speaker_2);
+
+		camera_train_anchor_position = $camera_train_anchor.getOrigin();
+
+		thread UpdateTrainView();
+
+		sys.wait(2);
+
+		sys.trigger($SpeakerHorn1);		
+	}
+
+	
+	void Lee12Subs()
+	{
+		ShowSubtitles("Lee", "It was a really dark night.", 3);
+		ShowSubtitles("Lee", "I was alone on the train, the train leaving my home.\nHeaded to the valley, to here, looking out at the world going by.", 10.5);
+	}
+
+	void OpenTrainDoors()
+	{
+		$train_slider_left.move(90, 30);
+		sys.trigger($TrainSliderLeftSpeaker);
+
+		sys.wait(.125);
+		
+		$train_slider_right.move(270, 30);
+
+		thread Lee12Subs();
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/lee12.ogg");
+
+		$SitInTrainClicker.setKey("item_disabled", 0);
+	}
+
+	void CloseTrainDoors()
+	{
+		$train_slider_left.move(270, 30);
+		sys.trigger($TrainSliderLeftSpeaker);
+
+		sys.wait(.125);
+		
+		$train_slider_right.move(90, 30);
+	}
+	
+	float inCloset = 1;
+	
+	void UpdateClosetCameraAngle()
+	{			
+		while(inCloset)
+		{			
+			vector angles = $player1.getViewAngles();
+			angles_x *= 0.15f;
+			angles_x -= 80;
+			//angles_z *= 0.25f;
+			angles_y *= 0.25f;
+			//angles_y += 45;
+			//angles_y -= 90;
+			$motel_closet_camera.setAngles(angles);
+			sys.wait(GAME_FRAMETIME);
+		}
+	}
+
+	void Lee11Subs()
+	{
+		ShowSubtitles("Lee", "My closest friends had organized a farewell party, going late into the evening.", 6);
+		ShowSubtitles("Lee", "My family and I were leaving on that day,\nbut my mom arranged for a later departure. Just for me.", 7.5);
+		ShowSubtitles("Lee", "So I could have one last evening with my friends.", 3.5);
+		ShowSubtitles("Lee", "And I did.", 2);
+	}
+
+	void Benson4Subs()
+	{
+		ShowSubtitles("James Benson", "It's been great, Lee.\nI know it's a bit...off...to get you a room at a motel.", 6.5);
+		ShowSubtitles("James Benson", "But I didn't want to pressure you by inviting you to stay at my house.", 5);
+	}
+
+	void GoToTrain()
+	{
+		$hide_closet_clicker.hide();
+
+		//Open closet
+		$SliderLeft.move(90, 30);
+		$train_slider_left.move(90, 30);
+		sys.trigger($SliderLeftSpeaker);
+
+		sys.wait(.125);
+
+		//Open closet
+		$SliderRight.move(270, 30);
+		$train_slider_right.move(270, 30);	
+		
+		sys.waitFor($SliderRight);
+
+		thread Lee11Subs();
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/lee11.ogg");
+
+		sys.wait(0.5);
+
+		thread Lee12Subs();
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/lee12.ogg");
+
+		$SitInTrainClicker.setKey("item_disabled", 0);
+	}	
+
+	float sittingInTrain = 0;
+
+	void UpdateTrainSitCameraAngle()
+	{
+		while(sittingInTrain)
+		{			
+			vector angles = $player1.getViewAngles();
+			angles_y += 180;
+			$motel_train_sitcam.setAngles(angles);
+			sys.wait(GAME_FRAMETIME);
+		}
+	}
+
+	void Lee13Subs()
+	{
+		ShowSubtitles("Lee", "Leaving my previous life and my friends behind.\nIt felt like the end.", 5);
+		ShowSubtitles("Lee", "Like the hills, houses and people flying by were the end credits of my life.", 8);
+		ShowSubtitles("Lee", "No matter how hard I tried to keep water towers,\ntrees or landmarks in view they would always disappear over the horizon.", 10);
+		ShowSubtitles("Lee", "Eventually.\nJust like all the people I knew.", 6.5);
+	}
+
+	void SitInTrain()
+	{
+		sittingInTrain = 1;
+		
+		// Head out of the tunnel
+		train_in_tunnel = 0;
+
+		vector initial_angles = $motel_train_sitcam_angle.getAngles();
+		initial_angles_y += 180;
+		$player1.setViewAngles(initial_angles);
+
+		thread UpdateTrainSitCameraAngle();
+
+		sys.trigger($motel_train_sitcam);		
+
+		thread Lee13Subs();
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/lee13.ogg");
+
+		sys.wait(0.25);
+
+		$train_letter_item.setKey("click_item", "1");
+	}
+
+	void UpdateBedCameraAngle()
+	{			
+		while(1)
+		{			
+			vector angles = $player1.getViewAngles();
+			angles_y += 90;
+			$motel_bed_camera.setAngles(angles);
+			sys.wait(GAME_FRAMETIME);
+		}
+	}	
+
+	void Player3Subs()
+	{
+		ShowSubtitles("Sam", "Then let's act!\nLet's get the box back.", 4);
+		ShowSubtitles("Sam", "Let's sell it to Karl or whoever and use the cash to get out.", 4);
+		ShowSubtitles("Sam", "It's not just you. I've seen what there is to see here.", 4);
+	}
+
+	void GoToLevel()
+	{
+		sys.fadeTo('0 0 0', 1, .01);
+		sys.wait(.01);
+
+		sys.trigger($cam_chapter_text);
+		
+		sys.wait(2);
+		
+		sys.trigger($speaker_chapter_text);
+
+		sys.fadeTo('0 0 0', 0, 2);
+
+		sys.wait(4);
+
+		sys.fadeTo('0 0 0', 1, 2);
+
+		sys.wait(3);
+
+		//sys.trigger($setinfluence_motel);
+
+		//sys.trigger($player_teleport_map);
+		sys.trigger($speaker_chapter_text_wakeup);
+		sys.trigger($cam_chapter_text);
+
+		sys.trigger($trigger_relay_1);
+		sys.trigger($trigger_relay_37);
+		sys.trigger($trigger_fade_1);
+	}
+
+	void DoTrainHorn()
+	{	
+		$speaker_1128.startSoundShader("sound/shav/intro/thorn_02.ogg", SND_CHANNEL_ANY);
+	}
+
+	void GoToBed()
+	{
+		$mote_noticeboard_item.hide();
+
+		sys.trigger($outro_motel_cloudrain);
+		motel_light_thunder_color = '.5 .51 .67';
+
+		//Go to bed camera
+		thread UpdateBedCameraAngle();			
+
+		thread Player3Subs();
+		float act_time = CharacterSays_NoWait($player1, "sound/vo/e1m5/motelcloset/player3.ogg");
+		CharacterSays_NoWait($player1, "sound/shav/e1m5/thunder02.ogg");
+
+		sys.wait(.6);
+		act_time -= .6;
+
+		sys.trigger($motel_bed_camera);
+
+		sys.wait(act_time);
+		
+		sys.wait(0.5);
+
+		CharacterSays_NoWait($player1, "sound/shav/e1m5/thunder02.ogg");
+
+		thread ShowSubtitles("Lee", "Are you sure?", 4);
+		CharacterSays($motel_speakerlee, "sound/vo/e1m5/motelcloset/lee18.ogg");
+		sys.wait(0.5);
+
+		thread ShowSubtitles("Sam", "I am.", 2);
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/player4.ogg");
+
+		sys.wait(7);
+
+		thread ShowSubtitles("Lee", "I was thinking. What do you think happens when we die?", 5);
+		CharacterSays($motel_speakerlee, "sound/vo/e1m5/motelcloset/lee19.ogg");
+
+		sys.wait(.5);
+
+		sys.fadeTo('0 0 0', 1, .5);
+		sys.wait(6);
+
+		sys.trigger($target_endlevel_1);
+		//GoToLevel();
+	}
+
+	void Lee14Subs()
+	{
+		ShowSubtitles("Lee", "While I didn't know that at the time, I felt it.", 4);
+		ShowSubtitles("Lee", "The overwhelming dark feeling that something had changed.\nFundamentally.", 8);
+		ShowSubtitles("Lee", "The sound of the lonely horn of the train haunted me.\nI can sometimes still hear it.", 10);
+		ShowSubtitles("Lee", "At that moment in time I swore that I would not give in.\nI would return. Some day.", 10);
+		ShowSubtitles("Lee", "And I thought that moment would be now.", 5);
+	}
+
+	void Lee15Subs()
+	{
+		ShowSubtitles("Lee", "But...it isn't...and it won't.", 5.5);
+		ShowSubtitles("Lee", "James used me!\nI allowed myself to trust him.", 6.8);
+		ShowSubtitles("Lee", "He now has the only thing I have left from my brother.", 7);
+	}
+
+	void Lee16Subs()
+	{
+		ShowSubtitles("Lee", "He never answered my letters.", 2);
+		ShowSubtitles("Lee", "I haven't heard from him in years.", 3);
+		ShowSubtitles("Lee", "So it's not much.", 3);
+		ShowSubtitles("Lee", "But it's all I had.", 2);
+	}
+
+	void Lee161Subs()
+	{
+		ShowSubtitles("Lee", "Now that's gone too,\njust like James Benson.", 4);
+	}
+
+	void Lee162Subs()
+	{
+		ShowSubtitles("Lee", "But you know. I was wrong and I have been wrong for a long time.", 8.5);
+		ShowSubtitles("Lee", "You were here when I arrived in the valley.", 3.5);
+		ShowSubtitles("Lee", "You were there before my family exploded.", 4);
+		ShowSubtitles("Lee", "You were there before James and you are here now.", 5);
+		ShowSubtitles("Lee", "And that's all that matters.", 3);
+	}
+
+	void Lee17Subs()
+	{
+		ShowSubtitles("Lee", "So you know. Maybe I'm repeating my mistakes.", 4);
+		ShowSubtitles("Lee", "I just..for once..wanted to act upon life instead of having it act upon me.", 7);
+		ShowSubtitles("Lee", "But if leaving this place in any way means losing you or what we have, I do not want it.", 9.75);
+		ShowSubtitles("Lee", "I choose you.", 3);
+	}
+
+	void BarnLightning(float fadeInTime, float fadeOutTime, float staying, float intensity)
+	{		
+		thread crossFadeEnt ($Barn_Lightning, '0 0 0', '0.51 0.56 0.62' * intensity, fadeInTime);
+		thread crossFadeEnt ($Barn_Lightning2, '0 0 0', '0.51 0.56 0.62' * intensity, fadeInTime);		
+		thread crossFadeEnt ($outside_barn_lightning, '0 0 0', '0.51 0.56 0.62' * intensity, fadeInTime);				
+
+		sys.wait(staying);
+		
+		thread crossFadeEnt ($Barn_Lightning, '0.51 0.56 0.62' * intensity, '0 0 0', fadeOutTime);
+		thread crossFadeEnt ($Barn_Lightning2, '0.51 0.56 0.62' * intensity, '0 0 0', fadeOutTime);		
+		thread crossFadeEnt ($outside_barn_lightning, '0.51 0.56 0.62' * intensity, '0 0 0', fadeOutTime);		
+	}
+
+	void BarnLightningSession()
+	{
+		sys.wait(1);		
+		BarnLightning(0.1, .25, .3, .7);
+
+		float times = 7;
+	
+		float j = 0;
+		while(j < 3)
+		{
+
+		float i = 0;
+		while(i < times - 1)
+		{			
+			sys.wait(GetRandom(0.05, 0.15));
+			BarnLightning(GetRandom(0.01, .0625), GetRandom(0.01, .0625), GetRandom(0.01, .125), GetRandom(.1, 1));
+			 
+			i++;
+		}
+
+		sys.wait(GetRandom(0.05, 0.3));
+
+		BarnLightning(GetRandom(0.1, .0625), GetRandom(0.3, .35), GetRandom(.2, .3), GetRandom(.5, .7));	
+
+		sys.wait(3);		
+	
+		i = 0;
+		while(i < times - 1)
+		{			
+			sys.wait(GetRandom(0.05, 0.15));
+			BarnLightning(GetRandom(0.01, .0625), GetRandom(0.01, .0625), GetRandom(0.01, .125), GetRandom(.1, 1));
+			 
+			i++;
+		}
+
+		sys.wait(7);		
+	
+		i = 0;
+		while(i < times - 1)
+		{			
+			sys.wait(GetRandom(0.05, 0.15));
+			BarnLightning(GetRandom(0.01, .0625), GetRandom(0.01, .0625), GetRandom(0.01, .125), GetRandom(.1, 1));
+			 
+			i++;
+		}
+
+		i = 0;
+		while(i < times - 1)
+		{			
+			sys.wait(GetRandom(0.05, 0.15));
+			BarnLightning(GetRandom(0.01, .0625), GetRandom(0.01, .0625), GetRandom(0.01, .125), GetRandom(.1, 1));
+			 
+			i++;
+		}
+
+		sys.wait(GetRandom(0.05, 0.3));
+
+		BarnLightning(GetRandom(0.1, .0625), GetRandom(0.3, .35), GetRandom(.2, .3), GetRandom(.5, .7));	
+
+		sys.wait(3);		
+	
+		i = 0;
+		while(i < times - 1)
+		{			
+			sys.wait(GetRandom(0.05, 0.15));
+			BarnLightning(GetRandom(0.01, .0625), GetRandom(0.01, .0625), GetRandom(0.01, .125), GetRandom(.1, 1));
+			 
+			i++;
+		}
+
+		sys.wait(7);		
+	
+		i = 0;
+		while(i < times - 1)
+		{			
+			sys.wait(GetRandom(0.05, 0.15));
+			BarnLightning(GetRandom(0.01, .0625), GetRandom(0.01, .0625), GetRandom(0.01, .125), GetRandom(.1, 1));
+			 
+			i++;
+		}
+		j++;
+		}
+	}
+
+	float update_key_cam_portal;
+
+	void Update_Key_Cam_Portal()
+	{
+		while(update_key_cam_portal)
+		{
+			//$camera_box_key_portal.setKey("viewportalorigin", $camera_box_key.getOrigin());		
+			sys.waitFrame();
+		}
+	}
+
+	void Benson5Subtitle()
+	{
+		ShowSubtitles("James Benson", "I hate to say it, but I think - for the time being - you will have to learn to live with it.", 8);
+		ShowSubtitles("James Benson", "Look, getting out of a federal zone is a hot button issue right now.\nI can take you anywhere within the zone, though.", 8.6);
+		ShowSubtitles("James Benson", "It doesn't mean we can't have fun.", 3);
+	}
+
+	void Benson2Subtitle()
+	{
+		ShowSubtitles("James Benson", "I know it's not exactly 'outside the zone'.", 3.5);
+		ShowSubtitles("James Benson", "But I hope it's been a - you know - a breath of fresh air or something.", 6);
+	}	
+
+	void InspectTrainLetter()
+	{
+		$curtian_sepia_decal.hide();
+		$motel_curtains.hide();
+		$motel_curtains_off.show();
+
+		thread Lee14Subs();
+		float time_to_wait = CharacterSays_NoWait($player1, "sound/vo/e1m5/motelcloset/lee14.ogg");
+
+		sys.wait(12);
+
+		sys.trigger($SpeakerHorn2);
+
+		sys.wait(time_to_wait - 12);
+
+		sys.wait(0.25);
+		
+		$camera_outside_mover.moveTo($camera_outside_target);
+		sys.trigger($portal_valley);
+		sys.trigger($camera_outside);
+		sys.wait(0.25);
+
+		thread Lee15Subs();
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/lee15.ogg");
+		sys.wait(0.25);
+
+		trainSequenceState = 0;
+
+		sys.trigger($camera_box_key_portal);
+		
+		thread Update_Key_Cam_Portal();
+		sys.trigger($camera_box_key);
+		$camera_box_key_mover.moveTo($camera_box_key_target);
+		sys.wait(0.25);
+
+		thread Lee16Subs();
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/lee16.ogg");
+		$camera_box_key_portal_mover.move(UP, 64);
+		sys.wait(0.25);		
+
+		$player1.startSoundShader("sound/shav/e1m4_4/foop.ogg", SND_CHANNEL_ANY);
+
+		thread Lee161Subs();		
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/lee16_1.ogg");
+		sys.wait(0.25);		
+
+		$player1.startSoundShader("sound/shav/e1m5/thunder01.ogg", SND_CHANNEL_ANY);
+		
+		sys.trigger($outside_barn_cam);
+		$outside_barn_mover.move(DOWN, 128);
+		
+		sys.wait(0.25);
+
+		thread BarnLightningSession();
+
+		thread Lee162Subs();
+		float line_time = CharacterSays_NoWait($player1, "sound/vo/e1m5/motelcloset/lee16_2.ogg");
+		sys.wait(9);
+		line_time -= 9;
+		
+		$camera_barn_workstation_mover.moveTo($camera_barn_workstation_target);
+		sys.trigger($camera_barn_workstation);
+
+		sys.wait(line_time + 0.25);
+
+		sys.trigger($camera_barn_map);
+		$camera_barn_map_mover.moveTo($camera_barn_map_target);		
+
+		thread Lee17Subs();
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/lee17.ogg");
+		sys.wait(0.25);
+
+		update_key_cam_portal = 0;
+
+		GoToBed();
+	}
+
+	void Player1_1Subs()
+	{
+		ShowSubtitles("Sam", "Lee, I'm...I'm sorry...", 6.5);
+		ShowSubtitles("Sam", "I overheard James, just now...he was on the phone...", 6);
+		ShowSubtitles("Sam", "I...He's planning to sell the box. To someone. He's using you.", 10);
+		ShowSubtitles("Sam", "Where do we go from here?", 2);
+	}
+
+	void HideOnAltan()
+	{
+		float skipto = 0;
+		if(!skipto)
+		{
+		//fade to black
+		sys.fadeTo('0 0 0', 1, .5);
+
+		sys.wait(.5);
+
+		sys.wait($player1.startSoundShader("sound/shav/e1m5/curtain.ogg", SND_CHANNEL_ANY) - 1.0);
+		sys.trigger($altan_door_slider_speaker);
+
+		sys.wait(5);
+		
+		$not_closet_cam_01_mover.move(270, 64);
+
+		$curtian_sepia_decal.hide();
+		sys.trigger($not_closet_cam_01);
+		sys.fadeTo('0 0 0', 0, .5);
+
+		sys.trigger($speaker_somethingsoff);
+
+		sys.wait(3);
+
+		//Lee opens the door
+		sys.trigger($lee_open_door_speaker);
+
+		sys.wait(3);
+
+		$not_closet_cam_02_mover.moveTo($not_closet_cam_02_target);
+		sys.trigger($not_closet_cam_02);
+
+		sys.wait(4);
+		
+		//Lee and benson talk
+		thread ShowSubtitles("Lee", "Well. We're here...\nThanks for following me up.", 3.25);
+		CharacterSays($SpeakerLee, "sound/vo/e1m5/motelcloset/lee1.ogg");
+		Beat(.75);
+		
+		thread ShowSubtitles("James Benson", "My Pleasure.\nHow do you like the room?", 3);
+		CharacterSays($SpeakerBenson, "sound/vo/e1m5/motelcloset/benson1.ogg");
+		Beat(1);
+
+		thread ShowSubtitles("Lee", "Erm...I'm...it's a fine room.", 3.25);
+		CharacterSays($SpeakerLee, "sound/vo/e1m5/motelcloset/lee2.ogg");
+		Beat(.15);
+		
+		$curtian_sepia_decal.show();
+		$not_closet_cam_03_mover.moveTo($not_closet_cam_03_target);
+		sys.trigger($not_closet_cam_03);
+
+		thread Benson2Subtitle();
+		CharacterSays($SpeakerBenson, "sound/vo/e1m5/motelcloset/benson2.ogg");
+		Beat(.75);
+		
+		
+		thread ShowSubtitles("Lee", "Or something?", 2);
+		CharacterSays($SpeakerLee, "sound/vo/e1m5/motelcloset/lee3.ogg");
+		Beat(.25);
+		
+		thread ShowSubtitles("James Benson", "I just hope you've enjoyed yourself these past few days.", 5.0);
+		CharacterSays($SpeakerBenson, "sound/vo/e1m5/motelcloset/benson3.ogg");
+		Beat(.75);
+	
+		$not_closet_cam_06_mover.moveTo($not_closet_cam_06_target);
+		sys.trigger($not_closet_cam_06);
+
+		thread ShowSubtitles("Lee", "I have.", 2);
+		CharacterSays($SpeakerLee, "sound/vo/e1m5/motelcloset/lee4.ogg");
+		Beat(1.5);		
+			
+
+
+		thread Benson4Subs();
+		CharacterSays($SpeakerBenson, "sound/vo/e1m5/motelcloset/benson4.ogg");
+		Beat(.2);
+		
+		thread ShowSubtitles("Lee", "Well I, erm, I appreciate that.\nI'm still bummed about your contact though.", 5.25);
+		CharacterSays($SpeakerLee, "sound/vo/e1m5/motelcloset/lee5.ogg");
+		
+		Beat(1.0);
+
+		$not_closet_cam_04_mover.moveTo($not_closet_cam_04_target);
+		sys.trigger($not_closet_cam_04);
+		
+		thread Benson5Subtitle();
+		CharacterSays($SpeakerBenson, "sound/vo/e1m5/motelcloset/benson5.ogg");
+		Beat(.25);
+		
+		$not_closet_cam_05_mover.moveTo($not_closet_cam_05_target);
+		sys.trigger($not_closet_cam_05);
+		
+		thread ShowSubtitles("Lee", "I'm just disappointed. It's not your fault.\nI'm SO tired...", 7.25);
+		CharacterSays($SpeakerLee, "sound/vo/e1m5/motelcloset/lee6.ogg");
+		Beat(1.5);
+		
+		thread ShowSubtitles("James Benson", "Lee, I'd like to stay for a bit.\nIf you don't mind.", 4.5);
+		CharacterSays($SpeakerBenson, "sound/vo/e1m5/motelcloset/benson6.ogg");
+		Beat(.75);
+		
+		thread ShowSubtitles("Lee", "Oh...erm...I'll be right back.", 3.25);
+		CharacterSays($SpeakerLee, "sound/vo/e1m5/motelcloset/lee7.ogg");		
+		Beat(2.5);
+
+		sys.trigger($not_closet_cam_07);
+		
+		//sys.trigger($benson_steps);
+
+		sys.trigger($SpeakerDoorOpenCloseLock);
+
+		Beat(2);		
+
+		Beat(4);
+
+		sys.trigger($SpeakerFaucet);
+		Beat(2.5);
+
+		sys.trigger($not_closet_cam_08);
+		
+		sys.wait(4);
+				
+		//sys.trigger($SpeakerBensonNear);
+		sys.wait(.5);
+
+		sys.trigger($benson_phone_ring);
+
+		sys.wait(.5);
+
+		sys.trigger($benson_foot_walk);
+		
+
+		thread UpdateClosetCameraAngle();		
+
+		sys.wait(4);
+
+		sys.wait($benson_door.startSoundShader("sound/shav/e1m5/curtain.ogg", SND_CHANNEL_ANY) - 1.0);		
+
+		sys.fadeTo('0 0 0', 1, .5);		
+		
+		sys.wait(.5);
+
+		sys.trigger($altan_door_slider_speaker);
+
+		//go to closet camera
+		sys.trigger($motel_closet_camera);
+		
+		sys.wait(1);
+		
+		sys.fadeTo('0 0 0', 0, .5);		
+		
+		sys.wait(2);
+
+		thread ShowSubtitles("James Benson", "Where have you been?\nI've tried to get a hold of you for the better part of a week.", 4.25);
+		CharacterSays($SpeakerBenson2, "sound/vo/e1m5/motelcloset/benson7.ogg");
+		sys.wait(2.5);
+		
+		thread ShowSubtitles("James Benson", "I can't talk here. Not for long anyway.\nDid you get my message?", 4.5);
+		CharacterSays($SpeakerBenson2, "sound/vo/e1m5/motelcloset/benson8.ogg");		
+		sys.wait(2.5);
+		
+		thread ShowSubtitles("James Benson", "A week back.\nAbout the...Artifact...", 4);
+		CharacterSays($SpeakerBenson2, "sound/vo/e1m5/motelcloset/benson9.ogg");
+		sys.wait(2.5);
+
+		thread ShowSubtitles("James Benson", "Yes and yes.", 2.5);
+		CharacterSays($SpeakerBenson2, "sound/vo/e1m5/motelcloset/benson10.ogg");
+		sys.wait(2.5);	
+
+		thread ShowSubtitles("James Benson", "I know the going rate for these artifacts. This one came all the way from Mars.\nIt was not easy getting it here.", 6.5);
+		CharacterSays($SpeakerBenson2, "sound/vo/e1m5/motelcloset/benson11.ogg");
+		sys.wait(1.5);
+
+		thread ShowSubtitles("James Benson", "I'm thinking at least 4 million.", 2.5);
+		CharacterSays($SpeakerBenson2, "sound/vo/e1m5/motelcloset/benson12.ogg");
+		sys.wait(2.5);
+
+		thread ShowSubtitles("James Benson", "Right now? Don't have it with me and I wouldn't meet you if I had.\nBut I have pictures. See you soon.", 8);
+		CharacterSays($SpeakerBenson2, "sound/vo/e1m5/motelcloset/benson13.ogg");		
+		sys.wait(2.5);
+
+		$not_closet_cam_09_mover.moveTo($not_closet_cam_09_target);
+		sys.trigger($not_closet_cam_09);
+
+		//Lee comes out of the bathroom
+		sys.trigger($SpeakerUnlockDoorOpenClose);
+		Beat(3);
+
+		thread ShowSubtitles("James Benson", "Lee...I have to go. Business. I'm sorry.\nI hope we can continue this again soon.", 7);
+		CharacterSays($SpeakerBenson, "sound/vo/e1m5/motelcloset/benson14.ogg");		
+		Beat(.25);
+
+		thread ShowSubtitles("Lee", "Sure. Have a fine evening.", 2);
+		CharacterSays($SpeakerLee, "sound/vo/e1m5/motelcloset/lee8.ogg");
+				
+		sys.trigger($SpeakerBensonLeaves);
+		
+		sys.wait(8.5);
+		
+		//Remove heavy breathing
+		//sys.trigger($ClosetBreathing);
+		
+		// Open bathroom door
+		$door_bathroom_mover.rotateOnce('0 -75 0');
+		$pizza_fredag_door_clip.hide();
+		$hide_bathroom_clicker.hide();
+		}
+		sys.wait(1.25);
+
+		// Turn off the game show
+		$SpeakerTVShow.fadeSound (SND_CHANNEL_ANY, -100, 50);
+		sys.trigger($SpeakerSoothing);
+		sys.wait(6);
+
+		sys.trigger($outro_camera_freetext);
+
+		sys.wait(1);
+
+		showText("Later.");
+
+		sys.wait(4);
+
+		sys.trigger($outro_camera_freetext);
+		sys.trigger($not_closet_cam_09);
+
+		//Exit closet
+		//$SliderLeft.move(270, 30);
+		//sys.trigger($SliderLeftSpeaker);
+		sys.fadeTo('0 0 0', 1, 1.5);
+		sys.wait(6);
+
+		thread Player1_1Subs();
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/player1_1.ogg");
+
+		sys.wait(5);
+
+		thread ShowSubtitles("Sam", "Are you okay?", 2);
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/player2.ogg");
+
+		
+		sys.wait(1.5);
+		thread ShowSubtitles("Lee", "Have I ever told you about my last day outside the valley?", 7.5);
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/lee10.ogg");
+		
+		// SPAWN IN PARTY ROOM
+		thread StartTrainStuff();
+		sys.trigger($teleport_train);
+
+		
+		if(!skipto)
+		{
+		sys.trigger($not_closet_cam_09);
+		}
+		sys.wait(.125);
+		sys.fadeTo('0 0 0', 0, 0);
+
+		//Turn off the lights
+		$motel_floor_light_1_1.setColor(0,0,0);
+		$motel_floor_light_1_2.setColor(0,0,0);
+		$motel_floor_light_1_source.setColor(0, 0, 0);
+		$motel_floor_light_2_1.setColor(0, 0, 0);
+		$motel_floor_light_2_2.setColor(0, 0, 0);
+		$motel_floor_light_2_source.setColor(0, 0, 0);
+		$motel_bed_light_1_ambient.setColor(0, 0, 0);
+		$motel_bed_light_1_source.setColor(0, 0, 0);
+		$motel_bed_light_1.setColor(0, 0, 0);
+		$motel_bed_light_2_ambient.setColor(0, 0, 0);
+		$motel_bed_light_2_source.setColor(0, 0, 0);
+		$motel_bed_light_2.setColor(0, 0, 0);
+		$motel_fan_light_source.setColor(0, 0, 0);
+		$motel_fan_light.setColor(0, 0, 0);
+		$motel_ambient_light_1.setColor(0.24, 0.20, 0.16);
+		$motel_ambient_light_2.setColor(0.12, 0.12, 0.16);
+		$light_65836.setColor(0, 0, 0);
+		$light_65838.setColor(0, 0, 0);
+		$func_static_108262.setColor(0, 0, 0);
+		$func_static_107926.setColor(0, 0, 0);
+		$house_light_group_main_42.setColor(0, 0, 0);
+		$house_light_group_main_41.setColor(0, 0, 0);
+		$house_light_group_main_12.setColor(0, 0, 0);
+		$house_light_group_main_71.setColor(0, 0, 0);
+		$house_light_group_main_74.setColor(0, 0, 0);
+		$func_rotating_2.stopRotating();
+	}
+
+	void HideInCloset()
+	{
+		HideOnAltan();
+	}
+
+	void InspectParty()
+	{
+		thread Lee11Subs();
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/lee11.ogg");
+		
+		sys.wait(0.5);
+		
+		$train_door_fader_mover.move(DOWN, 1024);
+
+		thread crossFadeEnt ($train_doors_light, '0 0 0', '0.38 0.38 0.38', .25);
+
+		sys.trigger($train_door_outer_trigger);		
+	}
+	
+	float hiding_places_inspected = 0;
+	void CheckCloset()
+	{
+		return;
+		if(hiding_places_inspected == 2)
+		{
+			$hide_closet_clicker.setKey("click_item", "1");
+		}
+	}
+
+	void HideBehindCurtain()
+	{
+		HideOnAltan();
+		return;
+
+		sys.disableItemGroup("motel_hiding");
+		
+		hiding_places_inspected++;		
+		
+		thread ShowSubtitles("Sam", "They might go outside.", 2);
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/player24.ogg");
+
+		sys.enableItemGroups();
+
+		CheckCloset();
+	}
+	
+	void HideInBathroom()
+	{
+		sys.disableItemGroup("motel_hiding");
+
+		hiding_places_inspected++;		
+		
+		thread ShowSubtitles("Sam", "Great hiding place until he decides to take a dump.", 2);
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/player25.ogg");
+
+		sys.enableItemGroups();
+
+		CheckCloset();
+	}	
+	
+	void LeeStartsTexting()
+	{
+		Beat(0.25);
+		LeeTexts("Things took a turn. Coming back. NOW! HIDE!");
+	}
+
+	void KarlDoorReaction()
+	{		
+		thread ShowSubtitles("Sam", "I wonder if Karl is home.", 2);
+		CharacterSays($player1, "sound/vo/e1m5/karlhome.ogg");
+
+		$call_karl_item.setKey("click_item", "1");
+	}
+
+	void PhoneNextDoor()
+	{
+		sys.wait(4.832);
+		sys.trigger($motel_phone_nextdoor);
+	}
+
+	void CallKarl()
+	{
+		thread PhoneNextDoor();
+		CharacterSays($player1, "sound/shav/e1m4_4/calling_karl.ogg");
+
+		sys.trigger($SpeakerTVShow);
+
+		thread ShowSubtitles("Karl", "Hello thanks for calling. This is Karl's shovels and digging equipment.\nHow may I help you today?", 3.5);
+		thread CharacterSays($speaker_karl_room, "sound/vo/e1m5/karlcall/karl1_muffled.ogg");
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/karl1.ogg");		
+
+		Beat(.1);
+
+		thread ShowSubtitles("Sam", "Wait, what?", 2);
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/player1.ogg");
+
+		Beat(.2);
+
+		thread ShowSubtitles("Karl", "Oh it's you.", 2);
+		thread CharacterSays($speaker_karl_room, "sound/vo/e1m5/karlcall/karl2_muffled.ogg");
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/karl2.ogg");		
+
+		Beat(.15);
+
+		thread ShowSubtitles("Sam", "Shovels and digging equipment?", 2);
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/player2.ogg");
+
+		Beat(.75);
+
+		thread ShowSubtitles("Karl", "Don't worry about it. A little side business.\nIt's a little...boring...you know.", 5.5);
+		thread CharacterSays($speaker_karl_room, "sound/vo/e1m5/karlcall/karl3_muffled.ogg");
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/karl3.ogg");
+		
+		Beat(.25);
+
+		thread ShowSubtitles("Sam", "Was that a joke?", 2);
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/player3.ogg");
+
+		Beat(1.75);
+
+		thread ShowSubtitles("Karl", "So did you talk to hot stuff? I'm a busy man, you know.\nCan't wait forever for you guys.", 4.5);
+		thread CharacterSays($speaker_karl_room, "sound/vo/e1m5/karlcall/karl4_muffled.ogg");
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/karl4.ogg");		
+
+		Beat(.3);
+
+		thread ShowSubtitles("Sam", "Right. I'm sure the shovel game is intense.", 2.5);
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/player4.ogg");
+
+		Beat(.32);
+
+		thread ShowSubtitles("Karl", "Something like that. You get it!\nHot stuff. Talk to her?", 2.5);
+		thread CharacterSays($speaker_karl_room, "sound/vo/e1m5/karlcall/karl5_muffled.ogg");
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/karl5.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "Well...", 2);
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/player5.ogg");
+
+		Beat(.2);
+
+		thread ShowSubtitles("Karl", "Want me to talk to her?\nI'll bring my A game.", 2.5);
+		thread CharacterSays($speaker_karl_room, "sound/vo/e1m5/karlcall/karl6_muffled.ogg");
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/karl6.ogg");
+		
+		Beat(.15);
+
+		thread ShowSubtitles("Sam", "Oh...dear...no\n...making me sick. I'll handle it.", 8);
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/player6.ogg");
+
+		Beat(.25);
+
+		thread ShowSubtitles("Karl", "So why are you calling? Come on, man. Busy busy busy.\nGrab the girl. Say the things. Move the stuff. What are you waiting for?", 6.5);
+		thread CharacterSays($speaker_karl_room, "sound/vo/e1m5/karlcall/karl7_muffled.ogg");
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/karl7.ogg");
+
+		Beat(.3);
+
+		thread ShowSubtitles("Sam", "It's complicated. I just...", 3);
+		float time_to_say = CharacterSays_NoWait($player1, "sound/vo/e1m5/karlcall/player7.ogg");
+
+		sys.wait(time_to_say - .5);
+
+		thread ShowSubtitles("Karl", "Complicated schmartulated. Come on...just...why are you calling?", 3.5);
+		thread CharacterSays($speaker_karl_room, "sound/vo/e1m5/karlcall/karl8_muffled.ogg");
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/karl8.ogg");		
+
+		Beat(.3);
+
+		thread ShowSubtitles("Sam", "I'm looking into it.Your payment.\nI have to know if it's even possible.", 5.5);
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/player8.ogg");
+
+		Beat(.25);
+
+		thread ShowSubtitles("Karl", "The money? The money. That minuscule tiny weeny amount?", 4.5);
+		thread CharacterSays($speaker_karl_room, "sound/vo/e1m5/karlcall/karl9_muffled.ogg");
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/karl9.ogg");		
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "It's not minuscule to us.\nI just wanted to tell you we're interested.", 3.5);
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/player9.ogg");
+
+		Beat(.25);
+
+		thread ShowSubtitles("Karl", "Can you get the cash or no?\nI keep telling you. Busy man.", 3.5);
+		thread CharacterSays($speaker_karl_room, "sound/vo/e1m5/karlcall/karl10_muffled.ogg");
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/karl10.ogg");		
+
+		Beat(.3);
+
+		thread (LeeStartsTexting());
+
+		thread ShowSubtitles("Sam", "Is that why there's constantly game show tv noise coming from your room?", 3.5);
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/player10.ogg");
+
+		Beat(.25);		
+
+		thread ShowSubtitles("Karl", "It's REALLY inappropriate to listen in on your neighbours.", 2.5);
+		thread CharacterSays($speaker_karl_room, "sound/vo/e1m5/karlcall/karl11_muffled.ogg");
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/karl11.ogg");
+
+		Beat(.65);
+
+		thread ShowSubtitles("Sam", "Oh. I gotta go.\nI'll be back with more, soon.", 2.5);
+		CharacterSays($player1, "sound/vo/e1m5/karlcall/player11.ogg");
+
+		$mote_noticeboard_item.hide();
+
+		Beat(1);
+
+		sys.trigger($SpeakerTVShow);
+
+		sys.showTextMessage("What? Why?", 1);
+
+		Beat(.5);
+
+		sys.showTextMessage("YOU ARE NOT IN ARRANGEMENT YET. HE DOES NOT KNOW ABOUT YOU. HIDE!", 0);
+		
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "Shit! Gotta find a place to hide!", 2);
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/player1.ogg");
+
+		$hide_bed_clicker.setKey("click_item", "1");		
+	}
+
+	void ReactToFML()
+	{
+		thread ShowSubtitles("Sam", "Lee is in a really dark place right now.\nI guess we both are.", 2);
+		CharacterSays($player1, "sound/vo/e1m5/darkplace.ogg");
+
+		sys.wait(10);
+
+		//Lee calls
+		sys.wait($player1.startSoundShader("sound/shav/e1m3/phonering.ogg", SND_CHANNEL_ANY));
+		sys.wait(.25);
+		$player1.startSoundShader("sound/shav/e1m3/phone_bleep1.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(.5);	
+
+		thread ShowSubtitles("Lee", "Hey.", 2);
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/lee9.ogg");
+
+		sys.wait(0.5);
+
+		thread ShowSubtitles("Sam", "Are you okay?", 2);
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/player2.ogg");
+
+		sys.wait(0.5);
+
+		thread ShowSubtitles("Lee", "Have I ever told you about my last day outside the valley?", 5);
+		CharacterSays($player1, "sound/vo/e1m5/motelcloset/lee10.ogg");
+
+		sys.wait(2);
+
+		CharacterSays($player1, "sound/vo/player/general/HelloAlt.ogg");
+
+		StartTrainStuff();
+	}
+
+	float thundering = 1;	
+
+	void MotelLightning(float fadeInTime, float fadeOutTime, float staying, float intensity)
+	{
+		thread crossFadeEnt ($motel_curtains, '0.172549 0.011765 0.000000', '0.576471 0.309804 0.305882' * intensity, fadeInTime);
+		thread crossFadeEnt ($motel_light_thunder, '0 0 0', motel_light_thunder_color * intensity, fadeInTime);
+		
+		sys.wait(staying);
+
+		thread crossFadeEnt ($motel_curtains, '0.576471 0.309804 0.305882' * intensity, '0.172549 0.011765 0.000000', fadeOutTime);		
+		thread crossFadeEnt ($motel_light_thunder, motel_light_thunder_color * intensity, '0 0 0', fadeOutTime);		
+	}
+
+	void InspectMap()
+	{
+		thread ShowSubtitles("Sam", "Hmmm.", 2);
+		CharacterSays($player1, "sound/vo/player/general/HmmLong.ogg");
+	}
+
+	void MotelLightningSession(float times)
+	{
+		float i = 0;
+		while(i < times - 1)
+		{			
+			sys.wait(GetRandom(0.05, 0.15));
+			MotelLightning(GetRandom(0.01, .0625), GetRandom(0.01, .0625), GetRandom(0.01, .125), GetRandom(.1, 1));
+			 
+			i++;
+		}
+
+		sys.wait(GetRandom(0.05, 0.3));
+
+		MotelLightning(GetRandom(0.1, .0625), GetRandom(0.3, .35), GetRandom(.2, .3), GetRandom(.5, .7));
+	}	
+
+	void UpdateMotel()
+	{
+		while(thundering)
+		{
+			MotelLightningSession(GetRandom(1, 5));
+			sys.wait(GetRandom(2, 10));
+		}
+	}	
+
+	void silo_checkpoint0()
+	{
+		sys.quickSave("Just Us - Checkpoint 0");
+	}
+	
+	void silo_checkpoint1()
+	{
+		sys.quickSave("Just Us - Checkpoint 1");
+	}
+	
+	void silo_checkpoint2()
+	{
+		sys.quickSave("Just Us - Checkpoint 2");
+	}
+	
+	void prebridgecontrol_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 3");
+	}
+	
+	void predrainhub_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 4");
+	}
+	
+	void postdrainhub_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 5");
+	}
+	
+	void silo_checkpoint3()
+	{
+		sys.quickSave("Just Us - Checkpoint 6");
+	}
+	
+	void postpumpstationunlock_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 7");
+	}
+	
+	void silo_checkpoint4()
+	{
+		sys.quickSave("Just Us - Checkpoint 8");
+	}
+	
+	void floodgate_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 9");
+	}
+
+	void Start_Motel_Scene()
+	{
+		sys.fadeTo('0 0 0', 1, .5);
+
+		$speaker_212.fadeSound (SND_CHANNEL_ANY, -100, 5);
+		$speaker_209.fadeSound (SND_CHANNEL_ANY, -100, 5);
+		$speaker_216.fadeSound (SND_CHANNEL_ANY, -100, 5);
+		$speaker_210.fadeSound (SND_CHANNEL_ANY, -100, 5);
+		$speaker_217.fadeSound (SND_CHANNEL_ANY, -100, 5);
+		$speaker_211.fadeSound (SND_CHANNEL_ANY, -100, 5);
+		$speaker_178.fadeSound (SND_CHANNEL_ANY, -100, 5);
+		$speaker_215.fadeSound (SND_CHANNEL_ANY, -100, 5);
+		
+		sys.wait(1);
+
+		sys.trigger($SpeakerCoral);
+		sys.trigger($teleport_motel);
+		sys.trigger($setinfluence_motel);
+		sys.trigger($portal_valley);
+		thread(UpdateMotel());
+
+		sys.disableItemGroup("motel_storm");
+
+		sys.wait(3);
+
+		sys.fadeTo('0 0 0', 0, .5);
+
+		sys.wait(3);
+
+		thread ShowSubtitles("Sam", "Storm's getting closer.", 2.25); 
+		CharacterSays($player1, "sound/vo/e1m5/stormcloser.ogg");
+
+		sys.enableItemGroups();
+	}
+
+	float SKIP_INTRO = 0;
+	void main()
+	{
+
+		GoToLevel();
+
+		if(0)
+		{
+		if(SKIP_INTRO)
+		{
+			sys.trigger($SpeakerCoral);
+			sys.trigger($setinfluence_motel);
+		}
+		else
+		{
+			//sys.trigger($PortalTrain)
+
+			sys.trigger($setinfluence_motel);
+
+			thread(UpdateMotel());
+
+			sys.disableItemGroup("motel_storm");
+
+			sys.wait(3);
+		
+			thread ShowSubtitles("Sam", "Storm's getting closer.", 2.25); 
+			CharacterSays($player1, "sound/vo/e1m5/stormcloser.ogg");
+
+			sys.enableItemGroups();
+		}
+		}
+		
+		thread select_monsterconfig1();
+	
+		OpenSewerDrainHatch( sewers_drains_state );
+		sys.trigger($trigger_count_41);
+		sys.trigger($trigger_count_57);
+		
+		thread InitBridge1();		
+		thread InitBridge2();
+		thread InitBridge3();
+		thread InitBridge4();
+		
+		sys.trigger($goobridge_01_triggercount_disable);
+		sys.trigger($goobridge_01_triggercount_disable);
+		sys.trigger($goobridge_01_triggercount_disable);
+		
+		thread pump_piston1_start();
+		sys.wait(1.25);
+		thread pump_piston2_start();
+		
+		thread pump_piston1_nozzle1();
+		sys.wait(.25);
+		thread pump_piston1_nozzle2();
+		
+		thread cycle_pump1();
+		thread cycle_pump4();
+		sys.wait(1);
+		thread cycle_pump2();
+		sys.wait(1.5);
+		thread cycle_pump3();
+	}
+}

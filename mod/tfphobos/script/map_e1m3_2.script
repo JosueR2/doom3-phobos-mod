@@ -1,0 +1,1978 @@
+namespace map_e1m3_2
+{
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m3_2(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+
+	float fuckydoorstate = 1;
+
+	float fuelLock1State = 0;
+	float fuelLock2State = 0;
+
+	void ClickCacheButton(entity button)
+	{
+		float direction = button.getFloatKey("direction");		
+		button.move(direction, 1);
+		button.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+		sys.waitFor(button);
+
+		sys.wait(.125);
+		button.startSoundShader("e1m1_intercomclick2", SND_CHANNEL_ANY);
+		button.move(direction + 180, 1);
+	}
+
+	void SetClickerState(entity clicker, float state)
+	{
+		clicker.setKey ("click_item", "" + state);
+	}
+
+	void DisableClickers(float lockNumber)
+	{
+		SetClickerState(sys.getEntity("FuelLock" + lockNumber + "_Clicker"), 0);
+		SetClickerState(sys.getEntity("FuelLock" + lockNumber + "_Inner_Clicker"), 0);
+		SetClickerState(sys.getEntity("FuelLock" + lockNumber + "_Outer_Clicker"), 0);
+	}
+
+	void EnableClickers(float lockNumber, float state)
+	{
+		SetClickerState(sys.getEntity("FuelLock" + lockNumber + "_Clicker"), 1);
+
+		if(state == 0)
+			SetClickerState(sys.getEntity("FuelLock" + lockNumber + "_Inner_Clicker"), 1);
+		else
+			SetClickerState(sys.getEntity("FuelLock" + lockNumber + "_Outer_Clicker"), 1);
+	}
+
+	float FuelCacheFullReaction_State = 0;
+	float CycleFuelLock(float state, float lockNumber)
+	{	
+		float newState = state;		
+		
+		float fuel1level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm7");
+
+		entity innerRDoor = sys.getEntity("fuellock_inner_r" + lockNumber);
+		entity innerLDoor = sys.getEntity("fuellock_inner_l" + lockNumber);
+		entity outerRDoor = sys.getEntity("fuellock_outer_r" + lockNumber);
+		entity outerLDoor = sys.getEntity("fuellock_outer_l" + lockNumber);
+		entity outerDoorClip = sys.getEntity("fuellock_outer_clip" + lockNumber);
+		entity innerDoorClip = sys.getEntity("fuellock_inner_clip" + lockNumber);
+		entity innerDoorCloseSpeaker = sys.getEntity("fuellock_inner_close_spkr" + lockNumber);
+		entity innerDoorOpenSpeaker = sys.getEntity("fuellock_inner_open_spkr" + lockNumber);
+		entity outerDoorCloseSpeaker = sys.getEntity("fuellock_outer_close_spkr" + lockNumber);
+		entity outerDoorOpenSpeaker = sys.getEntity("fuellock_outer_open_spkr" + lockNumber);
+		entity centerClicker = sys.getEntity("FuelLock" + lockNumber + "_Clicker");
+				
+		if(state == 0)
+		{
+			if( fuel1level <= 4 )
+			{
+				sys.trigger(outerDoorCloseSpeaker);
+				sys.trigger(outerDoorClip);
+				outerRDoor.move(270, 56);
+				outerLDoor.move(90, 56);
+				sys.waitFor(outerRDoor);
+
+				centerClicker.startSoundShader("rec1_1_2s_movement", SND_CHANNEL_ANY);
+				sys.wait(2);
+
+				sys.trigger(innerDoorOpenSpeaker);
+				sys.trigger(innerDoorClip);
+				innerRDoor.move(90, 56);
+				innerLDoor.move(270, 56);
+				sys.waitFor(innerRDoor);
+
+				newState = 1;
+			}
+			else
+			{
+				thread ShowNPCSubtitles("PA", "Fuel cache is full. Can not cycle.", 4.65);
+				sys.wait($player1.startSoundShader("fuel_cache_full", SND_CHANNEL_VOICE2 ));
+				
+				if(FuelCacheFullReaction_State == 0)
+				{
+					sys.wait(0.25);
+
+					thread ShowNPCSubtitles("Sam", "Can't go out there with all that fuel.", 2);
+					$player1.startSoundShader("cant_go_with_fuel", SND_CHANNEL_VOICE2);
+					FuelCacheFullReaction_State = 1;
+				}
+			}
+		}
+		else
+		{
+			sys.trigger(innerDoorCloseSpeaker);
+			sys.trigger(innerDoorClip);
+			innerRDoor.move(270, 56);
+			innerLDoor.move(90, 56);
+			sys.waitFor(innerRDoor);
+
+			centerClicker.startSoundShader("rec1_1_2s_movement", SND_CHANNEL_ANY);
+			sys.wait(2);
+
+			sys.trigger(outerDoorOpenSpeaker);
+			sys.trigger(outerDoorClip);
+			outerRDoor.move(90, 56);
+			outerLDoor.move(270, 56);
+			sys.waitFor(outerRDoor);
+
+			newState = 0;
+		}		
+
+		return newState;
+	}	
+
+	void CallFuelLock2_Inner()
+	{
+		DisableClickers(2);
+		
+		ClickCacheButton(sys.getEntity("FuelLock2_Inner_Button"));
+		fuelLock2State = CycleFuelLock(fuelLock2State, 2);
+		
+		EnableClickers(2, fuelLock2State);
+	}
+
+	void CycleFuelLock2()
+	{
+		DisableClickers(2);
+
+		ClickCacheButton(sys.getEntity("FuelLock2_Button"));
+		fuelLock2State = CycleFuelLock(fuelLock2State, 2);
+
+		EnableClickers(2, fuelLock2State);
+	}
+
+	void CallFuelLock2_Outer()
+	{
+		DisableClickers(2);
+
+		ClickCacheButton(sys.getEntity("FuelLock2_Outer_Button"));
+		fuelLock2State = CycleFuelLock(fuelLock2State, 2);
+
+		EnableClickers(2, fuelLock2State);
+	}
+
+	void CallFuelLock1_Inner()
+	{
+		DisableClickers(1);
+		
+		ClickCacheButton(sys.getEntity("FuelLock1_Inner_Button"));
+		fuelLock1State = CycleFuelLock(fuelLock1State, 1);
+		
+		EnableClickers(1, fuelLock1State);
+	}
+
+	void CycleFuelLock1()
+	{
+		DisableClickers(1);
+
+		ClickCacheButton(sys.getEntity("FuelLock1_Button"));
+		fuelLock1State = CycleFuelLock(fuelLock1State, 1);
+
+		EnableClickers(1, fuelLock1State);
+	}
+
+	void CallFuelLock1_Outer()
+	{
+		DisableClickers(1);
+
+		ClickCacheButton(sys.getEntity("FuelLock1_Outer_Button"));
+		fuelLock1State = CycleFuelLock(fuelLock1State, 1);
+
+		EnableClickers(1, fuelLock1State);
+	}
+
+	float fms_state = 0;
+	float fms_disabled = 0;	
+
+	void ChangeLevel1(float distance)
+	{
+		sys.waitFor($fuelcachemain_water);
+		$fuelcachemain_water.move(UP, distance);
+	}
+	
+	void ChangeLevel2(float distance)
+	{
+		sys.waitFor($fuelcachesecondary_water);
+		$fuelcachesecondary_water.move(UP, distance);
+	}
+
+	void ChangeLevel3(float level)
+	{
+		$fuelcachetertiary_water_1.hide();
+		$fuelcachetertiary_water_2.hide();
+		$fuelcachetertiary_water_3.hide();
+		$light_58994.hide();
+		$light_58993.hide();
+		$light_58968.hide();
+		$light_58969.hide();
+		$light_58970.hide();
+		$light_58995.hide();
+
+		if( level == 1 )
+		{
+			$fuelcachetertiary_water_1.show();
+			$light_58994.show();
+			$light_58993.show();
+			$light_58995.show();
+		}
+		else if( level == 2 )
+		{
+			$fuelcachetertiary_water_2.show();
+			$light_58994.show();
+			$light_58993.show();
+			$light_58995.show();
+		}
+		else if( level == 3)
+		{
+			$fuelcachetertiary_water_3.show();
+			$light_58994.show();
+			$light_58993.show();
+			$light_58995.show();
+		}
+		else
+		{
+			$light_58968.show();
+			$light_58969.show();
+			$light_58970.show();
+		}
+	}
+
+	void RefreshFuelLevelsFromGui()
+	{
+		float fuel1level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm7");
+		float fuel2level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm8");
+		float fuel3level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm9");
+
+		$fms_mainscreen.setGuiParm("gui_parm4", fuel1level);
+		$fms_mainscreen.setGuiParm("gui_parm5", fuel2level);
+		$fms_mainscreen.setGuiParm("gui_parm6", fuel3level);
+	}
+
+	float CalculateFuelChangeValue(float fromLevel, float fromMax, float toLevel, float toMax )
+	{
+		float newValue = toMax - toLevel;
+		
+		if( fromLevel > newValue )
+		{
+			return newValue;
+		}
+		else
+		{
+			return fromLevel;
+		}
+	}
+
+	void CheckLevel1(float level1, float level2, float level3)
+	{					
+		if( level1 <= 4 && level3 == 0 )
+		{
+			$fuelcacehemain_hatch.lock(0);
+			$fuelcacehemain_hatch_light1.setColor(0,0.5,0);
+			$fuelcacehemain_hatch_light2.setColor(0,0.5,0);
+			$fuelcacehemain_hatch_light3.setColor(0,0.5,0);
+			$fuelcacehemain_hatch_light4.setColor(0,0.5,0);
+			$fuelcacehemain_hatch_gui.setGuiParm("gui_parm2", 0);
+			sys.trigger($fuelcacehemain_hatch_gui);
+			$func_static_80635.show();
+			$func_static_80636.hide();
+		}
+		else
+		{			
+			$fuelcacehemain_hatch.lock(2);
+			$fuelcacehemain_hatch_light1.setColor(0.5,0,0);
+			$fuelcacehemain_hatch_light2.setColor(0.5,0,0);
+			$fuelcacehemain_hatch_light3.setColor(0.5,0,0);
+			$fuelcacehemain_hatch_light4.setColor(0.5,0,0);
+			$fuelcacehemain_hatch_gui.setGuiParm("gui_parm2", 1);
+			sys.trigger($fuelcacehemain_hatch_gui);
+			$func_static_80635.hide();
+			$func_static_80636.show();
+		}
+	}
+	
+	void CheckLevel2(float level)
+	{
+		if(level <= 4 )
+		{
+			$secondcache_hatch.lock(0);
+			$light_58803.setColor(0,0.5,0);
+			$light_58804.setColor(0,0.5,0);
+			$light_57060.setColor(0,0.5,0);
+			$light_57061.setColor(0,0.5,0);
+			$secondcache_hatch_gui.setGuiParm("gui_parm2", 0);
+			sys.trigger($secondcache_hatch_gui);
+			$pipe2ndcache_red.hide();
+			$pipe2ndcache_green.show();
+		}
+		else
+		{
+			$secondcache_hatch.lock(2);
+			$pipe2ndcache_green.hide();
+			$pipe2ndcache_red.show();
+			$light_58803.setColor(0.5,0,0);
+			$light_58804.setColor(0.5,0,0);
+			$light_57060.setColor(0,0.5,0);
+			$light_57061.setColor(0,0.5,0);
+			$secondcache_hatch_gui.setGuiParm("gui_parm2", 1);
+			sys.trigger($secondcache_hatch_gui);
+		}
+	}
+
+	void CheckLevel3(float level)
+	{
+		
+	}
+
+	void CheckAllLevels(float l1, float l2, float l3)
+	{
+		if(l1 == 4 && l2 == 4 && l3 == 0)
+		{
+			sys.wait(2);
+
+			fms_disabled = 1;
+			
+			sys.wait(3);
+
+			thread ShowNPCSubtitles("Sam", "That works!", 2);
+			sys.trigger($speaker_1015);
+
+			sys.wait(3.5);
+			
+			sys.quickSave("The Beginning of The End - Checkpoint 9");
+			
+			sys.wait(0.5);
+			
+			sys.trigger($item_objective_6);
+		}
+	}
+	
+	void StartFuelSounds()
+	{
+		$fms_mainscreen.startSoundShader("e1m3_2_beepx3", SND_CHANNEL_ANY);
+		$fms_mainscreen.startSoundShader("bridge_up_speaker", SND_CHANNEL_ANY);
+		sys.trigger($speakerDrain);
+	}
+
+	void EndFuelSounds()
+	{
+		sys.wait(1.5);
+		sys.trigger($speakerDrain);
+		$fms_mainscreen.startSoundShader("bridge_down_speaker", SND_CHANNEL_ANY);
+		$fms_mainscreen.startSoundShader("e1m3_2_beepx3", SND_CHANNEL_ANY);
+	}
+
+	void ChangeFuelLevel1To2()
+	{	
+		StartFuelSounds();
+		
+		float fuel1level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm4");
+		float fuel2level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm5");
+		float fuel3level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm6");
+		float fuel1max = $fms_mainscreen.getGuiParmFloat (1, "gui_parm1");
+		float fuel2max = $fms_mainscreen.getGuiParmFloat (1, "gui_parm2");
+
+		float change = CalculateFuelChangeValue(fuel1level, fuel1max, fuel2level, fuel2max);
+
+		$fms_mainscreen.setGuiParm("gui_parm7", fuel1level - change);
+		$fms_mainscreen.setGuiParm("gui_parm8", fuel2level + change);			
+		sys.trigger($fms_mainscreen);
+		
+		$fms_firstscreen.setGuiParm("gui_parm5", fuel1level - change);
+		sys.trigger($fms_firstscreen);	
+		
+		$fms_thirdscreen.setGuiParm("gui_parm5", fuel2level + change);
+		sys.trigger($fms_thirdscreen);
+
+		float f1V = 0;
+		float f2V = 0;
+
+		if(fuel1level - change <= 4)
+			f1V = 1;
+
+		if(fuel2level + change <= 4)
+			f2V = 1;
+
+		$fms_fourthscreen.setGuiParm("gui_parm1", f1V);
+		$fms_fourthscreen.setGuiParm("gui_parm2", f2V);
+		sys.trigger($fms_fourthscreen);
+
+		EndFuelSounds();
+		
+		ChangeLevel1(64 * -change);
+		ChangeLevel2(128 * change);
+
+		CheckLevel1(fuel1level - change, fuel2level + change, fuel3level);
+		CheckLevel2(fuel2level + change);
+
+		CheckAllLevels(fuel1level - change, fuel2level + change, fuel3level);			
+	}
+	
+	void ChangeFuelLevel1To3()
+	{	
+		StartFuelSounds();
+		
+		float fuel1level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm4");
+		float fuel2level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm5");
+		float fuel3level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm6");
+		float fuel1max = $fms_mainscreen.getGuiParmFloat (1, "gui_parm1");
+		float fuel3max = $fms_mainscreen.getGuiParmFloat (1, "gui_parm3");
+
+		float change = CalculateFuelChangeValue(fuel1level, fuel1max, fuel3level, fuel3max);
+
+		float newLevel1 = fuel1level - change;
+		float newLevel3 = fuel3level + change;
+
+		$fms_mainscreen.setGuiParm("gui_parm7", newLevel1);
+		$fms_mainscreen.setGuiParm("gui_parm9", newLevel3);		
+		sys.trigger($fms_mainscreen);
+		
+		$fms_firstscreen.setGuiParm("gui_parm5", newLevel1);
+		sys.trigger($fms_firstscreen);	
+		
+		$fms_secondscreen.setGuiParm("gui_parm5", newLevel3);
+		sys.trigger($fms_secondscreen);	
+		
+		$fms_firstscreen.setGuiParm("gui_parm5", fuel1level - change);
+		sys.trigger($fms_firstscreen);
+				
+		float f1V = 0;
+		float f3V = 0;
+
+		if(fuel1level - change <= 4)
+			f1V = 1;
+
+		if(fuel3level + change == 0)
+			f3V = 1;
+
+		$fms_fourthscreen.setGuiParm("gui_parm1", f1V);
+		$fms_fourthscreen.setGuiParm("gui_parm3", f3V);
+		sys.trigger($fms_fourthscreen);
+
+		EndFuelSounds();
+		
+		ChangeLevel1(64 * -change);
+		ChangeLevel3(newLevel3);
+		
+		CheckLevel1(newLevel1, fuel2level, newLevel3);
+		CheckLevel3(newLevel3);
+				
+		CheckAllLevels(fuel1level - change, fuel2level, fuel3level + change);			
+	}
+
+	void ChangeFuelLevel2To1()
+	{	
+		StartFuelSounds();
+		
+		float fuel1level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm4");
+		float fuel2level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm5");
+		float fuel3level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm6");
+
+		float fuel1max = $fms_mainscreen.getGuiParmFloat (1, "gui_parm1");
+		float fuel2max = $fms_mainscreen.getGuiParmFloat (1, "gui_parm2");
+
+		float change = CalculateFuelChangeValue(fuel2level, fuel2max, fuel1level, fuel1max);
+
+		$fms_mainscreen.setGuiParm("gui_parm7", fuel1level + change);
+		$fms_mainscreen.setGuiParm("gui_parm8", fuel2level - change);		
+		sys.trigger($fms_mainscreen);
+		
+		$fms_thirdscreen.setGuiParm("gui_parm5", fuel2level - change);
+		sys.trigger($fms_thirdscreen);
+		
+		$fms_firstscreen.setGuiParm("gui_parm5", fuel1level + change);
+		sys.trigger($fms_firstscreen);	
+		
+		float f1V = 0;
+		float f2V = 0;
+
+		if(fuel1level + change <= 4)
+			f1V = 1;
+
+		if(fuel2level - change <= 4)
+			f2V = 1;
+
+		$fms_fourthscreen.setGuiParm("gui_parm1", f1V);
+		$fms_fourthscreen.setGuiParm("gui_parm2", f2V);
+		sys.trigger($fms_fourthscreen);
+
+		EndFuelSounds();
+
+		ChangeLevel1(64 * change);
+		ChangeLevel2(128 * -change);		
+		
+		CheckLevel1(fuel1level + change, fuel2level - change, fuel3level);
+		CheckLevel2(fuel2level - change);
+				
+		CheckAllLevels(fuel1level + change, fuel2level - change, fuel3level);			
+	}
+	
+	void ChangeFuelLevel2To3()
+	{	
+		StartFuelSounds();
+		
+		float fuel1level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm4");
+		float fuel2level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm5");
+		float fuel3level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm6");
+		float fuel2max = $fms_mainscreen.getGuiParmFloat (1, "gui_parm2");
+		float fuel3max = $fms_mainscreen.getGuiParmFloat (1, "gui_parm3");
+
+		float change = CalculateFuelChangeValue(fuel2level, fuel2max, fuel3level, fuel3max);
+
+		$fms_mainscreen.setGuiParm("gui_parm8", fuel2level - change);
+		$fms_mainscreen.setGuiParm("gui_parm9", fuel3level + change);		
+		sys.trigger($fms_mainscreen);
+		
+		$fms_thirdscreen.setGuiParm("gui_parm5", fuel2level - change);			
+		sys.trigger($fms_thirdscreen);
+		
+		$fms_secondscreen.setGuiParm("gui_parm5", fuel3level + change);
+		sys.trigger($fms_secondscreen);	
+
+		float f2V = 0;
+		float f3V = 0;
+
+		if(fuel2level - change <= 4)
+			f2V = 1;
+
+		if(fuel3level + change == 0)
+			f3V = 1;
+
+		$fms_fourthscreen.setGuiParm("gui_parm2", f2V);
+		$fms_fourthscreen.setGuiParm("gui_parm3", f3V);
+		sys.trigger($fms_fourthscreen);
+
+		EndFuelSounds();
+		
+		CheckLevel1(fuel1level, fuel2level - change, fuel3level + change);
+		CheckLevel2(fuel2level - change);
+		CheckLevel3(fuel3level + change);		
+		
+		ChangeLevel2(128 * -change);
+		ChangeLevel3(fuel3level + change);
+
+		CheckAllLevels(fuel1level, fuel2level - change, fuel3level + change);				
+	}
+	
+	void ChangeFuelLevel3To1()
+	{	
+		StartFuelSounds();
+		
+		float fuel1level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm4");
+		float fuel2level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm5");
+		float fuel3level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm6");
+		
+		float fuel1max = $fms_mainscreen.getGuiParmFloat (1, "gui_parm1");
+		float fuel3max = $fms_mainscreen.getGuiParmFloat (1, "gui_parm3");
+
+		float change = CalculateFuelChangeValue(fuel3level, fuel3max, fuel1level, fuel1max);
+
+		$fms_mainscreen.setGuiParm("gui_parm7", fuel1level + change);
+		$fms_mainscreen.setGuiParm("gui_parm9", fuel3level - change);
+		
+		sys.trigger($fms_mainscreen);
+		
+		$fms_firstscreen.setGuiParm("gui_parm5", fuel1level + change);
+		sys.trigger($fms_firstscreen);
+		
+		$fms_secondscreen.setGuiParm("gui_parm5", fuel3level - change);
+		sys.trigger($fms_secondscreen);	
+
+		float f3V = 0;
+		float f1V = 0;
+
+		if(fuel3level - change == 0)
+			f3V = 1;
+
+		if(fuel1level + change <= 4)
+			f1V = 1;
+
+		$fms_fourthscreen.setGuiParm("gui_parm3", f3V);
+		$fms_fourthscreen.setGuiParm("gui_parm1", f1V);
+		sys.trigger($fms_fourthscreen);
+
+		EndFuelSounds();
+				
+		ChangeLevel1(64 * change);
+		ChangeLevel3(fuel3level - change);
+		
+		CheckLevel1(fuel1level + change, fuel2level, fuel3level - change);
+		CheckLevel3(fuel3level - change);
+
+		CheckAllLevels(fuel1level + change, fuel2level, fuel3level - change);			
+	}
+	
+	void ChangeFuelLevel3To2()
+	{
+		StartFuelSounds();
+		
+		float fuel1level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm4");
+		float fuel2level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm5");
+		float fuel3level = $fms_mainscreen.getGuiParmFloat (1, "gui_parm6");
+
+		float fuel2max = $fms_mainscreen.getGuiParmFloat (1, "gui_parm2");
+		float fuel3max = $fms_mainscreen.getGuiParmFloat (1, "gui_parm3");
+
+		float change = CalculateFuelChangeValue(fuel3level, fuel3max, fuel2level, fuel2max);
+
+		$fms_mainscreen.setGuiParm("gui_parm8", fuel2level + change);
+		$fms_mainscreen.setGuiParm("gui_parm9", fuel3level - change);
+		sys.trigger($fms_mainscreen);
+		
+		$fms_secondscreen.setGuiParm("gui_parm5", fuel3level - change);
+		sys.trigger($fms_secondscreen);	
+				
+		$fms_thirdscreen.setGuiParm("gui_parm5", fuel2level + change);
+		sys.trigger($fms_thirdscreen);
+
+		float f3V = 0;
+		float f2V = 0;
+
+		if(fuel3level - change == 0)
+			f3V = 1;
+
+		if(fuel2level + change <= 4)
+			f2V = 1;
+
+		$fms_fourthscreen.setGuiParm("gui_parm3", f3V);
+		$fms_fourthscreen.setGuiParm("gui_parm2", f2V);
+		sys.trigger($fms_fourthscreen);
+
+		EndFuelSounds();
+		
+		ChangeLevel2(128 * change);
+		ChangeLevel3(fuel3level - change);
+		
+		CheckLevel1(fuel1level, fuel2level + change, fuel3level - change);
+		CheckLevel2(fuel2level + change);
+		CheckLevel3(fuel3level - change);
+
+		CheckAllLevels(fuel1level, fuel2level + change, fuel3level - change);				
+	}
+
+	void TurnOffScreen(entity screen, entity flare)
+	{
+		screen.setColor(0, 0, 0);
+		flare.setColor(0, 0, 0 );
+		screen.setGuiParm ("gui_parm91", 1);
+		screen.startSoundShader("guisounds_close", SND_CHANNEL_ANY);
+		sys.trigger(screen);
+	}
+	
+	void TurnOnScreen(entity screen, entity flare)
+	{		
+		screen.setColor(1, 1, 1);
+		flare.setColor(0.05, 0.08, 0.14);
+		screen.setGuiParm ("gui_parm91", 0);
+		screen.startSoundShader("guisounds_open", SND_CHANNEL_ANY);
+		sys.trigger(screen);
+	}
+
+	void FMSToIdle()
+	{
+		$fms_rightrotator.rotateOnce('0 125 0');
+		$fms_thirdscreen.rotateOnce('0 -25 0');
+		$fms_fourthscreen.rotateOnce('0 -25 0');
+		
+		$fms_leftrotator.rotateOnce('0 -125 0');
+		$fms_firstscreen.rotateOnce('0 25 0');
+		$fms_secondscreen.rotateOnce('0 25 0');
+		
+		$fms_bottomrotator.rotateOnce('-125 0 0');
+		$fms_keyboard.rotateOnce('45 0 0');
+		
+		$fms_pole.move(UP, 88);
+		
+		TurnOffScreen($fms_thirdscreen, $fms_thirdscreen_flare);
+		TurnOffScreen($fms_firstscreen, $fms_firstscreen_flare);
+		TurnOffScreen($fms_fourthscreen, $fms_fourthscreen_flare);
+		TurnOffScreen($fms_secondscreen, $fms_secondscreen_flare);
+		TurnOffScreen($fms_mainscreen, $fms_mainscreen_flare);		
+	}
+	
+	void OpenPort1()
+	{
+		sys.quickSave("The Beginning of The End - Checkpoint 8");
+		sys.wait(0.25);
+	
+		ClickCacheButton(sys.getEntity("port1_button"));
+
+		$port1door.open();
+		sys.trigger($speaker_962);
+	}
+
+	void OpenPort2()
+	{
+		ClickCacheButton(sys.getEntity("port2_button"));
+	}
+
+	void OpenPort3()
+	{
+		ClickCacheButton(sys.getEntity("port3_button"));
+	}
+
+	float officeBlinds = 1; //0 = closed, 1 = open, 2 = in transition
+	void ToggleOfficeBlinds()
+	{		
+		if( officeBlinds != 2 )
+		{				
+			float i = 1;	
+			if( officeBlinds == 0 )
+			{			
+				//Open them up
+				officeBlinds = 2;
+
+				while( i <= 9)
+				{
+					entity e = sys.getEntity("cargo_office_shutters_" + i);
+					e.rotateOnce('-48 0 0');
+					e.move(UP, (6 * (i-1)));
+					sys.wait(.0625);
+					i++;
+				}
+				
+				sys.waitFor($cargo_office_shutters_9);
+
+				officeBlinds = 1;
+			}
+			else
+			{			
+				//Close them down
+				officeBlinds = 2;
+				
+				while( i <= 9)
+				{
+					float ie = 10 - i;
+					entity ee = sys.getEntity("cargo_office_shutters_" + ie);
+					ee.rotateOnce('48 0 0');
+					ee.move(DOWN, (6 * (ie-1)));
+					sys.wait(.0625);
+					i++;
+				}
+
+				sys.waitFor($cargo_office_shutters_9);
+
+				officeBlinds = 0;
+			}
+		}
+	}
+
+	float cargopower = 0;
+
+	void CheckCargoLift()
+	{
+		if( cargopower > 1 )
+		{
+			sys.trigger($cargo_platform_gui_nopower);
+			sys.trigger($cargo_platform_gui);
+		}
+	}
+
+	void TurnOnCargoLights1()
+	{
+		$cargo_lever_1_gui.hide();
+		$cargo_lever_1.move(DOWN, 8);
+		$cargo_lever_1_red.setColor(0,0,0);
+		$cargo_lever_1_green.setColor(0,0.5,0);
+		sys.trigger($cargo_lever_1_redlight);
+		sys.trigger($cargo_lever_1_greenlight);
+		sys.wait(1);
+		sys.trigger($cargo_relay_light3);
+		$cargo_lever_1.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+		sys.wait(1);
+		sys.trigger($cargo_relay_light4);
+		$cargo_lever_1.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+
+		cargopower++;
+		CheckCargoLift();
+	}
+
+	void TurnOnCargoLights2()
+	{
+		$cargo_lever_2_gui.hide();
+		$cargo_lever_2.move(DOWN, 8);
+		$cargo_lever_2_red.setColor(0,0,0);
+		$cargo_lever_2_green.setColor(0,0.5,0);
+		sys.trigger($cargo_lever_2_redlight);
+		sys.trigger($cargo_lever_2_greenlight);
+		sys.wait(1);
+		sys.trigger($cargo_relay_light1);
+		$cargo_lever_2.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+		sys.wait(1);
+		sys.trigger($cargo_relay_light2);
+		$cargo_lever_2.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);		
+
+		cargopower++;
+		CheckCargoLift();
+	}
+
+	float forklift = 0;
+
+	void LiftFork()
+	{
+		if( forklift == 0 )
+		{
+			forklift = 1;
+			$forklift_fork.move(UP, 144);
+			$forklift_door.move(UP, 144);
+		}
+	}
+
+	float pumps = 0;
+
+	void pumpSpeakers()
+	{		
+		sys.trigger($speaker_974);
+		sys.wait(0.75);
+		sys.trigger($speaker_969);
+		sys.trigger($trigger_relay_533);		
+	}
+	
+	void StartPumps()
+	{
+		if( pumps == 0 )
+		{
+			pumps = 1;
+			
+			sys.quickSave("The Beginning of The End - Checkpoint 5");
+			sys.wait(0.25);
+			
+			$pumproom_switch.rotateOnce('0 0 -90');
+			pumpSpeakers();
+			sys.wait(0.5);
+			sys.trigger($speaker_1003);
+			sys.trigger($commando_relay);
+			sys.wait(4);
+
+			while(1)
+			{
+				$pumproom_pump02.move(270, 56);
+				sys.wait(0.25);
+				$pumproom_pump03.move(270, 56);
+				sys.wait(0.25);
+				$pumproom_pump01.move(90, 56);
+				sys.wait(0.25);
+				$pumproom_pump04.move(90, 56);
+
+				sys.waitFor($pumproom_pump02);
+
+				$pumproom_pump02.move(90, 56);
+				sys.wait(0.25);
+				$pumproom_pump03.move(90, 56);
+				sys.wait(0.25);
+				$pumproom_pump01.move(270, 56);
+				sys.wait(0.25);
+				$pumproom_pump04.move(270, 56);
+				sys.wait(0.25);
+
+				sys.waitFor($pumproom_pump02);
+			}
+		}
+	}
+	
+	float m4lockdownstate = 0;
+	float WhereIsTheFireReaction_State = 0;
+
+	void CloseM4Lockdown()
+	{
+		sys.trigger($trigger_once_363);
+
+		fuckydoorstate = 1;
+		sys.trigger($bulkhead_portal);
+
+		ClickCacheButton(sys.getEntity("LockdownDoor2_Clicker"));
+
+		$m4lockdowndoor.close();
+		m4lockdownstate = 1;
+		
+		sys.trigger($postlockdown_relay);
+		
+		sys.wait(3.5);
+		
+		thread ShowNPCSubtitles("PA", "Fire contained.", 2);
+		sys.trigger($speaker_1002);
+		
+		sys.trigger($comm_beep);
+		
+		$Comm_Holder.setKey("click_item", 1);
+		
+		if(WhereIsTheFireReaction_State == 1)
+		{
+			sys.trigger($item_objective_4);
+		}
+		
+		$exit_cache_window_shutter_1.move (90, 92);
+		
+		sys.wait(.75);
+		
+		$exit_cache_window_shutter_2.move (270, 92);
+	}	
+	
+	void OpenLockdownDoor()
+	{
+		$LockDownDoor1Clicker.setKey("click_item", "0");
+		ClickCacheButton(sys.getEntity("LockdownDoor1_Clicker"));
+
+		if( m4lockdownstate == 1 )
+		{
+			$lockdowndoor1.open();
+			sys.wait(1.5);
+			$lockdowndoor2.open();
+			sys.trigger($func_door_2034);
+			sys.trigger($func_static_100016);
+			sys.trigger($func_static_83244);
+			sys.trigger($target_entity_setcolor_4);
+		}
+		else
+		{
+			thread ShowNPCSubtitles("PA", "Unable to lift lockdown. Fire not contained.\nPlease contain fire.", 7.15);
+			sys.wait($player1.startSoundShader("fire_not_contained", SND_CHANNEL_VOICE2 ));
+			sys.wait(1);
+			$LockDownDoor1Clicker.setKey("click_item", "1");
+			
+			if(WhereIsTheFireReaction_State == 0)
+			{
+				thread ShowNPCSubtitles("Sam", "Where is the fire?", 2);
+				$player1.startSoundShader("where_is_fire", SND_CHANNEL_VOICE2);			
+				WhereIsTheFireReaction_State = 1;
+				
+				sys.wait(3);
+				
+				sys.trigger($item_objective_3);
+			}
+		}
+	}
+
+	void DisengageLockdown()
+	{
+		$lockdown_handle.rotateOnce('90 0 0');
+		$lockdown_handle.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+
+		$lockdowndoor3.open();
+		$lockdowndoor5.open();		
+		$lockdowndoor7.open();		
+		$lockdowndoor9.open();
+
+		sys.wait(2.75);
+
+		sys.trigger($light_59217);
+		sys.trigger($light_59220);
+		sys.trigger($light_59214);
+		sys.trigger($light_59215);
+		
+		thread ShowNPCSubtitles("PA", "Lockdown lifted.", 2);
+		sys.trigger($speaker_1001);
+
+		sys.wait(1.5);
+
+		$lockdowndoor4.open();
+		$lockdowndoor6.open();
+		$lockdowndoor8.open();
+		$lockdowndoor10.open();
+		sys.trigger($target_entity_setcolor_5);
+		sys.trigger($func_static_100018);
+		sys.trigger($func_static_83248);
+
+		sys.trigger($trigger_relay_486);
+	}
+
+	void EasterIsHere()
+	{
+		$lost_secret_player_clip.show();
+	
+		sys.trigger($lost_spkr3);
+
+		sys.wait(.5);
+		$lockdowndoor9.close();
+		sys.wait(1.5);
+		
+		$lockdowndoor10.close();
+		
+		sys.waitFor($lockdowndoor10);
+
+		sys.wait(1);
+
+		sys.trigger($lostrelay);
+
+		sys.trigger($lostmap);
+		sys.trigger($lost_spkr);
+		sys.trigger($lost_spkr2);
+
+		sys.wait(9);
+
+		sys.trigger($lostrelay);
+		sys.trigger($lostmap);
+		sys.trigger($target_entity_setcolor_3);
+		sys.trigger($lost_spkr2);
+
+		sys.wait(2);
+
+		sys.trigger($lost_spkr4);
+
+		$lockdowndoor10.open();
+		sys.wait(1.5);
+		$lockdowndoor9.open();
+		
+		$lost_secret_player_clip.hide();
+	}
+	
+	void piston3()
+	{
+		while (1) 
+		{
+			sys.waitFor($pistonpump_3);
+			$pistonpump_3.moveTo($pistonpump_3_up);
+			sys.waitFor($pistonpump_3);
+			$pistonpump_3.moveTo($pistonpump_3_down);
+		}
+	}
+	
+	void piston4()
+	{
+		while (1) 
+		{			
+			sys.waitFor($pistonpump_4);
+			$pistonpump_4.moveTo($pistonpump_4_up);
+			sys.waitFor($pistonpump_4);
+			$pistonpump_4.moveTo($pistonpump_4_down);
+		}
+	}
+	
+	void piston5()
+	{
+		while (1) 
+		{			
+			sys.waitFor($pistonpump_5);
+			$pistonpump_5.moveTo($pistonpump_5_up);
+			sys.waitFor($pistonpump_5);
+			$pistonpump_5.moveTo($pistonpump_5_down);
+		}
+	}
+	
+	void crankshaft ()
+	{
+		while (1) 
+		{		
+			$piston1.move ( DOWN, 6 );
+			$pistrod1.rotateOnce ( '0 0 -26.56' );
+			$piston2.move ( UP, 6 );
+			$pistrod2.rotateOnce ( '0 0 26.56' );
+			$piston3.move ( DOWN, 6 );
+			$pistrod3.rotateOnce ( '0 0 -26.56' );
+			$crankshaft.rotateOnce ( '0 0 90' );
+			sys.waitFor ($piston1);
+
+			$piston1.move ( DOWN, 6 );
+			$pistrod1.rotateOnce ( '0 0 26.56' );
+			$piston2.move ( UP, 6 );
+			$pistrod2.rotateOnce ( '0 0 -26.56' );
+			$piston3.move ( DOWN, 6 );
+			$pistrod3.rotateOnce ( '0 0 26.56' );
+			$crankshaft.rotateOnce ( '0 0 90' );
+			sys.waitFor ($piston1);
+
+			$piston1.move ( UP, 6 );
+			$pistrod1.rotateOnce ( '0 0 26.56' );
+			$piston2.move ( DOWN, 6 );
+			$pistrod2.rotateOnce ( '0 0 -26.56' );
+			$piston3.move ( UP, 6 );
+			$pistrod3.rotateOnce ( '0 0 26.56' );
+			$crankshaft.rotateOnce ( '0 0 90' );
+			sys.waitFor ($piston1);
+
+			$piston1.move ( UP, 6 );
+			$pistrod1.rotateOnce ( '0 0 -26.56' );
+			$piston2.move ( DOWN, 6 );
+			$pistrod2.rotateOnce ( '0 0 26.56' );
+			$piston3.move ( UP, 6 );
+			$pistrod3.rotateOnce ( '0 0 -26.56' );
+			$crankshaft.rotateOnce ( '0 0 90' );
+			sys.waitFor ($piston1);
+		} 
+	}
+
+	void cannister_pistons1()
+	{
+		$canni_pist1.move(-1, 14 );
+		$canni_pist2.move(-2, 14 );
+		sys.trigger($cannister_pistons_relay2);
+	}
+	
+	void cannister_pistons2()
+	{
+		$canni_pist1.move(-2, 14 );
+		$canni_pist2.move(-1, 14 );
+		sys.trigger($cannister_pistons_relay1);
+	}
+	
+	void coolant_tubes_insert()
+	{
+		vector fromColor = '0 0.2 0.3';
+		vector toColor = '0 0.1 0.2';
+
+		while(1)
+		{
+			$cl_tube1_clasp1.decelTime(0.15);
+			$cl_tube1_clasp1.accelTime(0.35);
+			$cl_tube1_clasp1.time(1);
+			$cl_tube1.decelTime(0.15);
+			$cl_tube1.accelTime(0.35);
+			$cl_tube1.time(1);
+			$cl_tube3_clasp1.decelTime(0.15);
+			$cl_tube3_clasp1.accelTime(0.35);
+			$cl_tube3_clasp1.time(1);
+			$cl_tube3.decelTime(0.15);
+			$cl_tube3.accelTime(0.35);
+			$cl_tube3.time(1);
+			$cl_tube1_clasp1.move(-2, 82);
+			$cl_tube1.move(-2, 82);
+			$cl_tube3_clasp1.move(-2, 82);
+			$cl_tube3.move(-2, 82);
+			sys.trigger($sp_cl_rot_relay);
+			$quad_pipes_rot.rotateOnce ( '90 0 0' );
+			$quad_pipes_rot2.rotateOnce ( '0 0 -90' );
+			sys.waitFor($quad_pipes_rot);
+			$cl_tube1.move(270, 128);
+			$cl_tube3.move(180, 128);
+			sys.trigger($sp_cl_tube_insert_relay);
+			sys.waitFor($cl_tube1);
+			sys.trigger($sp_cl_tube_whomp_relay);
+			sys.wait(.125);
+			sys.trigger($sp_clt_beam_warmup_relay);
+			sys.trigger($cl_lightfade_in);
+			sys.trigger($cl_flarefade_in);
+			sys.trigger($cl_flarefade_in2);
+			sys.trigger($cl_tube_beamstartend_relay);
+			sys.trigger($cl_beam_relay);
+			sys.wait(1.25);
+			sys.trigger($sp_clt_beam_loop_relay);
+			sys.wait(5);
+			sys.trigger($cl_beam_relay);
+			sys.wait(.25);
+			sys.trigger($cl_tube_beamstartend_relay);
+			thread crossFadeEnt ($cl_light1, fromColor, toColor, 2);
+			thread crossFadeEnt ($cl_light2, fromColor, toColor, 2);
+			thread crossFadeEnt ($cl_light3, fromColor, toColor, 2);
+			thread crossFadeEnt ($cl_light5, fromColor, toColor, 2);
+			sys.trigger($cl_flarefade_out);
+			sys.wait(.25);
+			sys.trigger($sp_clt_beam_loop_relay);
+			sys.wait(.5);
+			$cl_tube1.move(270, 128);
+			$cl_tube3.move(180, 128);
+			sys.trigger($sp_cl_tube_exit_relay);
+			$cl_tube2_clasp1.restorePosition();
+			$cl_tube2.restorePosition();
+			$cl_tube4_clasp1.restorePosition();
+			$cl_tube4.restorePosition();
+			sys.wait(1.25);
+			$cl_tube1.decelTime(0);
+			$cl_tube1.accelTime(0.25);
+			$cl_tube1.time(3);
+			$cl_tube1_clasp1.decelTime(0);
+			$cl_tube1_clasp1.accelTime(0.25);
+			$cl_tube1_clasp1.time(3);
+			$cl_tube3.decelTime(0);
+			$cl_tube3.accelTime(0.25);
+			$cl_tube3.time(3);
+			$cl_tube3_clasp1.decelTime(0);
+			$cl_tube3_clasp1.accelTime(0.25);
+			$cl_tube3_clasp1.time(3);
+			$cl_tube1.move(-2, 704);
+			$cl_tube1_clasp1.move(-2, 704);
+			$cl_tube3.move(-2, 704);
+			$cl_tube3_clasp1.move(-2, 704);
+			$cl_tube2_clasp1.decelTime(0.15);
+			$cl_tube2_clasp1.accelTime(0.35);
+			$cl_tube2_clasp1.time(1);
+			$cl_tube2.decelTime(0.15);
+			$cl_tube2.accelTime(0.35);
+			$cl_tube2.time(1);
+			$cl_tube4_clasp1.decelTime(0.15);
+			$cl_tube4_clasp1.accelTime(0.35);
+			$cl_tube4_clasp1.time(1);
+			$cl_tube4.decelTime(0.15);
+			$cl_tube4.accelTime(0.35);
+			$cl_tube4.time(1);
+			$cl_tube2_clasp1.move(-2, 82);
+			$cl_tube2.move(-2, 82);
+			$cl_tube4_clasp1.move(-2, 82);
+			$cl_tube4.move(-2, 82);
+			sys.trigger($sp_cl_rot_relay);
+			$quad_pipes_rot.rotateOnce ( '90 0 0' );
+			$quad_pipes_rot2.rotateOnce ( '0 0 -90' );
+			sys.waitFor($quad_pipes_rot);
+			$cl_tube2.move(270, 128);
+			$cl_tube4.move(180, 128);
+			sys.trigger($sp_cl_tube_insert_relay);
+			sys.waitFor($cl_tube2);
+			sys.trigger($sp_cl_tube_whomp_relay);
+			sys.wait(.125);
+			sys.trigger($sp_clt_beam_warmup_relay);
+			sys.trigger($cl_lightfade_in2);
+			sys.trigger($cl2_flarefade_in);
+			sys.trigger($cl2_flarefade_in2);
+			sys.trigger($cl_tube_beamstartend_relay);
+			sys.trigger($cl_beam_relay);
+			sys.wait(1.25);
+			sys.trigger($sp_clt_beam_loop_relay);
+			sys.wait(5);
+			sys.trigger($cl_beam_relay);
+			sys.wait(.25);
+			sys.trigger($cl_tube_beamstartend_relay);
+			thread crossFadeEnt ($cl2_light1, toColor, fromColor, 2);
+			thread crossFadeEnt ($cl2_light2, toColor, fromColor, 2);
+			thread crossFadeEnt ($cl2_light3, toColor, fromColor, 2);
+			thread crossFadeEnt ($cl2_light4, toColor, fromColor, 2);
+			sys.trigger($cl_flarefade_out2);
+			sys.wait(.25);
+			sys.trigger($sp_clt_beam_loop_relay);
+			sys.wait(.5);
+			$cl_tube2.move(270, 128);
+			$cl_tube4.move(180, 128);
+			sys.trigger($sp_cl_tube_exit_relay);
+			$cl_tube1_clasp1.restorePosition();
+			$cl_tube1.restorePosition();
+			$cl_tube3_clasp1.restorePosition();
+			$cl_tube3.restorePosition();
+			sys.wait(1.25);
+			$cl_tube2.decelTime(0);
+			$cl_tube2.accelTime(0.25);
+			$cl_tube2.time(3);
+			$cl_tube2_clasp1.decelTime(0);
+			$cl_tube2_clasp1.accelTime(0.25);
+			$cl_tube2_clasp1.time(3);
+			$cl_tube4.decelTime(0);
+			$cl_tube4.accelTime(0.25);
+			$cl_tube4.time(3);
+			$cl_tube4_clasp1.decelTime(0);
+			$cl_tube4_clasp1.accelTime(0.25);
+			$cl_tube4_clasp1.time(3);
+			$cl_tube2.move(-2, 704);
+			$cl_tube2_clasp1.move(-2, 704);
+			$cl_tube4.move(-2, 704);
+			$cl_tube4_clasp1.move(-2, 704);
+		}
+	}
+		
+	void plastube_load()	
+	{
+		while (1)
+		{		
+			sys.trigger($plastube_lights_red);
+			sys.trigger($plastube_red);
+			
+			$plastube_mover.time(2.25);
+			$plastube_mover.decelTime(0.25);
+			$plastube_mover.accelTime(0.15);
+			
+			$plastube_carrier_magnet.move(-2, 288);
+			$plastube_carrier_cage.move(-2, 288);
+			$plastube_mover.move(-2, 288);
+			sys.wait(.25);
+			sys.trigger($sp_carrier_desc);
+			sys.waitFor($plastube_carrier_magnet);
+			sys.trigger($sp_carrier_clickcatch);
+			$plastube_mover.time(1.25);
+			$plastube_mover.decelTime(0.1);
+			$plastube_mover.accelTime(0.05);
+			$plastube_carrier_spinners.time(1.25);
+			$plastube_carrier_spinners.decelTime(0.1);
+			$plastube_carrier_spinners.accelTime(0.05);
+			$plastube_carrier.time(1.25);
+			$plastube_carrier.decelTime(0.1);
+			$plastube_carrier.accelTime(0.05);
+			sys.wait(.35);
+			$plastube_carrier_cage.move(-1, 288);
+			sys.trigger($sp_carrier_cage_asc);
+			sys.wait(.15);
+			$plastube_carrier_magnet.move(-1, 288);
+			sys.wait(.1);
+			sys.trigger($sp_plastube_carrier_rot);
+			$plastube_mover.rotateOnce( '90 0 0' );
+			$plastube_carrier_cyl.rotateOnce( '90 0 0' );
+			$plastube_carrier_spinners.rotateOnce( '90 0 0' );
+			$plastube1.move(180, 320);
+			sys.waitFor($plastube1);
+			sys.trigger($sp_plastube_lock);
+			$plastube1.bind($plastube_carrier);
+			$plastube_carrier_cyl.bind($plastube_carrier_arms);
+			sys.wait(.15);
+			sys.trigger($sp_plastube_carrier_cylinder_rot);
+			$plastube_carrier.rotateOnce( '0 -90 0' );
+			$plastube_carrier_cyl_disc.rotateOnce( '0 -90 0' );
+			$plastube2.move(180, 320);
+			sys.waitFor($plastube2);
+			sys.trigger($sp_plastube_lock);
+			$plastube2.bind($plastube_carrier);
+			sys.wait(.15);
+			sys.trigger($sp_plastube_carrier_cylinder_rot);
+			$plastube_carrier.rotateOnce( '0 -90 0' );
+			$plastube_carrier_cyl_disc.rotateOnce( '0 -90 0' );
+			$plastube3.move(180, 320);
+			sys.waitFor($plastube3);
+			sys.trigger($sp_plastube_lock);
+			$plastube3.bind($plastube_carrier);
+			sys.wait(.15);
+			sys.trigger($sp_plastube_carrier_cylinder_rot);
+			$plastube_carrier.rotateOnce( '0 -90 0' );
+			$plastube_carrier_cyl_disc.rotateOnce( '0 -90 0' );
+			$plastube4.move(180, 320);
+			sys.waitFor($plastube4);
+			sys.trigger($sp_plastube_lock);
+			$plastube4.bind($plastube_carrier);
+			sys.trigger($plastube_lights_blue);
+			sys.trigger($plastube_blue);
+			$plastube_carrier_spinners.bind($plastube_carrier_arms);
+			sys.wait(.05);
+			$plastube_mover.bind($plastube_carrier_arms);
+			$plastube_carrier_arms.move(-2, 24);
+			sys.trigger($sp_plastube_carrier_arms_desc);
+			sys.waitFor($plastube_carrier_arms);
+			$plastube_mover.unbind();
+			sys.wait(.15);
+			$plastube_light_mover.bind($plastube_mover);
+			$plastube_mover.time(4);
+			$plastube_mover.decelTime(0);
+			$plastube_mover.accelTime(0.2);
+			$plastube_mover.move(180, 992);
+			sys.trigger($sp_plastube_carrier_trip);
+			sys.wait(1);
+			$plastube_carrier_spinners.rotateOnce( '-90 0 0' );
+			$plastube_carrier_cyl.rotateOnce( '-90 0 0' );
+			$plastube_carrier_arms.move(-1, 24);
+			sys.trigger($sp_plastube_carrier_arms_asc);
+			sys.trigger($sp_plastube_carrier_rot);
+			sys.waitFor($plastube_mover);
+			$plastube_light_mover.unbind();
+			$plastube_carrier_spinners.unbind();
+			$plastube_carrier_cyl.unbind();
+			$plastube_mover.unbind();
+			$plastube_light_mover.restorePosition();
+			$plastube_carrier_mover.restorePosition();
+			$plastube_mover.restorePosition();
+			$plastube1.unbind();
+			$plastube2.unbind();
+			$plastube3.unbind();
+			$plastube4.unbind();
+			$plastube1.restorePosition();
+			$plastube2.restorePosition();
+			$plastube3.restorePosition();
+			$plastube4.restorePosition();		
+		}
+	}	
+	
+	void FMSEngage()
+	{
+		if(fms_state == 0)
+		{			
+			fms_state = 2;
+			
+			sys.trigger($fms_panelclip);
+			
+			$FMS_InZone_trigger.disable();
+
+			$fms_pole.move(DOWN, 88);
+
+			sys.trigger($func_emitter_452);
+			sys.trigger($func_emitter_453);
+			$func_emitter_453.startSoundShader("rec1_steamchuff", SND_CHANNEL_ANY);
+			
+			sys.wait( 1.5 );
+
+			sys.trigger($func_emitter_452);
+			sys.trigger($func_emitter_453);
+			
+			$fms_bottomrotator.startSoundShader("al4_spinner_2second", SND_CHANNEL_ANY);
+			$fms_bottomrotator.rotateOnce('145 0 0');			
+			
+			sys.wait(.1);
+			
+			$fms_rightrotator.startSoundShader("al4_spinner_2second", SND_CHANNEL_ANY);			
+			$fms_rightrotator.rotateOnce('0 -145 0');
+			
+			sys.wait(.1);
+			
+			$fms_leftrotator.startSoundShader("al4_spinner_2second", SND_CHANNEL_ANY);
+			$fms_leftrotator.rotateOnce('0 145 0');
+			
+			sys.wait(.5);
+				
+			$fms_keyboard.rotateOnce('-75 0 0');
+			
+			$fms_thirdscreen.rotateOnce('0 25 0');
+			$fms_fourthscreen.rotateOnce('0 25 0');
+			
+			$fms_firstscreen.rotateOnce('0 -25 0');						
+			$fms_secondscreen.rotateOnce('0 -25 0');
+						
+			sys.wait(2);	
+			
+			sys.trigger($fms_panelclip);
+			
+			TurnOnScreen($fms_mainscreen, $fms_mainscreen_flare);		
+			
+			sys.wait(.1);			
+			TurnOnScreen($fms_thirdscreen, $fms_thirdscreen_flare);		
+			
+			sys.wait(.1);			
+			TurnOnScreen($fms_firstscreen, $fms_firstscreen_flare);		
+			
+			sys.wait(.1);			
+			TurnOnScreen($fms_fourthscreen, $fms_fourthscreen_flare);		
+						
+			sys.wait(.1);
+			TurnOnScreen($fms_secondscreen, $fms_secondscreen_flare);
+		
+			sys.trigger($speaker_910);
+
+			sys.trigger($fms_fourthscreen_clicker);
+
+			fms_state = 1;						
+			
+			$FMS_OutZone_trigger.enable();
+		}
+	}
+
+	void FMSDisengage()
+	{
+		if(fms_state == 1)
+		{						
+			fms_state = 2;
+			
+			sys.trigger($fms_panelclip);
+			
+			$FMS_OutZone_trigger.disable();
+
+			sys.trigger($fms_fourthscreen_clicker);
+
+			TurnOffScreen($fms_mainscreen, $fms_mainscreen_flare);					
+			
+			sys.wait(.1);
+			TurnOffScreen($fms_thirdscreen, $fms_thirdscreen_flare);
+			
+			sys.wait(.1);
+			TurnOffScreen($fms_firstscreen, $fms_firstscreen_flare);
+			
+			sys.wait(.1);
+			TurnOffScreen($fms_fourthscreen, $fms_fourthscreen_flare);
+						
+			sys.wait(.1);
+			TurnOffScreen($fms_secondscreen, $fms_secondscreen_flare);
+			
+			$fms_leftrotator.startSoundShader("al4_spinner_2second", SND_CHANNEL_ANY);
+			$fms_leftrotator.rotateOnce('0 -145 0');
+			
+			sys.wait(.1);
+			
+			$fms_rightrotator.startSoundShader("al4_spinner_2second", SND_CHANNEL_ANY);			
+			$fms_rightrotator.rotateOnce('0 145 0');					
+			
+			sys.wait(.1);
+			
+			$fms_bottomrotator.startSoundShader("al4_spinner_2second", SND_CHANNEL_ANY);
+			$fms_bottomrotator.rotateOnce('-145 0 0');			
+			
+			sys.wait( .5 );
+			
+			$fms_secondscreen.rotateOnce('0 25 0');
+			$fms_firstscreen.rotateOnce('0 25 0');
+			
+			$fms_fourthscreen.rotateOnce('0 -25 0');
+			$fms_thirdscreen.rotateOnce('0 -25 0');
+			
+			$fms_keyboard.rotateOnce('75 0 0');
+						
+			sys.wait( 1.5 );
+			
+			sys.trigger($fms_panelclip);
+			
+			$fms_pole.move(UP, 88);	
+
+			sys.waitFor($fms_pole);
+
+			sys.trigger($speaker_910);
+			
+			fms_state = 0;			
+			
+			$FMS_InZone_trigger.enable();
+		}
+	}
+
+	float insideFMSZone = 0;
+
+	void FMS_Activator()
+	{
+		while(fms_disabled == 0)
+		{
+			if(insideFMSZone == 1 && fms_disabled == 0)
+			{
+				FMSEngage();
+			}
+			else
+			{
+				FMSDisengage();
+			}
+
+			sys.wait(1);
+		}
+
+		if(fms_disabled == 1)
+		{
+			FMSDisengage();
+		}
+	}
+
+	void FMS_InZone()
+	{
+		insideFMSZone = 1;
+	}
+
+	void FMS_OutZone()
+	{
+		insideFMSZone = 0;
+	}
+
+	void test_plastube()
+	{
+		while (1)
+		{
+			$plastube_test.move(180, 960);
+			sys.waitFor($plastube_test);
+			$plastube_test.restorePosition();
+		}
+	}
+	
+	void SpeakerAmbience_fadeout() 
+	{
+		sys.trigger($SpeakerAmbience_fadein_relay2);
+		$speaker_35.fadeSound (SND_CHANNEL_ANY, -25, 7);
+		$speaker_31.fadeSound (SND_CHANNEL_ANY, -24, 7);
+		$speaker_33.fadeSound (SND_CHANNEL_ANY, -24, 7);
+		$speaker_30.fadeSound (SND_CHANNEL_ANY, -25, 7);
+		$speaker_28.fadeSound (SND_CHANNEL_ANY, -23, 7);
+		$speaker_79.fadeSound (SND_CHANNEL_ANY, -22, 7);
+	}
+	
+	void SpeakerAmbience_fadein2() 
+	{	
+		$SpeakerBurnedToACrisp.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_35.fadeSound (SND_CHANNEL_ANY, 0, 5);
+		$speaker_31.fadeSound (SND_CHANNEL_ANY, 0, 5);
+		$speaker_33.fadeSound (SND_CHANNEL_ANY, 0, 5);
+		$speaker_30.fadeSound (SND_CHANNEL_ANY, 0, 5);
+		$speaker_28.fadeSound (SND_CHANNEL_ANY, 0, 5);
+		$speaker_79.fadeSound (SND_CHANNEL_ANY, 0, 5);
+	}	
+	
+	void CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+	
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}
+
+	void FuelAlarmSub()
+	{
+		ShowNPCSubtitles("PA", "Area is in lockdown. Unctrolled fire.\nExplosion imminent.", 6.35);
+	}
+	
+	void CallMiles()
+	{
+		SpeakerAmbience_fadeout();
+		
+		Beat(.25);
+		thread ShowNPCSubtitles("Miles", "Yeah?", 2);
+		CharacterSays($Comm_Holder, "milescall1_miles1");
+		Beat(.75);
+		sys.trigger($SpeakerBurnedToACrisp);
+		thread ShowNPCSubtitles("Sam", "I found Benson. He's dead. Burned to a crisp.", 3.25);
+		CharacterSays($player1, "milescall1_player1");
+		Beat(1.25);
+		thread ShowNPCSubtitles("Miles", "Oh. That's too bad...", 2);
+		CharacterSays($Comm_Holder, "milescall1_miles2");
+		Beat(1.5);
+		thread ShowNPCSubtitles("Sam", "I'm sorry?", 2);
+		CharacterSays($player1, "milescall1_player2");
+		Beat(.5);
+		thread ShowNPCSubtitles("Miles", "Don't be. He wasn't exactly what you would call a nice guy.", 3.15);
+		CharacterSays($Comm_Holder, "milescall1_miles3");
+		Beat(.75);
+		thread ShowNPCSubtitles("Sam", "Who was Benson anyway? How did you know him?", 2.25);
+		CharacterSays($player1, "milescall1_player3");
+		Beat(.5);
+		thread ShowNPCSubtitles("Miles", "I knew him through the academy. He's a federal Agent like Calloway and I.\nHe had a run-in with him a few years ago.", 6.25);
+		CharacterSays($Comm_Holder, "milescall1_miles4");
+		Beat(.25);
+		thread ShowNPCSubtitles("Sam", "What happened?", 2);
+		CharacterSays($player1, "milescall1_player4");
+		Beat(.5);
+		thread ShowNPCSubtitles("Miles", "He took something that was too beautiful for this world and turned it into ash.\nHe violated our trust and turned against us.", 6.25);
+		CharacterSays($Comm_Holder, "milescall1_miles5");
+		sys.trigger($radio_chatter_sp);
+		Beat(.5);
+		thread ShowNPCSubtitles("Sam", "I...I guess it's good he's gone then.", 2.15);
+		CharacterSays($player1, "milescall1_player5");
+		Beat(.25);
+		thread ShowNPCSubtitles("Miles", "Sam I don't want people to die, but I'm not going to start caring about Benson.", 4.25);
+		CharacterSays($Comm_Holder, "milescall1_miles6");
+		Beat(1.75);
+		thread ShowNPCSubtitles("Sam", "Samantha...What did he turn into ash?", 2.45);
+		CharacterSays($player1, "milescall1_player6");
+		Beat(.75);
+		thread ShowNPCSubtitles("Miles", "I...I really don't want to talk about that now. We have work to do.", 6.6);
+		CharacterSays($Comm_Holder, "milescall1_miles7");
+		
+		$player1.startSoundShader("e1m1_intercomclick2", SND_CHANNEL_ANY);
+		$comm_snapin.hide();
+		
+		sys.wait(.1);
+		$commscreen.hide();
+		sys.wait(.1);
+		$commscreen_offline.show();
+		
+		sys.trigger($monster_zsec_shotgun2_7);
+		
+		Beat(2.75);
+		
+		thread ShowNPCSubtitles("Sam", "I'm sorry, Samantha.", 2);
+		CharacterSays($player1, "milescall1_player7");
+		
+		Beat(2.5);
+		
+		sys.trigger($bulkhead_portal);
+		
+		$fucky_door_fuck_you.time(8);
+		$fucky_door_fuck_you.move(UP, 112);
+		sys.trigger($bulkhead_aas_obstacle);
+		
+		sys.trigger($trigger_relay_614);
+
+		sys.quickSave("The Beginning of The End - Checkpoint 6");
+	}
+	
+	void InsertSnapin()
+	{
+		$player1.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+
+		sys.trigger($comm_beep);
+
+		$comm_snapin.show();
+		$comm_blinker_tex.hide();
+		$comm_blinking_light.hide();
+		sys.wait(.1);
+		$commscreen_online.hide();
+		sys.wait(.1);
+		$commscreen.setGuiParm("gui_parm41", 1);		
+		sys.trigger($commscreen);
+		$commscreen.show();
+
+		sys.wait(2.5);
+		CallMiles();
+	}
+	
+	float reactingToAgent = 0;
+	float BensonCardReaction_State = 0;
+
+	void BensonCardReaction()
+	{
+		if(BensonCardReaction_State == 0 && reactingToAgent == 0)
+		{
+			BensonCardReaction_State = 1;
+			sys.wait(0.25);
+			thread thread ShowNPCSubtitles("Sam", "James Benson? I guess we now know why you missed your flight.\nOur flight.", 5.1);
+			$player1.startSoundShader("know_why_missed_flight", SND_CHANNEL_ANY);
+		}
+	}	
+	
+	void FederalAgentReaction()
+	{
+		reactingToAgent = 1;
+
+		thread thread ShowNPCSubtitles("Sam", "Is that a federal agent?", 2);
+		sys.wait($player1.startSoundShader("is_that_fed_agent", SND_CHANNEL_ANY));
+
+		reactingToAgent = 0;
+	}
+	
+	float FuelMainControlReaction_State = 0;
+	void FuelMainControlReaction()
+	{
+		if(FuelMainControlReaction_State == 0 && reactingToAgent == 0)
+		{
+			thread thread ShowNPCSubtitles("Sam", "Locked. I guess this room can empty the fuel cache.", 3.25);
+			$player1.startSoundShader("this_room_empty_fuel", SND_CHANNEL_ANY);
+			FuelMainControlReaction_State = 1;
+		}
+	}
+
+	void FuckYouDoor()
+	{		
+		// move door into fuck you position
+		sys.trigger($bulkhead_portal);
+		$fucky_door_fuck_you.move(UP, 48);
+		sys.waitFor($fucky_door_fuck_you);
+
+		while(fuckydoorstate == 0)
+		{			
+			// find a random distance to drop
+			float dist = sys.random(16);
+
+			// find a random time to delay before moving
+			float del = sys.random(3);
+
+			if(fuckydoorstate == 0)
+				sys.wait(del);
+
+			$fucky_door_fuck_you.move(DOWN, dist);
+			sys.waitFor($fucky_door_fuck_you);
+			
+			// find a new random delay before going back up
+			del = sys.random(3);
+			
+			if(fuckydoorstate == 0)
+				sys.wait(del);
+
+			// move the door back up
+			$fucky_door_fuck_you.move(UP, dist);
+			sys.waitFor($fucky_door_fuck_you);
+		}
+
+		$fucky_door_fuck_you.move(DOWN, 48);
+	}
+	
+	void BeginDoorFuckery()
+	{
+		fuckydoorstate = 0;
+		thread FuckYouDoor();
+	}
+	
+	float codeTalk = 0;
+
+	void FuelTalk()
+	{	
+		$fms_fourthscreen_clicker.setKey("click_item", 0);
+
+		if(codeTalk == 0)
+		{
+			thread ShowNPCSubtitles("Sam", "So I guess all of these needs to be green.", 2.25);
+			sys.trigger($speaker_1013);
+		}
+		else
+		{
+			thread ShowNPCSubtitles("Sam", "Hmm. This doesn't look right.", 2.25);
+			sys.trigger($speaker_1014);
+		}
+
+		// Flip
+		codeTalk = 1 - codeTalk;
+
+		// Don't reactivate for a while
+		sys.wait(4);
+
+		$fms_fourthscreen_clicker.setKey("click_item", 1);
+	}
+	
+	void OpenSecretVentLadder()
+	{
+		$secret_vent_hatch.move(360, 64);
+		sys.trigger($ladderlights_relay);
+		
+		sys.wait(.25);
+		
+		sys.trigger($ladder_sfx);
+		$secret_vent_ladder.move(DOWN, 192);
+	}
+	
+	void SpeakerAmbience_fadein() 
+	{
+		$SpeakerEnterFuel.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_0.fadeSound (SND_CHANNEL_ANY, 5, 5);
+		$speaker_2.fadeSound (SND_CHANNEL_ANY, 4, 5);
+		$speaker_7.fadeSound (SND_CHANNEL_ANY, 6, 5);
+		$speaker_5.fadeSound (SND_CHANNEL_ANY, 4, 5);
+		$speaker_13.fadeSound (SND_CHANNEL_ANY, 4, 5);
+		$speaker_20.fadeSound (SND_CHANNEL_ANY, 6, 5);
+		$speaker_19.fadeSound (SND_CHANNEL_ANY, 4, 5);
+		$speaker_23.fadeSound (SND_CHANNEL_ANY, 5, 5);
+		$speaker_24.fadeSound (SND_CHANNEL_ANY, 4, 5);
+		$speaker_44.fadeSound (SND_CHANNEL_ANY, 4, 5);
+		$speaker_43.fadeSound (SND_CHANNEL_ANY, 3, 5);
+	}
+	
+	void LynchPort()
+	{		
+		$player1.startSoundShader("sound/shav/general/fnote_subtle.ogg", SND_CHANNEL_ANY);
+		sys.fadeTo('1 1 1', .75, .0625);
+		sys.wait(0.625);
+		sys.fadeTo('1 1 1', 0, .25);		
+	}
+	
+	//===========================================
+	// START CHECKPOINTS
+	//===========================================
+	
+	void elevator_checkpoint()
+	{
+		sys.quickSave("The Beginning of The End - Checkpoint 7");
+	}
+	
+	//===========================================
+	// END CHECKPOINTS
+	//===========================================
+	
+	//===========================================
+	// RANDOM MONSTER SPAWNS
+	//===========================================		
+	
+	void select_monsterconfig(float encounterNum)
+	{
+		float monsterselect;
+		entity monster_config_a = sys.getEntity("monster_config_a" + encounterNum);
+		entity monster_config_b = sys.getEntity("monster_config_b" + encounterNum);
+
+
+		while (1)
+		{
+			monsterselect = sys.random(15);
+		
+				if (monsterselect <= 8){
+					sys.trigger (monster_config_a);
+					//sys.println("monster_configa" + encounterNum + "selected");
+					sys.wait(.5);
+				} else {
+					sys.trigger (monster_config_b);
+					//sys.println("monster_configb" + encounterNum + "selected");
+					sys.wait(.5);
+				} 
+		}
+	}
+	
+	void select_monsterconfig1()
+	{
+		select_monsterconfig(1);
+	}			
+	
+	void select_monsterconfig2()
+	{
+		select_monsterconfig(2);
+	}		
+
+	void select_monsterconfig3()
+	{
+		select_monsterconfig(3);
+	}		
+	
+	void select_monsterconfig4()
+	{
+		select_monsterconfig(4);
+	}	
+	
+	void select_monsterconfig5()
+	{
+		select_monsterconfig(5);
+	}	
+	
+	void select_monsterconfig6()
+	{
+		select_monsterconfig(6);
+	}	
+	
+	void kill_monster_selection1()
+	{sys.killthread ("map_e1m3_2::select_monsterconfig1");}
+	
+	void kill_monster_selection2()
+	{sys.killthread ("map_e1m3_2::select_monsterconfig2");}
+	
+	void kill_monster_selection3()
+	{sys.killthread ("map_e1m3_2::select_monsterconfig3");}
+	
+	void kill_monster_selection4()
+	{sys.killthread ("map_e1m3_2::select_monsterconfig4");}
+	
+	void kill_monster_selection5()
+	{sys.killthread ("map_e1m3_2::select_monsterconfig5");}
+	
+	void kill_monster_selection6()
+	{sys.killthread ("map_e1m3_2::select_monsterconfig6");}
+	
+	//===========================================
+	// END RANDOM MONSTER SPAWNS
+	//===========================================
+	
+	void main()
+	{
+		$m4lockdowndoor.open();
+		
+		sys.trigger($SpeakerAmbience_fadein_relay);
+		sys.trigger($SpeakerEnterFuel);
+		
+		thread select_monsterconfig1();
+		sys.wait(4);
+		thread select_monsterconfig2();
+		sys.wait(7);
+		thread select_monsterconfig3();
+		sys.wait(5);
+		thread select_monsterconfig4();
+		sys.wait(3.5);
+		thread select_monsterconfig5();
+		sys.wait(5);
+		thread select_monsterconfig6();
+		
+		sys.trigger($fuellock_outer_clip1);
+		sys.trigger($fuellock_outer_clip2);
+		$fuellock_outer_r1.move(90, 56);
+		$fuellock_outer_r2.move(90, 56);
+		$fuellock_outer_l1.move(270, 56);
+		$fuellock_outer_l2.move(270, 56);
+
+		ChangeLevel2(128 * -4);
+		ChangeLevel3(0);
+		
+		thread piston3();
+		thread piston4();
+		thread piston5();
+		
+		thread coolant_tubes_insert();
+		thread plastube_load();
+		
+		thread crankshaft();
+		sys.trigger($cannister_pistons_relay1);
+		thread FMS_Activator();
+		sys.trigger($trigger_relay_551);
+		
+		sys.wait(.3);
+		sys.trigger($func_emitter_442);
+
+		FMSToIdle();
+		
+		//main objective
+		sys.trigger($target_primaryobjective_1);
+		
+		$FMS_OutZone_trigger.disable();
+	}	
+}

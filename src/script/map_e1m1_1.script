@@ -1,0 +1,1874 @@
+#include "script/map_e1m1_train.script"
+
+namespace map_e1m1_1
+{
+	float hospitalActive = 0;
+	float canSkipHospital = 0;
+	float hospitalSkipped = 0;
+	float activeHospitalCam = 0;
+
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m1_1(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+	
+	void MedicalExplosionSub()
+	{
+		ShowNPCSubtitles("Sam", "Oh my god!", 2);
+	}
+	
+	void WhoIsCallingReactionSub()
+	{
+		ShowNPCSubtitles("...", "Who's calling?", 2);
+	}
+	
+	void TrainLetItBurnSub()
+	{
+		ShowNPCSubtitles("Girl", "Let it burn.", 2);
+	}
+
+	void MonorailMapReactionSub()
+	{
+		ShowNPCSubtitles("...", "Where is the Landing Terminal?", 2);
+	}
+	
+	void IntercomDeltaLabsSub()
+	{
+		ShowNPCSubtitles("AP", "Attention UAC Personnel.\nWe discourage anyone from spreading rumours.", 5.45);
+
+		ShowNPCSubtitles("AP", "Remember, rumors are the antithesis of trust.\nAnd trust is what our corporation is built upon.", 6.5);
+		
+		ShowNPCSubtitles("AP", "We Thank everyone for your cooperation.\nHave a great day.", 5);
+	}
+	
+	void IntercomDrJensenSub()
+	{
+		ShowNPCSubtitles("AP", "Dr. Jensen please report immediately to ward B. Dr. Jensen to ward B.", 5);
+	}
+	
+	void IntercomMonorailSystemSub()
+	{
+		ShowNPCSubtitles("AP", "Monorail system back online. Sorry for any inconvenience during the down period.", 5);
+	}	
+	
+	void LobbyGuardPrimary()
+	{
+		ShowNPCSubtitles("FCE Soldier", "We can't let you in. But the monorail system is back online.\nIt's currently the only way for you to get around.", 5);
+	}
+	
+	void LobbyGuardSecond1()
+	{
+		ShowNPCSubtitles("FCE Soldier", "Only authorized Federal personnel allowed.\nThe shuttles are off limits.", 4);
+	}
+	
+	void LobbyGuardSecond2()
+	{
+		ShowNPCSubtitles("FCE Soldier", "Any outgoing shuttles are grounded, pending the investigation.\nMove along!", 5);
+	}
+	
+	void LQGardPrimary()
+	{
+		ShowNPCSubtitles("FCE Soldier", "Federal investigation in the Living Quarters.\nWe had to shut the area down.", 5);
+	}
+	
+	void LQGuardSecond1()
+	{
+		ShowNPCSubtitles("FCE Soldier", "Someone has been inside on of our research labs.\nBe on the lookout.", 3);
+	}
+	
+	void LQGuardSecond2()
+	{
+		ShowNPCSubtitles("FCE Soldier", "Ah. Not from around here eh?\nI don't recognize your suit number.", 4);
+	}
+	
+	void MarsCityStationGuardPrimary()
+	{
+		ShowNPCSubtitles("Security", "You're in luck pal. The monorail just got back online.\nNot all lines are running, but this one should be here any second now.", 7);
+	}	
+	
+	void MarsCityStationGuardSecond1()
+	{
+		ShowNPCSubtitles("Security", "I hope you can get where you need to be.\nNot everything is working these days with all the quakes.", 5);
+	}
+	
+	void MarsCityStationGuardSecond2()
+	{
+		ShowNPCSubtitles("Security", "I don't know what is going on with all the quakes lately. No one tells us anything.\nI guess you Feds keep a tight ship.", 6.5);
+	}
+	
+	void MarineCommandGuardPrimary()
+	{
+		ShowNPCSubtitles("Marine", "You and your type are not welcome here.\nYou should leave. Now!", 4.25);
+	}
+	
+	void MarineCommandGuardSecond1()
+	{
+		ShowNPCSubtitles("Marine", "You may have stolen our states on the old planet.\nBut on this station, on this planet. You. Are. Not. Welcome.", 8);
+	}
+	
+	void MarineCommandGuardSecond2()
+	{
+		ShowNPCSubtitles("Marine", "When is it enough? Do you have to own the entire world?\nI can't believe you feds. Always sniffing about when you shouldn't.", 7);
+	}
+	
+	void MarineCommandElevatorGuard()
+	{
+		ShowNPCSubtitles("Marine", "Hey you! This area is off limits.\nWe're trying to get an overview of the situation. So Marine Command is on lockdown.", 7);
+	}		
+	
+	void MarineCommandElevatorGuardResponseSub()
+	{
+		ShowNPCSubtitles("...", "Oh sorry. I didn't know you were having a party up here.", 3.5);
+	}
+	
+	void IWonderSub()
+	{
+		ShowNPCSubtitles("...", "I wonder what is more important.\nWhere I come from? Or where I'm going?", 4.75);
+	}
+	
+	void ConferenceGuardPrimary()
+	{
+		ShowNPCSubtitles("FCE Soldier", "Official Federal business.\nYou'll have to wait.", 2.5);
+	}
+	
+	void ConferenceGuardSecond1()
+	{
+		ShowNPCSubtitles("FCE Soldier", "This will only take half an hour.\nIf you need to use the room. Come back later.", 3.5);
+	}
+	
+	void ConferenceGuardSecond2()
+	{
+		ShowNPCSubtitles("FCE Soldier", "Sir. I already told you.\nYou'll have to wait until after the meeting.", 3.5);
+	}
+
+	void Miles2Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Miles", "Oh yeah. Right. I know.");
+		
+		sys.wait(2);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "This...This is Samantha Miles.");
+		
+		sys.wait(3);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "Our short...ugh...our short range communication is acting up.");
+		
+		sys.wait(5);
+		
+		ShowNPCSubtitles("Miles", "You need to find a stable and secure connection and call me back.\nWe need to talk.", 5);
+	}
+	
+	void MilesCalls()
+	{		
+		m1trainstate = 2;
+		
+		thread CharacterSays(playerC, "sound/shav/general/radioincoming.ogg");
+		Beat(2.25);		
+		thread CharacterSays(playerC, "sound/shav/general/radioincoming.ogg");
+		Beat(2.25);
+		thread CharacterSays(playerC, "sound/shav/general/radioincoming.ogg");
+		
+		PhobosShowSubtitle_e1m1_1("...", "Oh shit. Is that me?");
+		thread CharacterSays(playerC, "sound/vo/player/general/OhShitIsThatMe.ogg");
+		Beat(2.25);
+		thread CharacterSays(playerC, "sound/shav/general/radioincoming.ogg");
+		Beat(2.25);
+
+		playerC.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+		sys.trigger($func_radiochatter_1);
+		Beat(1.25);
+		
+		PhobosShowSubtitle_e1m1_1("...", "Hello?\nThis is me speaking.");
+		CharacterSays(playerC, "sound/vo/e1m1/milescall1/player1.ogg");
+		Beat(.25);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "Sam?");
+		CharacterSays(playerC, "sound/vo/e1m1/milescall1/miles1.ogg");
+		Beat(.5);
+		
+		PhobosShowSubtitle_e1m1_1("...", "I wouldn't know.\nI lost my memory.");
+		CharacterSays(playerC, "sound/vo/e1m1/milescall1/player2.ogg");
+		Beat(.75);
+		
+		thread Miles2Sub();
+		CharacterSays(playerC, "sound/vo/e1m1/milescall1/miles2.ogg");
+		Beat(.5);
+		playerC.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+		Beat(1);
+		sys.trigger($trigger_confroom_objective);
+	}
+
+	float callMilesCompleted = 0;
+	void CallMilesCSInterupt(entity characterEntity, string line, float interrupt)
+    {
+		if(callMilesCompleted == 0)
+		{
+			sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY) - interrupt);
+		}		
+    }	
+	
+	void CompleteCallMiles()
+	{
+		if(callMilesCompleted == 0)
+		{
+			callMilesCompleted = 1;
+			sys.hideSubtitles();
+		}
+	}
+
+	void CallMilesCS(entity entity, string line)
+	{
+		if(callMilesCompleted == 0)
+		{
+			CharacterSays(entity, line);
+		}
+	}	
+
+	void CallMilesBeat(float amount)
+	{
+		if(callMilesCompleted == 0)
+		{
+			Beat(amount);
+		}
+	}
+
+	void Player1Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("...", "Miles. Hey.\nThe doctor mentioned you might be able to help me.");
+		
+		sys.wait(3);
+		
+		PhobosShowSubtitle_e1m1_1("...", "You know. Remembering.\nYou called me Sam?");
+	}
+
+	void Miles3Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Miles", "Still struggling with your memory I see.\nIt's more like half a year since we met.");
+		
+		sys.wait(4.25);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "I can't tell you exactly who you are. I don't know you that well.\nBut I know someone who does.");
+		
+		sys.wait(6.25);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "We have a mutual friend and colleague through whom I met you.");
+		
+		sys.wait(4);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "His name is Calloway.\nHe's currently at the Bulwark stationed.");
+	}
+	
+	void Miles4Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Miles", "Sorry. I keep forgetting.");
+		
+		sys.wait(2.25);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "The Bulwark is the main base of operations for the Federacy here on Mars.");
+		
+		sys.wait(4.5);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "I'll be heading there now.\nBut you can tag along if you want.");
+		
+		sys.wait(5.75);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "The only way there right now, is with a shuttle from the Landing Terminal.");
+		
+		sys.wait(3);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "We should meet up there.");
+	}
+
+	void Player4Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Sam", "Look Milly. Something is seriously wrong with this place.");
+		
+		sys.wait(2.25);
+		
+		PhobosShowSubtitle_e1m1_1("Sam", "The whole city is shaking, lights are going out.\nIt's raining elevators.");
+		
+		sys.wait(6);
+		
+		PhobosShowSubtitle_e1m1_1("Sam", "And last time I checked.\nThat route was blocked.");
+	}
+	
+	void Miles5Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Miles", "It's Miles. I don't know exactly what's going on.");
+		
+		sys.wait(4);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "Things are very chaotic right now.");
+		
+		sys.wait(4);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "I'll be looking for an alternate route myself.\nI would advice you to do the same.");
+		
+		sys.wait(4);
+		
+		PhobosShowSubtitle_e1m1_1("Miles", "I think the station at Recreation might have a shortcut.\nYou could try that.");
+	}
+	
+	float callmileslock = 0;
+	void CallMiles()
+	{
+		if(callmileslock == 0)
+		{
+			sys.trigger($trigger_once_28);
+
+			callmileslock = 1;
+
+			PhobosShowSubtitle_e1m1_1("Miles", "Agent Miles.");
+			CallMilesCS($Comm_Holder, "sound/vo/e1m1/milescall2/miles1.ogg");
+			CallMilesBeat(.125);
+			
+			thread Player1Sub();
+			CallMilesCS(playerC, "sound/vo/e1m1/milescall2/player1.ogg");
+			CallMilesBeat(.125);
+
+			sys.trigger($func_earthquake_1);
+			thread crossFadeEnt ($light_63500, '0 0 0', '0.33 0.42 0.49', 12);
+			thread crossFadeEnt ($light_63531, '0 0 0', '0.33 0.42 0.49', 15);
+			thread crossFadeEnt ($light_63501, '0 0 0', '0.49 0.54 0.61', 12);
+			thread crossFadeEnt ($light_63502, '0 0 0', '0.49 0.54 0.61', 17);			
+			thread crossFadeEnt ($light_63507, '0 0 0', '0.33 0.42 0.49', 12);			
+			
+			$speaker_105.fadeSound(SND_CHANNEL_ANY, -5, 3);
+			$speaker_99.fadeSound(SND_CHANNEL_ANY, -5, 3);
+			$speaker_98.fadeSound(SND_CHANNEL_ANY, -5, 3);			
+			
+			PhobosShowSubtitle_e1m1_1("Miles", "Yes! You're Sam.\nDo you have any recollection of me? Perchance?");
+			CallMilesCS($Comm_Holder, "sound/vo/e1m1/milescall2/miles2.ogg");
+
+			sys.trigger($SpeakerYesYoureSam);
+
+			CallMilesBeat(.125);
+			
+			PhobosShowSubtitle_e1m1_1("Sam", "Perchance?\nWe met like half an hour ago.");
+			CallMilesCS(playerC, "sound/vo/e1m1/milescall2/player2.ogg");
+			CallMilesBeat(.125);
+			
+			thread Miles3Sub();
+			CallMilesCSInterupt($Comm_Holder, "sound/vo/e1m1/milescall2/miles3.ogg", 0.3);
+			
+			PhobosShowSubtitle_e1m1_1("Sam", "The Bulwark?");
+			CallMilesCS(playerC, "sound/vo/e1m1/milescall2/player3.ogg");
+			CallMilesBeat(.125);
+			
+			thread Miles4Sub();
+			CallMilesCS($Comm_Holder, "sound/vo/e1m1/milescall2/miles4.ogg");
+			CallMilesBeat(.125);
+
+			sys.trigger($func_earthquake_4);
+			thread crossFadeEnt ($light_63531, '0 0 0', '0.33 0.42 0.49', 15);
+			thread crossFadeEnt ($light_63502, '0 0 0', '0.49 0.54 0.61', 12);
+			thread crossFadeEnt ($light_63501, '0 0 0', '0.49 0.54 0.61', 17);			
+			thread crossFadeEnt ($light_63518, '0 0 0', '0.33 0.42 0.49', 12);
+
+			thread Player4Sub();
+			CallMilesCS(playerC, "sound/vo/e1m1/milescall2/player4.ogg");
+			CallMilesBeat(.125);			
+			
+			thread Miles5Sub();
+			CallMilesCS($Comm_Holder, "sound/vo/e1m1/milescall2/miles5.ogg");
+			
+			CallMilesBeat(.125);			
+
+			thread ShowNPCSubtitles("Sam", "Alright. Yeah. I'll check it out.\nI guess I'll see you there then.", 4);
+			CallMilesCS(playerC, "sound/vo/e1m1/milescall2/player5.ogg");
+			
+			$speaker_105.fadeSound(SND_CHANNEL_ANY, 0, 3);
+			$speaker_99.fadeSound(SND_CHANNEL_ANY, 0, 3);
+			$speaker_98.fadeSound(SND_CHANNEL_ANY, 0, 3);
+			
+			sys.trigger($func_earthquake_9);
+			thread crossFadeEnt ($light_63531, '0 0 0', '0.33 0.42 0.49', 15);
+			thread crossFadeEnt ($light_63501, '0 0 0', '0.49 0.54 0.61', 12);
+			thread crossFadeEnt ($light_63502, '0 0 0', '0.49 0.54 0.61', 17);
+			
+			CallMilesBeat(.125);		
+
+			if(callMilesCompleted == 0)
+			{
+				playerC.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+			}
+			
+			$comm_snapin.hide();
+
+			CallMilesBeat(1);
+			sys.trigger($trigger_completeCallMiles);		
+			
+			sys.trigger($func_earthquake_10);
+			thread crossFadeEnt ($light_63531, '0 0 0', '0.33 0.42 0.49', 15);
+			thread crossFadeEnt ($light_63502, '0 0 0', '0.49 0.54 0.61', 12);
+			sys.trigger($light_64910);
+
+			sys.wait(.1);
+			$commscreen.hide();
+			sys.wait(.1);
+			$commscreen_offline.show();
+			
+			//hide broken down train in outside area.
+			sys.trigger($removeBrokenTrain);
+			
+			//hide angry marine and guard on train station
+			sys.trigger($func_remove_1);
+
+			sys.trigger($TriggerRailLoop2);
+
+			sys.trigger($SpeakerGoingToRecreation);
+
+			sys.trigger($HideNoReasonToGoBack);
+
+			sys.trigger($LockMCLights);
+			
+			sys.trigger($Trigger_Checkpoint2);
+		}
+	}
+
+	void InsertSnapin()
+	{
+		$Comm_Holder.setKey ("click_item", "0");
+
+		$player1.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+
+		$comm_snapin.show();
+		sys.trigger($comm_beep);
+		$comm_blinker_tex.hide();
+		$comm_blinking_light.hide();
+		sys.wait(.1);
+		$commscreen_online.hide();
+		sys.wait(.1);
+		$commscreen.show();
+		sys.wait(.2);
+		
+		$commscreen.setGuiParm("gui_parm41", 1);
+		sys.trigger($commscreen);
+
+		sys.wait(1.6);
+		CallMiles();
+	}	
+
+	void HLTurn_OpenDoor01()
+	{
+		sys.trigger($hlturn_door01_portal);
+		$hlturn_door01.move(DOWN, 192);
+		sys.waitFor($hlturn_door01);
+		sys.wait(3);
+		$hlturn_door01.move(UP, 192);
+		sys.waitFor($hlturn_door01);
+		sys.trigger($hlturn_door01_portal);
+	}
+
+	void HLTurn_OpenDoor02()
+	{
+		sys.trigger($hlturn_door02_portal);
+		$hlturn_door02.move(DOWN, 192);
+		sys.waitFor($hlturn_door02);
+		sys.wait(3);
+		$hlturn_door02.move(UP, 192);
+		sys.waitFor($hlturn_door02);
+		sys.trigger($hlturn_door02_portal);
+	}
+
+	void HLTurnHookTrip()
+	{
+		while (1)
+		{
+			$hlturn_cratehook01.move(270, 1200);
+			sys.waitFor($hlturn_cratehook01);
+			$hlturn_cratehook01.bind($hlturn_anchor01);
+			$hlturn_anchor01.rotateOnce('0 -180 0');
+			sys.waitFor($hlturn_anchor01);
+			$hlturn_cratehook01.unbind();
+			$hlturn_cratehook01.move(90, 1200);
+			sys.waitFor($hlturn_cratehook01);
+			$hlturn_cratehook01.restorePosition();
+		}
+	}
+
+	float Floor(float value, float max)
+	{
+		float i = max;
+
+		while(i > 0)
+		{
+			if(value < i && value > i - 1)
+				return i - 1;
+
+				i--;
+		}
+		return value;
+	}
+
+	void MarineStationIncident()
+	{
+		thread DisembarkFromMarineCommand1();
+
+		sys.wait(2);
+
+		sys.trigger($marinestation_earthquake_event);
+		thread crossFadeEnt ($light_63127, '0 0 0', '0.33 0.42 0.49', 10);
+		thread crossFadeEnt ($light_63129, '0 0 0', '0.33 0.42 0.49', 25);
+		sys.wait(.4);
+		thread crossFadeEnt ($light_63130, '0 0 0', '0.33 0.42 0.49', 12);
+		thread crossFadeEnt ($light_63131, '0 0 0', '0.33 0.42 0.49', 15);
+		thread crossFadeEnt ($light_55697, '0 0 0', '0.49 0.54 0.61', 12);
+		thread crossFadeEnt ($light_55686, '0 0 0', '0.49 0.54 0.61', 17);
+		sys.wait(.2);
+		thread crossFadeEnt ($light_55698, '0 0 0', '0.49 0.54 0.61', 12);
+		thread crossFadeEnt ($light_55699, '0 0 0', '0.49 0.54 0.61', 10);
+		sys.wait(.1);
+		thread crossFadeEnt ($light_55685, '0 0 0', '0.49 0.54 0.61', 30);
+		thread crossFadeEnt ($light_55700, '0 0 0', '0.49 0.54 0.61', 20);
+	}
+	
+	void PreLiftIncident()
+	{
+		sys.trigger($func_earthquake_2);
+		thread crossFadeEnt ($light_63223, '0 0 0', '0.33 0.42 0.49', 15);
+		thread crossFadeEnt ($light_64122, '0 0 0', '0.33 0.42 0.49', 25);
+		thread crossFadeEnt ($light_63189, '0 0 0', '0.49 0.54 0.61', 12);
+		thread crossFadeEnt ($light_63188, '0 0 0', '0.49 0.54 0.61', 10);
+	}
+
+	void SetupLiftIncident()
+	{
+		$lift_incident_mover.move(UP, 37 * 64);
+		sys.waitFor($lift_incident_mover);		
+	}
+
+	void LiftIncident()
+	{		
+		$lift_incident_mover.move(DOWN, 37 * 64);
+		sys.wait(.3);
+		$player1.startSoundShader("sound/shav/e1m1/elevator_falling.ogg", SND_CHANNEL_ANY);
+		sys.waitFor($lift_incident_mover);
+		sys.trigger($lift_inciden_trigger);
+		$player1.startSoundShader("sound/shav/e1m1/elevator_explosion.ogg", SND_CHANNEL_ANY);		
+		sys.trigger($eerie_speaker);
+		sys.wait(1);
+		
+		thread ShowNPCSubtitles("...", "Holy shit!", 2);
+		$player1.startSoundShader("sound/vo/player/general/holyshit.ogg", SND_CHANNEL_ANY);
+		sys.wait(2);
+		thread ShowNPCSubtitles("AP", "Have a nice day.", 2);
+		sys.trigger($have_nice_day_spkr);
+	}
+
+	void CallTest()
+	{
+		sys.wait(3);
+		$func_static_1.setGuiParm("gui_parm51", 2);
+		sys.trigger($func_static_1);
+	}	
+
+	float scannerActive = 1;
+
+	void RotateBed()
+	{
+		$scanner_toffel_5.move(DOWN,2);
+		sys.wait(.1);
+		$scanner_toffel_4.move(DOWN,2);
+		sys.wait(.1);
+		$scanner_toffel_3.move(DOWN,2);
+		sys.wait(.1);
+		$scanner_toffel_2.move(DOWN,2);
+		sys.wait(.1);
+		$scanner_toffel_1.move(DOWN,2);
+		
+		$scanner_toffel_1.rotateOnce('0 -35 0');
+		$scanner_toffel_2.rotateOnce('0 0 2.5');
+		$scanner_toffel_3.rotateOnce('0 0 2.5');
+		$scanner_toffel_4.rotateOnce('0 0 2.5');
+		$scanner_toffel_5.rotateOnce('0 0 2.5');
+				
+		sys.wait(.25);
+		$scanner_bed.move(REL_LEFT, 16);
+
+		sys.wait(.1);
+		$scanner_fork.rotateOnce('0 0 42.5');
+		sys.wait(.1);
+		$scanner_foot_left.rotateOnce('0 0 -65');
+		sys.wait(.1);
+		$scanner_foot_right.rotateOnce('0 0 -65');
+		
+		sys.wait(.1);
+		$scanner_headlight.rotateOnce('0 0 -25');
+
+		sys.waitFor($scanner_headlight);
+	}
+
+	void MoveOutOfScanner()
+	{
+		$scanner_bed.move(270, 136);			
+
+		sys.waitFor($scanner_bed);
+	}
+
+	float ring1Status = 0;
+	float ring2Status = 0;
+	float ring3Status = 0;
+
+	void RunRing(entity ring, float direction, float isStarting)
+	{
+		float i,v,t,blendtime,velmult,final;
+		vector rotvector;
+		
+		blendtime = 25;
+		velmult = .3;			
+
+		if( isStarting == 0)
+		{
+			blendtime /= 2;
+			velmult *= 2;
+		}
+		else
+		{
+			blendtime /= 5;
+			velmult *= 5;
+		}
+
+		t = blendtime * GAME_FPS;
+		final = (t-1) * velmult;
+
+		for ( i = 0; i < t; i++ )
+		{
+			if(isStarting == 1)
+			{
+				v = (i * velmult);
+			}
+			else
+			{
+				v = final - (i * velmult);				
+			}
+			
+			rotvector_x=v * direction ;rotvector_y=0 ; rotvector_z=0;
+			
+			ring.rotate ( rotvector );
+			
+			sys.wait( GAME_FRAMETIME );
+		}
+	}
+	
+	void RunRing1(float isStarting)
+	{
+		ring1Status = 1;
+		RunRing($scanner_ring_1, -1, isStarting);
+		ring1Status = 2;
+	}
+
+	void RunRing2(float isStarting)
+	{
+		ring2Status = 1;
+		RunRing($scanner_ring_2, 1, isStarting);
+		ring2Status = 2;
+	}
+
+	void RunRing3(float isStarting)
+	{
+		ring3Status = 1;
+		RunRing($scanner_ring_3, -1, isStarting);
+		ring3Status = 2;
+
+		sys.wait(3);
+
+		ring3Status = 3;		
+	}
+
+	void StartScannerRings()
+	{
+		sys.trigger($scanner_ring_1_lamp_1_activator);
+		sys.trigger($scanner_ring_2_lamp_1_activator);
+		sys.trigger($scanner_ring_3_lamp_1_activator);			
+		
+		thread RunRing1(1);
+		sys.wait(.5);
+		thread RunRing2(1);
+		sys.wait(.5);
+		thread RunRing3(1);
+	}
+
+	void StopScannerRings()
+	{
+		thread RunRing1(0);
+		sys.wait(.5);
+		thread RunRing2(0);
+		sys.wait(.5);
+		thread RunRing3(0);
+
+		float l = 1;
+		while(l < 9)
+		{
+			thread crossFadeEnt (sys.getEntity("scanner_ring_1_lamp_" + l), '1 0.65 0.3', '0 0 0', 2);
+			thread crossFadeEnt (sys.getEntity("scanner_ring_1_lamp_" + l + "_flare"), '1 0.65 0.3', '0 0 0', 2);
+
+			thread crossFadeEnt (sys.getEntity("scanner_ring_2_lamp_" + l), '1 0.65 0.3', '0 0 0', 2);
+			thread crossFadeEnt (sys.getEntity("scanner_ring_2_lamp_" + l + "_flare"), '1 0.65 0.3', '0 0 0', 2);
+			
+			thread crossFadeEnt (sys.getEntity("scanner_ring_3_lamp_" + l), '1 0.65 0.3', '0 0 0', 2);
+			thread crossFadeEnt (sys.getEntity("scanner_ring_3_lamp_" + l + "_flare"), '1 0.65 0.3', '0 0 0', 2);
+
+			l++;
+		}
+		
+		thread crossFadeEnt ($scanner_ring_1_light, '1 0.65 0.3','0 0 0', 2);
+		thread crossFadeEnt ($scanner_ring_2_light, '1 0.65 0.3','0 0 0', 2);
+		thread crossFadeEnt ($scanner_ring_3_light, '1 0.65 0.3','0 0 0', 2);
+	}
+
+	void MoveIntoScanner()
+	{
+		$scanner_bed.move(90, 136);			
+
+		sys.waitFor($scanner_bed);
+	}
+	
+	void UpdateCameraAngle()
+	{	
+		scannerActive = 1;
+		while(scannerActive == 1)
+		{						
+			$scanner_camera.setAngles($player1.getHead().getAngles());
+			sys.wait(GAME_FRAMETIME);
+		}
+	}
+	
+	void Doctor6Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Dr. Nielsen", "You were gone for a minute there.");
+		
+		sys.wait(2);
+		
+		PhobosShowSubtitle_e1m1_1("Dr. Nielsen", "We found nothing to be concerned about.");
+		
+		sys.wait(2.25);
+		
+		PhobosShowSubtitle_e1m1_1("Dr. Nielsen", "Your head injury doesn't appear to be new.\nBut has merely opened up again.");
+		
+		sys.wait(4.5);
+		
+		PhobosShowSubtitle_e1m1_1("Dr. Nielsen", "Most likely due to a recent blow to the temple.");
+		
+		sys.wait(4);
+		
+		PhobosShowSubtitle_e1m1_1("Dr. Nielsen", "Do you still not recollect what happened or any details about your person?");
+	}
+	
+	void Doctor7Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Dr. Nielsen", "You will. In time.");
+		
+		sys.wait(2.25);
+		
+		PhobosShowSubtitle_e1m1_1("Dr. Nielsen", "I closed the wound and you're free to go.");
+		
+		sys.wait(3.25);
+		
+		PhobosShowSubtitle_e1m1_1("Dr. Nielsen", "Take it easy for a while.\nLet your body recuperate at its own pace.");
+		
+		sys.wait(5);
+		
+		PhobosShowSubtitle_e1m1_1("Dr. Nielsen", "Special Agent Miles had to rush off.\nBut might be able to help you with your identity.");
+		
+		sys.wait(5);
+		
+		ShowNPCSubtitles("Dr. Nielsen", "She'll be busy for a while. But if you want you can catch her at the Landing Terminal.\nJust through the lobby.", 6);
+	}
+
+	void ScannerSceneEnd()
+	{
+		thread UpdateCameraAngle();
+
+		sys.wait(6);
+
+		sys.trigger($scanner_camera);
+		sys.trigger($info_player_teleport_3);		
+
+		$scanner_headlight.startSoundShader("sound/shav/e1m1/scanner4.ogg", SND_CHANNEL_BODY);
+		sys.fadeTo('1 1 1', 0, 5);
+		
+		sys.wait(3);
+		
+		StopScannerRings();
+
+		sys.wait(2);
+
+		PhobosShowSubtitle_e1m1_1("...", "Hello.");
+		CharacterSays(playerC, "sound/vo/player/general/Hello.ogg");
+
+		sys.wait(.75);
+
+		thread Doctor6Sub();
+		CharacterSays(doctorC, "sound/vo/e1m1/doctorsappointment/Doctor6.ogg");
+
+		thread MoveOutOfScanner();
+
+		sys.wait(.3);
+						
+		PhobosShowSubtitle_e1m1_1("...", "I only see flashes. Other people.\nI dont remember anything substantial about myself.");
+		CharacterSays(playerC, "sound/vo/e1m1/doctorsappointment/Player7.ogg");
+
+		Beat(.7);
+
+		thread Doctor7Sub();
+		CharacterSays(doctorC, "sound/vo/e1m1/doctorsappointment/Doctor7.ogg");
+		
+		sys.wait(.5);
+			
+		RotateBed();
+
+		sys.wait(.7);
+
+		sys.fadeTo('1 1 1', 1, .0625);
+		sys.wait(0.0625);
+		sys.trigger($scanner_camera);				
+		sys.fadeTo('1 1 1', 0, .125);
+		
+		$scanner_playerbody.hide();
+		sys.trigger($target_setinfluence_4);		
+
+		sys.trigger($target_setkeyval_8);
+		sys.trigger($target_setshaderparm_4);
+		$doctordoor.lock(0);
+
+		sys.trigger($e1m1_doctor_walking_medwing_3);
+		sys.trigger($relay_miles);
+		$e1m1_doctor_walking_medwing_3.show();
+		$e1m1_doctor_walking_medwing_1.hide();
+		
+		sys.trigger($trigger_once_11);
+		
+		scannerActive = 0;
+
+		sys.wait(1);
+
+		sys.trigger($relay_objective_doctor_complete);
+		hospitalActive = 0;
+	}
+
+	void SetupScanner()
+	{
+		float l = 1;
+		while(l < 9)
+		{
+			thread crossFadeEnt (sys.getEntity("scanner_ring_1_lamp_" + l), '0 0 0', '1 0.65 0.3', .1);
+			thread crossFadeEnt (sys.getEntity("scanner_ring_1_lamp_" + l + "_flare"), '0 0 0', '1 0.65 0.3', .1);
+
+			thread crossFadeEnt (sys.getEntity("scanner_ring_2_lamp_" + l), '0 0 0', '1 0.65 0.3', .1);
+			thread crossFadeEnt (sys.getEntity("scanner_ring_2_lamp_" + l + "_flare"), '0 0 0', '1 0.65 0.3', .1);
+			
+			thread crossFadeEnt (sys.getEntity("scanner_ring_3_lamp_" + l), '0 0 0', '1 0.65 0.3', .1);
+			thread crossFadeEnt (sys.getEntity("scanner_ring_3_lamp_" + l + "_flare"), '0 0 0', '1 0.65 0.3', .1);
+
+			l++;
+		}
+		thread crossFadeEnt ($scanner_ring_1_light, '0 0 0', '1 0.65 0.3', .1);
+		thread crossFadeEnt ($scanner_ring_2_light, '0 0 0', '1 0.65 0.3', .1);
+		thread crossFadeEnt ($scanner_ring_3_light, '0 0 0', '1 0.65 0.3', .1);
+		thread MoveIntoScanner();
+		thread StartScannerRings();
+	}
+
+	void ImMissingSomething()
+	{
+		$PreClicker.setKey ("click_item", "0");
+		
+		thread ShowNPCSubtitles("...", "I'm missing something", 2);
+		CharacterSays(playerC, "sound/vo/player/general/ImMissingSomething.ogg");
+
+		sys.wait(.5);
+
+		$PreClicker.setKey ("click_item", "1");
+	}
+
+	void StartHospitalWindowLights()
+	{
+		vector offColor = '0.113725 0.082353 0.019608';
+		vector onColor = '0.619608 0.419608 0';
+		
+		sys.wait(2);
+		crossFadeEnt ($hospital_courtyard_window_1, offColor, onColor, .0625);
+		sys.wait(4);
+		crossFadeEnt ($hospital_courtyard_window_2, onColor, offColor, .0625);
+		sys.wait(6);
+		crossFadeEnt ($hospital_courtyard_window_3, onColor, offColor, .0625);
+		sys.wait(2);
+		crossFadeEnt ($hospital_courtyard_window_4, onColor, offColor, .0625);
+		sys.wait(8);
+		crossFadeEnt ($hospital_courtyard_window_5, onColor, offColor, .0625);
+		sys.wait(4);
+		crossFadeEnt ($hospital_courtyard_window_6, onColor, offColor, .0625);
+		sys.wait(10);
+		crossFadeEnt ($hospital_courtyard_window_7, offColor, onColor, .0625);		
+		sys.wait(4);
+		crossFadeEnt ($hospital_courtyard_window_8, onColor, offColor, .0625);
+		sys.wait(3);
+		crossFadeEnt ($hospital_courtyard_window_9, onColor, offColor, .0625);
+		sys.wait(8);
+		crossFadeEnt ($hospital_courtyard_window_2, offColor, onColor, .0625);
+	}
+	
+	void Lee4Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Girl", "Every winter we moaned and complained that no snow came.");
+		
+		sys.wait(4);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "It did that year.\nBut we didn't care.");
+		
+		sys.wait(4);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "It was like the world was mocking us.");
+		
+		sys.wait(3);
+		
+		ShowNPCSubtitles("Girl", "Rarely giving.\nBut always taking.", 3);
+	}
+	
+	void StartSnowSpeech()
+	{
+		thread StartHospitalWindowLights();
+		
+		thread Lee4Sub();
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee4.ogg");
+
+		sys.wait(.5);
+		
+		$item_blanket.setKey("item_disabled", "0");
+		$item_ward_bed.setKey("item_disabled", "0");
+		$item_cat_card.setKey("item_disabled", "0");
+		$doorknob_item_hallway_end.setKey("item_disabled", "0");
+	}
+
+	void StartCatSpeech()
+	{
+		$item_blanket.setKey("item_disabled", "1");
+		$item_ward_bed.setKey("item_disabled", "1");
+		$doorknob_item_hallway_end.setKey("item_disabled", "1");
+
+		thread ShowNPCSubtitles("Girl", "Mom loved cats.\nWe tried cheering her up with silly cat pictures whenever we got the chance.", 5);
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee7.ogg");
+
+		sys.wait(.5);
+
+		$item_blanket.setKey("item_disabled", "0");
+		$item_ward_bed.setKey("item_disabled", "0");
+		$doorknob_item_hallway_end.setKey("item_disabled", "0");
+	}
+	
+	void Lee9Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Girl", "Dad was very brave.\nHe was not at home much after mom was hospitalized.");
+		
+		sys.wait(5);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "Always at her side.\nDay and night.");
+		
+		sys.wait(3.5);
+		
+		ShowNPCSubtitles("Girl", "I didn't blame him.\nBut I still felt left alone.", 3.5);
+	}
+
+	void StartBlanketSpeech()
+	{	
+		$item_ward_bed.setKey("item_disabled", "1");
+		$item_cat_card.setKey("item_disabled", "1");
+		$doorknob_item_hallway_end.setKey("item_disabled", "1");
+
+		thread Lee9Sub();
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee9.ogg");
+
+		sys.wait(.5);
+
+		$item_ward_bed.setKey("item_disabled", "0");
+		$item_cat_card.setKey("item_disabled", "0");	
+		$doorknob_item_hallway_end.setKey("item_disabled", "0");
+	}
+	
+	void StartBedSpeech()
+	{
+		$item_blanket.setKey("item_disabled", "1");
+		$item_cat_card.setKey("item_disabled", "1");
+		$doorknob_item_hallway_end.setKey("item_disabled", "1");
+
+		thread ShowNPCSubtitles("Girl", "The nurses had already moved her. I wasn't around when it happened.\nIt was as if she had never really been there.", 7.5);
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee8.ogg");
+
+		sys.wait(.5);
+
+		$item_blanket.setKey("item_disabled", "0");
+		$item_cat_card.setKey("item_disabled", "0");		
+		$doorknob_item_hallway_end.setKey("item_disabled", "0");
+	}	
+
+	void HospitalLightsOut()
+	{
+		$player1.startSoundShader("switch_02", SND_CHANNEL_ANY);
+	}
+	
+	void Lee11Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Girl", "The soft breeze.\nThe quiet sounds of evening suburbia.");
+		
+		sys.wait(3);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "A blanket of stars and a glass of wine.");
+		
+		sys.wait(3);
+		
+		ShowNPCSubtitles("Girl", "This was their time.\nTheir safe haven away from stress and concerns.", 4);
+	}
+
+	void HospitalLightsOut2()
+	{
+		$player1.startSoundShader("sound/shav/general/cellobell01.ogg", SND_CHANNEL_ANY);
+		sys.fadeTo('0 0 0', 1, 1);
+		
+		sys.wait(2.5);
+		sys.trigger($hospital_outside_teleport);
+		sys.wait(1.5);
+		
+		thread ShowNPCSubtitles("Girl", "My parents used to spend their summer evenings in the garden.", 3);
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee10.ogg");
+		sys.wait(.5);
+		sys.fadeTo('0 0 0', 0, 1);
+		sys.wait(3);
+		
+		thread Lee11Sub();	
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee11.ogg");
+		
+		$HospitalOutsideLookInside.setKey("item_disabled","0");
+	}
+
+	void EndHospitalOutsideScene()
+	{
+		thread ShowNPCSubtitles("Girl", "But it was not to last.", 2);
+		thread CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee12.ogg");
+		sys.fadeTo('1 1 1', 1, .125);
+		sys.wait(.125);
+		sys.trigger($hospital_inside_teleport);
+		sys.fadeTo('1 1 1', 0, .125);
+	}
+	
+	void Lee1_2Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Girl", "My family had camped out there for days to watch over mom.\nYou and I didn't see or call eachother much.");
+		
+		sys.wait(6.25);
+		
+		ShowNPCSubtitles("Girl", "You didn't know what to say.\nAnd I didn't want to talk.", 4);
+	}
+
+	void EnableHospitalSkipTimer()
+	{
+		sys.wait(1.5);
+		if (hospitalActive == 1 && hospitalSkipped == 0)
+		{
+			canSkipHospital = 1;
+			PhobosShowSubtitle_e1m1_1("", "[ Press SPACE or X to skip ]");
+			sys.wait(5.0);
+			if (hospitalActive == 1 && hospitalSkipped == 0)
+			{
+				sys.hideSubtitles();
+			}
+		}
+	}
+
+	void SkipHospitalSequence()
+	{
+		if (canSkipHospital == 0 || hospitalActive == 0 || hospitalSkipped == 1)
+		{
+			return;
+		}
+
+		hospitalSkipped = 1;
+		canSkipHospital = 0;
+		hospitalActive = 0;
+
+		// 1. Terminate all hospital memory & scanner threads
+		sys.killthread("map_e1m1_1::StartHospitalScene");
+		sys.killthread("map_e1m1_1::EnableHospitalSkipTimer");
+		sys.killthread("map_e1m1_1::Lee1_2Sub");
+		sys.killthread("map_e1m1_1::Lee1_3Sub");
+		sys.killthread("map_e1m1_1::CallHospitalElevatorLobby");
+		sys.killthread("map_e1m1_1::Lee15Sub");
+		sys.killthread("map_e1m1_1::OpenHospitalDoorHallway2");
+		sys.killthread("map_e1m1_1::Lee17Sub");
+		sys.killthread("map_e1m1_1::OpenHospitalDoorHallway3");
+		sys.killthread("map_e1m1_1::OpenHospitalDoor");
+		sys.killthread("map_e1m1_1::Lee13Sub");
+		sys.killthread("map_e1m1_1::Lee14Sub");
+		sys.killthread("map_e1m1_1::HospitalSymptoms");
+		sys.killthread("map_e1m1_1::HospitalLightsOut2");
+		sys.killthread("map_e1m1_1::EndHospitalOutsideScene");
+		sys.killthread("map_e1m1_1::EndHospitalScene");
+		sys.killthread("map_e1m1_1::BurnCoffin");
+		sys.killthread("map_e1m1_1::CoffinTalk");
+		sys.killthread("map_e1m1_1::Lee24Sub");
+		sys.killthread("map_e1m1_1::ScannerSceneEnd");
+		sys.killthread("map_e1m1_1::UpdateCameraAngle");
+		sys.killthread("map_e1m1_1::Doctor6Sub");
+		sys.killthread("map_e1m1_1::Doctor7Sub");
+		sys.killthread("map_e1m1_1::MoveOutOfScanner");
+		sys.killthread("map_e1m1_1::RotateBed");
+		sys.killthread("map_e1m1_1::ShowNPCSubtitles");
+
+		// 2. Clear subtitles and stop memory/scanner sounds
+		sys.hideSubtitles();
+		$m1_hospital.stopSound(SND_CHANNEL_ANY, 0);
+		$player1.stopSound(SND_CHANNEL_ANY, 0);
+		$scanner_headlight.stopSound(SND_CHANNEL_BODY, 0);
+		$outro_coffin_door.stopSound(SND_CHANNEL_ANY, 0);
+		$hospital_incinerator_button.stopSound(SND_CHANNEL_ANY, 0);
+
+		// 3. Reset cinematic camera if active
+		if (activeHospitalCam == 1)
+		{
+			sys.trigger($hospitalCamera);
+			activeHospitalCam = 0;
+		}
+
+		// 4. Ensure scanner rings are stopped
+		StopScannerRings();
+
+		// 5. Teleport player directly into the Mars medical wing
+		sys.trigger($info_player_teleport_3);
+
+		// 6. Restore normal gameplay visuals and movement
+		sys.fadeTo('0 0 0', 0, 0.2);
+		$scanner_playerbody.hide();
+		sys.trigger($target_setinfluence_4);
+
+		// 7. Update door status and triggers
+		sys.trigger($target_setkeyval_8);
+		sys.trigger($target_setshaderparm_4);
+		$doctordoor.lock(0);
+
+		// 8. Progress doctor NPC and world events
+		sys.trigger($e1m1_doctor_walking_medwing_3);
+		sys.trigger($relay_miles);
+		$e1m1_doctor_walking_medwing_3.show();
+		sys.trigger($trigger_once_11);
+		sys.trigger($relay_objective_doctor_complete);
+
+		scannerActive = 0;
+
+		sys.print("Phobos Mod: Hospital memory sequence skipped to Mars!\n");
+	}
+
+	void StartHospitalScene()
+	{		
+		hospitalActive = 1;
+		hospitalSkipped = 0;
+		canSkipHospital = 0;
+		activeHospitalCam = 0;
+		thread EnableHospitalSkipTimer();
+
+		sys.fadeTo('0 0 0', 1, 0);
+		activeHospitalCam = 1;
+		sys.trigger($hospitalCamera);
+		
+		sys.wait(2);
+		$m1_hospital.startSoundShader("e1m1_hospital", SND_CHANNEL_ANY);				
+		sys.wait(2);		
+
+		thread ShowNPCSubtitles("Girl", "Do you remember the night at the hospital?", 3);
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee1.ogg");
+		sys.wait(1);
+		
+		sys.wait(2);
+		sys.trigger($m1_hospital_lobby);
+		sys.wait(1);
+		
+		activeHospitalCam = 0;
+		sys.trigger($hospitalCamera);
+		sys.fadeTo('0 0 0', 0, 1);
+		sys.trigger($setinfluence_hospital);
+		sys.wait(3);
+		
+		thread Lee1_2Sub();
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee1_2.ogg");
+		sys.wait(1);
+
+		$CounterBell.setKey("item_disabled", "0");
+	}
+	
+	void Lee1_3Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Girl", "Feelings of neglect and compassion guided you to the hospital.");
+		
+		sys.wait(4);
+		
+		ShowNPCSubtitles("Girl", "The empty lobby made you linger.\nAfraid of what would lie beyond.", 4);
+	}
+
+	void RingBell()
+	{
+		$CounterBell.startSoundShader("sound/shav/e1m1/bell.ogg", SND_CHANNEL_ANY);
+		sys.wait(2);
+		
+		thread Lee1_3Sub();
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee1_3.ogg");
+
+		sys.wait(1);
+
+		$elevator_item_lobby.setKey("item_disabled", "0");
+	}
+	
+	void CallHospitalElevatorLobby()
+	{
+		thread ShowNPCSubtitles("Girl", "And then you started looking for me.", 2);	
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee2.ogg");
+		sys.fadeTo('0 0 0', 1, .5);
+		sys.wait(1);
+		sys.trigger($teleport_hallway_1);
+		$teleport_hallway_1.startSoundShader("sound/shav/e1m1/elevatording.ogg", SND_CHANNEL_ANY);
+		sys.wait(1);
+        sys.fadeTo('0 0 0', 0, .5);
+		sys.wait(2.5);
+	}
+	
+	void Lee15Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Girl", "And time made it worse.");
+		
+		sys.wait(2);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "By the time the summer gave away for fall.");
+		
+		sys.wait(3);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "Her speech had deteriorated so much we couldn't understand what she said.");
+		
+		sys.wait(5);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "She had to repeat herself.");
+		
+		sys.wait(2);
+		
+		ShowNPCSubtitles("Girl", "Over and over.", 2);
+	}
+	
+	void OpenHospitalDoorHallway2()
+	{
+		$doorknob_hallway_2.startSoundShader("sound/shav/e1m1/doorknobopen.ogg", SND_CHANNEL_ANY);
+		$doorknob_hallway_2.rotateOnce('0 0 30');
+		sys.waitFor($doorknob_hallway_2);
+		
+		sys.fadeTo('0 0 0', 1, 1);
+		sys.wait(1.5);
+        sys.fadeTo('0 0 0', 0, 1);
+		sys.trigger($teleport_hallway_3);
+		sys.wait(1);
+		
+		thread Lee15Sub();
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee15.ogg");
+		
+		$doorknob_item_hallway_3.setKey("item_disabled", "0");
+	}
+	
+	void Lee17Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Girl", "The doctors finally had an answer.");
+		
+		sys.wait(2);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "Mom had been diagnosed with a rare, incurable neural disease.");
+		
+		sys.wait(5);
+		
+		ShowNPCSubtitles("Girl", "They gave her two years to live.", 2);
+	}
+	
+	void OpenHospitalDoorHallway3()
+	{
+		$doorknob_hallway_3.startSoundShader("sound/shav/e1m1/doorknobopen.ogg", SND_CHANNEL_ANY);
+		$doorknob_hallway_3.rotateOnce('0 0 30');		
+		sys.waitFor($doorknob_hallway_3);
+		
+		sys.fadeTo('0 0 0', 1, 1);
+		sys.wait(1.5);
+        sys.fadeTo('0 0 0', 0, 1);
+		sys.trigger($teleport_hallway_last);
+		sys.wait(1);
+		
+		thread Lee17Sub();
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee17.ogg");
+	}
+	
+	void OpenHospitalDoor()
+	{
+		$doorknob_ward_item_hallway_4.hide();
+		$doorknob_ward_hallway_4.startSoundShader("sound/shav/e1m1/doorknobopen.ogg", SND_CHANNEL_ANY);
+		$doorknob_ward_hallway_4.rotateOnce('30 0 0');
+		$door_ward_hallway_4.rotateOnce('0 95 0');
+		sys.waitFor($door_ward_hallway_4);
+		$doorknob_ward_hallway_4.rotateOnce('-30 0 0');
+	}
+
+	void OpenHospitalFakesideDoor()
+	{
+		sys.trigger($doorknob_fakeside_item_1);
+
+		//Lets go back to original hallway
+		vector diff2 = $player1.getOrigin() - $outsidescene_center2.getOrigin();
+		$player1.setOrigin($outsidescene_center1.getOrigin() + diff2);
+		
+		$door_fakeside_1.startSoundShader("sound/shav/e1m1/doorknobopen.ogg", SND_CHANNEL_ANY);
+		$door_fakeside_1.rotateOnce('-30 0 0');
+		sys.waitFor($doorknob_fakeside_1);
+		$door_fakeside_1.rotateOnce('0 -95 0');
+		$doorknob_fakeside_1.rotateOnce('30 0 0');
+	}
+	
+	void Lee13Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Girl", "One evening my dad noticed a slight slur when my mom spoke.");
+		
+		sys.wait(4);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "They quickly dismissed it.");
+		
+		sys.wait(1.5);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "But it came back.");
+		
+		sys.wait(2);
+		
+		ShowNPCSubtitles("Girl", "And it got worse.", 2);		
+	}
+	
+	void Lee14Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Girl", "The doctors couldn't identity at first.");
+		
+		sys.wait(2);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "They suspected it to be a virus.");
+		
+		sys.wait(2);
+		
+		ShowNPCSubtitles("Girl", "And the only thing they had was to give it time.\nSo they did.", 4);
+	}
+
+	void HospitalSymptoms()
+	{
+		thread Lee13Sub();
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee13.ogg");
+		
+		sys.wait(1);		
+		
+		thread Lee14Sub();
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee14.ogg");
+
+		$doorknob_item_hallway_2.setKey("item_disabled", "0");
+	}
+	
+	void EndHospitalScene()
+	{
+		sys.trigger($doorknob_hallway_end);
+		$doorknob_hallway_end.startSoundShader("sound/shav/e1m1/doorknobopen.ogg", SND_CHANNEL_ANY);
+		$doorknob_hallway_end.rotateOnce('0 0 -30');
+		sys.waitFor($doorknob_hallway_end);
+		
+		sys.fadeTo('0 0 0', 1, 1);
+		sys.wait(1.5);
+        sys.fadeTo('0 0 0', 0, 1);
+		sys.trigger($teleport_coffin);
+	}
+	
+	void MedicalIncident()
+	{
+		sys.wait(1);
+		sys.trigger($medical_earthquake_event);
+		thread crossFadeEnt ($light_59264, '0 0 0', '0.33 0.42 0.49', 15);
+		sys.wait(.1);
+		thread crossFadeEnt ($light_59385, '0 0 0', '0.33 0.42 0.49', 15);
+		thread crossFadeEnt ($light_59363, '0 0 0', '0.33 0.42 0.49', 22);
+		sys.wait(.2);
+		thread crossFadeEnt ($light_59263, '0 0 0', '0.33 0.42 0.49', 15);
+		thread crossFadeEnt ($light_59259, '0 0 0', '0.33 0.42 0.49', 22);
+		sys.wait(.4);
+		thread crossFadeEnt ($light_59265, '0 0 0', '0.33 0.42 0.49', 20);
+		thread crossFadeEnt ($light_59258, '0 0 0', '0.33 0.42 0.49', 17);
+		sys.wait(5);
+		sys.trigger($relay_jensen);
+		sys.wait(5);
+	}	
+	
+	void StartMeeting()
+	{
+		$doctordoor.lock(2);
+		sys.trigger($target_setkeyval_7);
+		sys.trigger($target_setshaderparm_4);
+		sys.trigger($doctor_door_clip);
+		sys.trigger($postscanner_spkr);
+
+		$meeting_shutter_4.move(DOWN, 102);
+		sys.wait(.25);
+		$meeting_shutter_3.move(DOWN, 102);
+		sys.wait(.75);
+		$meeting_shutter_2.move(DOWN, 102);
+		sys.wait(.25);
+		$meeting_shutter_1.move(DOWN, 102);
+		sys.waitFor($meeting_shutter_1);
+		sys.trigger($func_portal_1);
+	}	
+
+	void Lee24Sub()
+	{
+		PhobosShowSubtitle_e1m1_1("Girl", "But every second with her was torture.");
+		
+		sys.wait(3);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "Right up until her last.");
+		
+		sys.wait(2.75);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "And then.");
+		
+		sys.wait(3.25);
+		
+		ShowNPCSubtitles("Girl", "Nothing.", 2);
+	}
+
+	void CoffinTalk()
+	{
+		PhobosShowSubtitle_e1m1_1("Girl", "As she felt her muscles wither away she tried to keep a brave face.");
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee21.ogg");
+		sys.wait(1.5);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "But when I looked into her eyes.\nI could see the fear staring back at me.");
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee22.ogg");
+		sys.wait(1.5);
+		
+		PhobosShowSubtitle_e1m1_1("Girl", "I wanted to console her.\nBe there for her as she had for me.");
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee23.ogg");
+		sys.wait(3);
+		
+		thread Lee24Sub();
+		CharacterSays($player1, "sound/vo/e1m1/Scanner/Lee24.ogg");
+	}
+
+	void BurnCoffin()
+	{			
+		$m1_hospital.fadeSound(SND_CHANNEL_ANY, -60, 24);
+
+		$hospital_incinerator_button.move(90, 1);
+		$hospital_incinerator_button.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+		sys.waitFor($hospital_incinerator_button);
+		sys.wait(.125);
+		$hospital_incinerator_button.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+		$hospital_incinerator_button.move(-90, 1);
+		
+		sys.wait(2);
+		
+		thread CoffinTalk();
+
+		sys.wait(3);
+
+		sys.trigger($outro_speaker_goodbye);
+
+		$outro_coffin_table_cylinder_lower.move(UP, 8);
+		$outro_coffin_table_cylinder_upper.move(UP, 16);
+
+		sys.waitFor($outro_coffin_table_cylinder_upper);
+
+		sys.wait(1);
+
+		$outro_coffin_door.move(UP, 56);
+
+		sys.waitFor($outro_coffin_door);
+		sys.wait(1);
+
+		$outro_coffin.move(90, 192);
+
+		sys.waitFor($outro_coffin);
+
+		$outro_coffin.unbind();
+
+		$outro_coffin_door.move(DOWN, 56);		
+		$outro_coffin_table_cylinder_lower.move(DOWN, 8);
+		$outro_coffin_table_cylinder_upper.move(DOWN, 16);
+
+		sys.wait(5.7);
+		$outro_coffin_door.startSoundShader("sound/shav/e1m1/burn.ogg", SND_CHANNEL_ANY);
+		
+		sys.wait(6.75);
+		
+		sys.trigger($outro_speaker_goodbye2);
+		
+		//turn on fall dust
+		sys.trigger($outro_fallback_emitter_4);
+
+		$outro_coffin.bind($outro_fallback);
+
+		sys.wait(3);
+
+		sys.trigger($outro_earthquake);
+
+		sys.wait(.75);
+		
+		//Turn on fall dust
+		sys.trigger($outro_fallback_emitter_5);
+		
+		//Smoke
+		sys.trigger($outro_fallback_emitter_1);
+		sys.wait(4);		
+		sys.trigger($outro_fallback_emitter_2);
+		sys.wait(2);
+		sys.trigger($outro_fallback_emitter_3);
+				
+		sys.wait(2);		
+		
+		//Hide smoke again
+		sys.trigger($outro_fallback_emitter_1);
+		sys.trigger($outro_fallback_emitter_2);
+		sys.trigger($outro_fallback_emitter_3);
+
+		//Turn off fall dust
+		sys.trigger($outro_fallback_emitter_4);
+		sys.trigger($outro_fallback_emitter_5);
+		
+		$player1.startSoundShader("sound/ambient/metals/1shot_metalhit_01.ogg", SND_CHANNEL_ANY);
+		$player1.startSoundShader("sound/ambient/metals/1shot_metalhit_10.ogg", SND_CHANNEL_ANY);
+		
+		//Switch railings right side
+		$hospital_railing_right_on.hide();
+		$hospital_railing_right_off.show();
+		
+		//Switch railings left side
+		$hospital_railing_left_on.hide();
+		$hospital_railing_left_off.show();
+
+		$outro_fallback_root.move(90, 4096);
+		$outro_fallback.rotateOnce('10 15 36');
+
+		sys.wait(4);
+
+		$outro_fallback_onebrick.rotateOnce('30 -70 46');
+		$outro_fallback_twobrick.rotateOnce('25 75 21');
+
+		sys.wait(24);
+
+		// Turn off lights
+		sys.trigger($outro_fallback_light1);
+		sys.wait(0.5);
+		sys.trigger($outro_fallback_light2);
+		sys.wait(0.75);
+		sys.trigger($outro_fallback_light3);
+		sys.wait(1);
+		sys.trigger($outro_fallback_light4);
+		sys.trigger($outro_fallback_light5);
+		sys.wait(1);
+		sys.trigger($outro_fallback_light6);
+		sys.wait(.25);
+		sys.trigger($outro_switch_light);
+
+		sys.wait(2);
+
+		sys.trigger($light_62782_hospital);
+
+		sys.wait(3);
+
+		thread crossFadeEnt ($outro_burner_glare_inner, '0 0 0', '1 1 1', 8);
+		thread crossFadeEnt ($outro_burner_glare_outer, '0 0 0', '1 0.31 0', 8);
+
+		sys.wait(2.25);
+
+		$player1.startSoundShader("sound/shav/e1m1/wineglass.ogg", SND_CHANNEL_ANY);
+		sys.wait(3.75);
+		sys.fadeTo('1 1 1', 1, 2);
+	
+		sys.wait(2);
+		
+		thread ShowNPCSubtitles("Girl", "Don't trust her.", 2);
+		$player1.startSoundShader("sound/vo/e1m1/scanner/Donttrusther.ogg", SND_CHANNEL_ANY);
+
+		//Lets go to the scanner
+		sys.trigger($info_player_teleport_2);
+		ScannerSceneEnd();
+	}
+	
+	void tram_spectrum_setup()
+	{	
+		$spectrum_mover1.move(-1, 640);
+	}
+	
+	void tram_spectrum()
+	{	
+		$td1_m.moveTo($td1_m_dest);
+		$td2_m.moveTo($td2_m_dest);
+		$td3_m.moveTo($td3_m_dest);
+		$td4_m.moveTo($td4_m_dest);
+		$td5_m.moveTo($td5_m_dest);
+		$spectrum_mover1.time(2);
+		$spectrum_mover1.moveTo($spectrum_moverdest);
+		sys.wait(2);
+		$spectrum_mover2.moveTo($spectrum_moverdest2);
+	}
+	
+	void hell_wave()
+	{
+		$func_static_99243.setColor(1,0.88,95);
+		sys.trigger($trigger_relay_573);
+		$hellwave.moveTo($hellwave_dest);
+		sys.trigger($hellwave_spkr);
+		sys.trigger($hellwave_relay);
+		sys.trigger($spectrum_relay);
+		
+		sys.wait(8);		
+		
+		thread ShowNPCSubtitles("Sam", "What the heck?", 2);
+		$player1.startSoundShader("sound/vo/player/general/WhatTheHeck.ogg", SND_CHANNEL_ANY);
+	}
+	
+	void HLTurnHookTrip_End()
+	{
+		sys.killthread ("map_e1m1_1::HLTurnHookTrip");
+		sys.trigger($func_remove_10);
+	}
+	
+	void CargoTrackCollapse()
+	{
+		sys.trigger($func_remove_10);
+		$trigger_multiple_24.disable();
+		$hlturn_anchor01.bind($cargotrack_swing);
+		$hlturn_anchor01.accelTime(0);
+		$hlturn_anchor01.decelTime(1.85);
+		$hlturn_anchor01.time(4.5238934208);
+		sys.trigger($track_sec_temp);
+		sys.trigger($track_sec1);
+		sys.trigger($track_sec3_l);
+		sys.trigger($track_sec3_r);
+		sys.trigger($track_sec2_l);
+		sys.trigger($track_sec2_r);
+		sys.trigger($track_sec4);
+		$hlturn_cratehook02.move(270, 1328);
+		sys.waitFor($hlturn_cratehook02);
+		$hlturn_cratehook02.bind($hlturn_anchor01);
+		sys.trigger($hlturn_cratehook02_sparks1);
+		sys.trigger($hlturn_cratehook02_sparks2);
+		$hlturn_anchor01.rotateOnce('0 -120 0');
+		sys.trigger($sparks_relay);
+		
+		$cargotrack_swing.accelTime (.1);
+        $cargotrack_swing.time (.65);
+		$cargotrack_swing2.accelTime (.1);
+        $cargotrack_swing2.time (.35);
+        $cargotrack_swing3.time (.1);
+		$cargotrack_swing4.accelTime (.1);
+        $cargotrack_swing4.time (.8);
+		
+		sys.trigger($cargotrack_collapse_spkr);
+		
+        $cargotrack_swing.rotateOnce ('-15 0 0');
+		$cargotrack_swing2.rotateOnce ('-7 0 0');
+		
+			sys.wait(.15);
+			
+		$cargotrack_swing4.rotateOnce ('0 0 9');
+		
+			sys.wait(.5);
+			
+		$cargotrack_swing.accelTime (.1);
+        $cargotrack_swing.time (.25);
+		$cargotrack_swing.rotateOnce ('4 0 0');
+		$cargotrack_swing3.rotateOnce ('-2 0 0');
+		
+			sys.wait(.1);
+			
+		$cargotrack_swing3.time (.05);
+		$cargotrack_swing3.rotateOnce ('1 0 0');
+		
+			sys.wait(.05);
+			
+		$track_sec3_r_clip.unbind();
+		sys.trigger($track_sec3_r_clip);
+		$cargotrack_swing3.rotateOnce ('-1 0 0');
+		
+			sys.wait(.05);
+			
+		$cargotrack_swing3.rotateOnce ('1 0 0');
+		
+			sys.wait(.05);
+		
+		$cargotrack_swing.rotateOnce ('-4 0 0');	
+		$cargotrack_swing3.rotateOnce ('-1 0 0');
+		
+			sys.wait(.05);
+		
+		$track_sec2_l_clip.unbind();
+		sys.trigger($track_sec2_l_clip);
+			
+			sys.wait(.2);
+		
+		$cargotrack_swing.accelTime (.05);
+        $cargotrack_swing.time (.15);
+		
+		$cargotrack_swing.rotateOnce ('2 0 0');
+		
+			sys.wait(.15);
+			
+		$track_sec2_r_clip.unbind();
+		sys.trigger($track_sec2_r_clip);
+		$cargotrack_swing.rotateOnce ('-2 0 0');
+	}
+	
+	void soundscape_remix()
+	{	
+		$SpeakerGoingToRecreation.fadeSound(SND_CHANNEL_ANY, -30, 5);
+		sys.trigger($speaker_65);
+		sys.trigger($speaker_126);
+		sys.trigger($speaker_124);
+		sys.trigger($speaker_35);
+		sys.trigger($speaker_125);
+		sys.trigger($speaker_36);
+		sys.trigger($speaker_38);
+		sys.trigger($speaker_127);
+		sys.trigger($speaker_128);
+		sys.trigger($speaker_42);
+		sys.trigger($speaker_48);
+		sys.trigger($speaker_131);
+		sys.trigger($speaker_132);
+		sys.trigger($speaker_45);
+		sys.trigger($speaker_47);
+		sys.trigger($speaker_130);
+		sys.trigger($speaker_58);
+		sys.trigger($speaker_51);
+		sys.trigger($speaker_60);
+		sys.trigger($speaker_134);
+		sys.trigger($speaker_61);
+		sys.trigger($speaker_142);
+		sys.trigger($speaker_135);
+		sys.trigger($speaker_62);
+		sys.trigger($speaker_138);
+		sys.trigger($speaker_137);
+		sys.trigger($speaker_68);
+		sys.trigger($speaker_63);
+		sys.trigger($speaker_133);
+		sys.trigger($speaker_72);
+		sys.trigger($speaker_136);
+		sys.trigger($speaker_141);
+		sys.trigger($speaker_143);
+		sys.trigger($speaker_69);
+		sys.trigger($speaker_73);
+		sys.trigger($speaker_140);
+		sys.trigger($speaker_70);
+		sys.trigger($speaker_139);
+		sys.trigger($speaker_66);
+		sys.trigger($speaker_144);
+		sys.trigger($speaker_149);
+	}
+	
+	void track_switch()
+	{
+		sys.trigger($track_zap2);
+		sys.trigger($track_switch_spkr);
+		$track_pivot.rotateOnce ('-180 0 0');
+		sys.waitFor($track_pivot);
+		
+		thread crossFadeEnt ($railtrack_signal_four_light_top, '.75 0 0', '0 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_four_lamp_top, '1 1 1', '0 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_four_flare_top, '.75 0 0', '0 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_four_light_bottom, '0 0 0', '0 .75 0', .125);
+		thread crossFadeEnt ($railtrack_signal_four_lamp_bottom, '0 0 0', '1 1 1', .125);
+		thread crossFadeEnt ($railtrack_signal_four_flare_bottom, '0 0 0', '0 .75 0', .125);
+		thread crossFadeEnt ($railtrack_signal_three_light_top, '0 0 0', '.75 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_three_lamp_top, '0 0 0', '1 1 1', .125);
+		thread crossFadeEnt ($railtrack_signal_three_flare_top, '0 0 0', '.75 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_three_light_bottom, '0 .75 0', '0 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_three_lamp_bottom, '1 1 1', '0 0 0', .125);
+		thread crossFadeEnt ($railtrack_signal_three_flare_bottom, '0 .75 0', '0 0 0', .125);
+		
+		sys.trigger($track_zap1);
+	}
+	
+	void spectrum_mover_end()
+	{
+		$spectrum_tunnel_mover.moveTo($spectrum_tunnel_mover_dest);
+	}
+	
+	void hide_guis()
+	{
+		$func_static_67345.hide();
+		$func_static_67344.hide();
+	}
+	
+	void hide_guis2()
+	{
+		$func_static_67319.hide();
+		$func_static_67318.hide();
+		$func_static_67321.hide();
+	}
+	
+	void hide_guis3()
+	{
+		$func_static_67404.hide();
+	}
+	
+	void PickUpRadio()
+	{
+		sys.trigger($item_communicator);
+		
+		//Hide radio
+		$func_static_99715.hide();
+	}
+	
+	//===========================================
+	// START CHECKPOINTS
+	//===========================================
+	
+	void premonorail_checkpoint()
+	{
+		sys.quickSave("A Rude Awakening - Checkpoint 1");
+	}
+	
+	void preconferenceroom_checkpoint()
+	{
+		sys.quickSave("A Rude Awakening - Checkpoint 2");
+	}
+	
+	//===========================================
+	// END CHECKPOINTS
+	//===========================================
+
+	
+	void main()
+	{	
+		StartHospitalScene();
+
+		thread InitTrain();
+
+		SetupScanner();
+		thread SetupLiftIncident();
+		thread HLTurnHookTrip();
+
+		playerC = sys.getEntity("player1");
+		doctorC = sys.getEntity("speaker_doctor");
+
+		$commscreen.hide();
+	}
+}

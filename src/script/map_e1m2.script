@@ -1,0 +1,1095 @@
+namespace map_e1m2
+{
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m2(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+
+	// variable to track the state of the fan
+	// 0 = starting up
+	// 1 = operational
+	// 2 = stopping	
+	float fan_rotating_state = 0;
+	
+	void rotate_fan()
+	{
+		while( 1 )
+		{
+			if( fan_rotating_state == 0 )
+			{
+				//Setup mover time
+				$func_mover_fan.accelTime(4);
+				$func_mover_fan.decelTime(0);
+				$func_mover_fan.time(4);
+
+				//Start the fan startup sound
+				$speaker_fan_misc.startSoundShader("m3_start", SND_CHANNEL_BODY);
+			
+				//Sound the WOOSH and mechanical loop sounds
+				sys.trigger($speaker_fan_main);
+				sys.trigger($speaker_fan_secondary);
+			
+				//Rotate the fan into speed
+				$func_mover_fan.rotateOnce('0 0 360');
+
+				sys.wait(2);
+				sys.trigger($fan_hurt);
+								
+				sys.waitFor($func_mover_fan);											
+				
+				//The fan is now ready to loop								
+				fan_rotating_state = 1;
+
+				$fanstopper_clicker.setKey("click_item", "1");
+			}
+			else if( fan_rotating_state == 1 )
+			{
+				//Setup the mover time				
+				$func_mover_fan.accelTime(0);
+				$func_mover_fan.decelTime(0);
+				$func_mover_fan.time(2.5);
+				
+				//Rotate the fan
+				$func_mover_fan.rotateOnce('0 0 360');	
+				sys.waitFor($func_mover_fan);							
+			}
+			else if( fan_rotating_state == 2 )
+			{			
+				sys.waitFor($func_mover_fan);
+			
+				$speaker_fan_misc.startSoundShader("m3_stop", SND_CHANNEL_BODY);
+				sys.trigger($speaker_fan_main);
+				sys.trigger($speaker_fan_secondary);
+				
+				$func_mover_fan.accelTime(0);
+				$func_mover_fan.decelTime(4);
+				$func_mover_fan.time(4);							
+				
+				$func_mover_fan.rotateOnce('0 0 360');
+				sys.trigger($fan_hurt);
+				sys.wait(20);
+				thread ShowNPCSubtitles("PA", "15 seconds.", 2.25);
+				$fanannouncer_speaker.startSoundShader("sound/shav/e1m2/15seconds.ogg", SND_CHANNEL_ANY);
+				sys.wait(7);
+				thread ShowNPCSubtitles("PA", "10. 9. 8. 7. 6. 5. 4. 3. 2. 1.\nFan restarting.", 12.25);
+				$fanannouncer_speaker.startSoundShader("sound/shav/e1m2/fanrestarting.ogg", SND_CHANNEL_ANY);
+				sys.wait(10);
+				fan_rotating_state = 0;
+			}
+		}
+	}
+
+	void StopMainFan()
+	{		
+		if( fan_rotating_state == 1 )
+		{
+			fan_rotating_state = 2;
+			$fanstopper_clicker.setKey("click_item", "0");			
+
+			$fanstopper.move(90, 1);
+			$fanstopper.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+			sys.waitFor($fanstopper);
+			sys.wait(.125);
+			$fanstopper.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+			$fanstopper.move(270, 1);
+
+			sys.wait(1);
+			
+			thread ShowNPCSubtitles("PA", "Main Fan stopped. Restarting in 30 seconds.", 3.25);
+			$fanannouncer_speaker.startSoundShader("sound/shav/e1m2/mainfanstopped.ogg", SND_CHANNEL_ANY);
+		}
+	}
+
+	float hatchesOpened = 0;
+
+	void OpenSecurityHatches()
+	{
+		if( hatchesOpened == 0 )
+		{
+			hatchesOpened = 1;
+
+			$fanpipe_hatch01.move(EAST, 60);
+			$fanpipe_hatch02.move(WEST, 60);
+		}
+	}
+	
+	float endBridgeState = 1;
+	
+	void ToggleEndBridge()
+	{
+		if( endBridgeState != 2 )
+		{
+			if( endBridgeState == 0)
+			{
+				endBridgeState = 2;
+				
+				sys.trigger($bridge_switch_spkr);
+				$endbridge_lever.rotateDownTo(Z_AXIS, 0);
+				$endbridge_west_rods.move(EAST, 192);
+				sys.wait(.25);
+				$endbridge_east_rods.move(WEST, 192);
+				
+				sys.wait(.25);
+				
+				$endbridge_west_floor3.move(EAST,192);
+				sys.wait(.25);							
+				$endbridge_east_floor3.move(WEST,192);
+				
+				sys.wait(.25);
+				
+				$endbridge_west_floor2.move(EAST,128);				
+				sys.wait(.25);
+				$endbridge_east_floor2.move(WEST,128);
+				
+				sys.wait(.25);
+				
+				$endbridge_west_floor1.move(EAST,64);
+				sys.wait(.25);
+				$endbridge_east_floor1.move(WEST,64);
+				
+				sys.waitFor($endbridge_west_floor2);
+				
+				$endbridge_west_floor3.move(UP,8);
+				sys.wait(.25);
+				$endbridge_east_floor3.move(UP,8);
+				
+				sys.wait(.25);
+				
+				$endbridge_west_floor2.move(UP,4);
+				sys.wait(.25);
+				$endbridge_east_floor2.move(UP,4);
+				
+				sys.waitFor($endbridge_east_floor2);
+				
+				$endbridge_west_arm2.move(SOUTH, 64);
+				sys.wait(.25);				
+				$endbridge_west_arm1.move(NORTH, 46);
+				
+				$endbridge_east_arm2.move(SOUTH, 64);				
+				sys.wait(.25);				
+				$endbridge_east_arm1.move(NORTH, 64);
+				
+				sys.waitFor($endbridge_west_arm1);
+				sys.trigger($func_aas_obstacle_5);	
+				
+				endBridgeState = 1;
+			}
+			else if( endBridgeState == 1 )
+			{
+				endBridgeState = 2;
+			
+				sys.trigger($bridge_switch_spkr);
+				$endbridge_lever.rotateUpTo(Z_AXIS, 90);
+				sys.trigger($func_aas_obstacle_5);	
+				$endbridge_west_arm2.move(NORTH, 64);				
+				sys.wait(.25);				
+				$endbridge_west_arm1.move(SOUTH, 46);
+				
+				$endbridge_east_arm2.move(NORTH, 64);				
+				sys.wait(.25);
+				$endbridge_east_arm1.move(SOUTH, 64);
+				
+				sys.waitFor($endbridge_west_arm1);
+				
+				$endbridge_west_floor3.move(DOWN,8);				
+				sys.wait(.25);				
+				$endbridge_east_floor3.move(DOWN,8);
+				
+				sys.wait(.25);
+				
+				$endbridge_west_floor2.move(DOWN,4);				
+				sys.wait(.25);				
+				$endbridge_east_floor2.move(DOWN,4);
+				
+				sys.waitFor($endbridge_west_floor2);
+				
+				$endbridge_west_floor3.move(WEST,192);				
+				sys.wait(.25);				
+				$endbridge_east_floor3.move(EAST,192);
+				
+				sys.wait(.25);
+				
+				$endbridge_west_floor2.move(WEST,128);				
+				sys.wait(.25);				
+				$endbridge_east_floor2.move(EAST,128);
+				
+				sys.wait(.25);
+				
+				$endbridge_west_floor1.move(WEST,64);				
+				sys.wait(.25);				
+				$endbridge_east_floor1.move(EAST,64);
+				
+				sys.wait(.25);
+				
+				$endbridge_west_rods.move(WEST, 192);				
+				sys.wait(.25);				
+				$endbridge_east_rods.move(EAST, 192);
+				
+				sys.waitFor($endbridge_east_rods);
+								
+				endBridgeState = 0;
+			}
+		}
+	}
+
+	float AirFilter1State = 0;
+	float AirFilter2State = 0;
+
+	void CleanAirFilter1()
+	{
+		if( AirFilter1State == 0 && AirFilter2State == 0 )
+		{
+			$filter1_handle1.setKey("click_item", "0");
+			$filter1_handle2.setKey("click_item", "0");
+			AirFilter1State = 1;
+
+			$filter1_button1.move(0, 1);
+			$filter1_button2.move(180, 1);
+			$filter1_handle1.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+			$filter1_handle2.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+			sys.waitFor($filter1_button2);
+			sys.wait(.125);
+			$filter1_handle1.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+			$filter1_handle2.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+			$filter1_button1.move(180, 1);
+			$filter1_button2.move(0, 1);
+
+			thread ShowNPCSubtitles("PA", "Cleaning filter.", 2);
+			$player1.startSoundShader("sound/shav/e1m2/cleaningfilter.ogg", SND_CHANNEL_ANY);
+			
+			sys.trigger($AirFilter1_portal);
+
+			$AirFilter1.move(NORTH, 256);
+			sys.trigger($AirFilter1_Klaxxon1_Light);
+			$AirFilter1_Klaxxon1_Lamp.show();
+			sys.trigger($AirFilter1_Klaxxon2_Light);
+			$AirFilter1_Klaxxon2_Lamp.show();
+			sys.trigger($AirFilter1_speaker);			
+			
+			sys.wait(4);
+			$AirFilter1_platform.move(UP, 32);
+
+			sys.waitFor($AirFilter1);
+			
+			sys.trigger($AirFilter1_speaker2);
+			sys.wait(8);
+			sys.trigger($AirFilter1_speaker2);
+
+			$AirFilter1.move(SOUTH, 256);
+
+			sys.wait(2);
+
+			$AirFilter1_platform.move(DOWN, 32);
+			
+			sys.waitFor($AirFilter1);			
+
+			sys.trigger($AirFilter1_Klaxxon1_Light);
+			$AirFilter1_Klaxxon1_Lamp.hide();
+			sys.trigger($AirFilter1_Klaxxon2_Light);
+			$AirFilter1_Klaxxon2_Lamp.hide();
+			sys.trigger($AirFilter1_speaker);
+
+			sys.trigger($AirFilter1_portal);
+
+			AirFilter1State = 0;
+			$filter1_handle1.setKey("click_item", "1");
+			$filter1_handle2.setKey("click_item", "1");
+		}
+		else
+		{
+			$player1_speaker2.stopSound(SND_CHANNEL_BODY2, false);
+
+			thread ShowNPCSubtitles("PA", "Filter unavailable. Cleaning in progress.", 3.25);
+			$player1.startSoundShader("sound/shav/e1m2/filterunavailable.ogg", SND_CHANNEL_BODY2);
+		}
+	}
+
+	void CleanAirFilter2()
+	{
+		if( AirFilter1State == 0 && AirFilter2State == 0 )
+		{
+			$filter2_handle1.setKey("click_item", "0");
+			$filter2_handle2.setKey("click_item", "0");
+			AirFilter2State = 1;
+
+			$filter2_button1.move(0, 1);
+			$filter2_button2.move(180, 1);
+			$filter2_handle1.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+			$filter2_handle2.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+			sys.waitFor($filter2_button2);
+			sys.wait(.125);
+			$filter2_handle1.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+			$filter2_handle2.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+			$filter2_button1.move(180, 1);
+			$filter2_button2.move(0, 1);			
+
+			sys.trigger($AirFilter2_portal);
+
+			$AirFilter2.move(NORTH, 256);
+			sys.trigger($AirFilter2_Klaxxon1_Light);
+			$AirFilter2_Klaxxon1_Lamp.show();
+			sys.trigger($AirFilter2_Klaxxon2_Light);
+			$AirFilter2_Klaxxon2_Lamp.show();
+			sys.trigger($AirFilter2_speaker);
+			
+			sys.wait(4);
+			$AirFilter2_platform.move(UP, 32);
+
+			sys.waitFor($AirFilter2);
+					
+			sys.trigger($AirFilter2_speaker2);
+			sys.wait(8);
+			sys.trigger($AirFilter2_speaker2);
+
+			$AirFilter2.move(SOUTH, 256);
+
+			sys.wait(2);
+
+			$AirFilter2_platform.move(DOWN, 32);
+			
+			sys.waitFor($AirFilter2);
+
+			sys.trigger($AirFilter2_Klaxxon1_Light);
+			$AirFilter2_Klaxxon1_Lamp.hide();
+			sys.trigger($AirFilter2_Klaxxon2_Light);
+			$AirFilter2_Klaxxon2_Lamp.hide();
+			sys.trigger($AirFilter2_speaker);
+
+			sys.trigger($AirFilter2_portal);
+
+			AirFilter2State = 0;
+			$filter2_handle1.setKey("click_item", "1");
+			$filter2_handle2.setKey("click_item", "1");
+		}
+		else
+		{
+			$player1_speaker2.stopSound(SND_CHANNEL_BODY2, false);
+
+			thread ShowNPCSubtitles("PA", "Filter unavailable. Cleaning in progress.", 3.25);
+			$player1.startSoundShader("sound/shav/e1m2/filterunavailable.ogg", SND_CHANNEL_BODY2);
+		}
+	}
+	
+	float fork1State = 0;
+	float fork2State = 0;
+	
+	void ToggleFork1()
+	{
+		if( fork1State != 2 )
+		{
+			$CarForkSwitch1.setKey("click_item", "0");			
+
+			if( fork1State == 0 )
+			{
+				fork1State = 2;
+				
+				$CarForkSwitch1Handle.rotateOnce('0 0 -90');
+				$CarForkSwitch1.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+
+				sys.wait(.75);
+
+				$Fork1.move(UP, 24);
+				sys.waitFor($Fork1);
+				
+				$forkRover.bind($Fork1);
+				
+				$Fork1.move(UP, 152);
+				sys.trigger($func_aas_obstacle_3);
+				sys.waitFor($Fork1);
+				
+				$forkRover.unbind();
+				
+				fork1State = 1;
+			}
+			else if( fork1State == 1 )
+			{
+				fork1State = 2;
+				
+				$CarForkSwitch1Handle.rotateOnce('0 0 90');
+				$CarForkSwitch1.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);		
+
+				sys.wait(.75);
+
+				$forkRover.bind($Fork1);
+				sys.trigger($func_aas_obstacle_3);
+				$Fork1.move(DOWN, 152);
+				
+				sys.waitFor($Fork1);
+				
+				$forkRover.unbind();
+				
+				$Fork1.move(DOWN, 24);
+				sys.waitFor($Fork1);
+				
+				fork1State = 0;
+			}
+
+			$CarForkSwitch1.setKey("click_item", "1");
+		}		
+	}
+	
+	void ToggleFork2()
+	{
+		if( fork2State != 2 )
+		{
+			$CarForkSwitch2.setKey("click_item", "0");
+
+			if( fork2State == 0 )
+			{
+				fork2State = 2;
+
+				$CarForkSwitch2Handle.rotateOnce('0 0 -90');
+				$CarForkSwitch2.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+
+				sys.wait(.75);
+								
+				$Fork2.move(UP, 176);
+				sys.trigger($func_aas_obstacle_2);
+				sys.waitFor($Fork2);
+				
+				fork2State = 1;
+			}
+			else if( fork2State == 1 )
+			{
+				fork2State = 2;
+
+				$CarForkSwitch2Handle.rotateOnce('0 0 90');
+				$CarForkSwitch2.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);		
+
+				sys.wait(.75);
+								
+				$Fork2.move(DOWN, 176);
+				sys.trigger($func_aas_obstacle_2);
+				sys.waitFor($Fork2);
+				
+				fork2State = 0;
+			}
+
+			$CarForkSwitch2.setKey("click_item", "1");
+		}
+	}
+	
+	float garageElevatorState = 0;
+
+	void MaintainGarageElevatorCallers()
+	{
+		if(garageElevatorState == 0)	
+		{		
+			$garage_elevator_call_item_1.setKey("click_item", "0");
+			$garage_elevator_call_item_2.setKey("click_item", "0");
+			$garage_elevator_call_item_3.setKey("click_item", "1");
+			$garage_elevator_call_item_4.setKey("click_item", "1");
+		}
+		else
+		{
+			$garage_elevator_call_item_1.setKey("click_item", "1");
+			$garage_elevator_call_item_2.setKey("click_item", "1");
+			$garage_elevator_call_item_3.setKey("click_item", "0");
+			$garage_elevator_call_item_4.setKey("click_item", "0");
+		}
+	}
+
+	void FlashCallLight(entity tex, entity flare, entity light)
+	{
+		tex.setColor(0,1,0);
+		flare.show();
+		light.show();
+		
+		sys.wait(0.125);
+		
+		tex.setColor(0.125,0,0);
+		flare.hide();
+		light.hide();
+	}
+
+	void AnimateGarageElevatorCall(float station)
+	{
+		entity callItem = sys.getEntity("garage_elevator_call_item_" + station);
+		callItem.setKey("click_item", "0");
+
+		entity button = sys.getEntity("garage_elevator_call_button_" + station);
+		float direction = button.getFloatKey("direction");
+		
+		button.move(direction, 1);
+		button.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+		sys.waitFor(button);
+		sys.wait(.125);
+		button.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+		button.move(direction + 180, 1);
+
+		entity tex1 = sys.getEntity("garage_elevator_call_tex_" + station + "_1");
+		entity tex2 = sys.getEntity("garage_elevator_call_tex_" + station + "_2");
+		entity tex3 = sys.getEntity("garage_elevator_call_tex_" + station + "_3");
+		entity toptex = sys.getEntity("garage_elevator_top_tex");
+		entity bottomtex = sys.getEntity("garage_elevator_bottom_tex");
+
+		entity flare1 = sys.getEntity("garage_elevator_call_flare_" + station + "_1");
+		entity flare2 = sys.getEntity("garage_elevator_call_flare_" + station + "_2");
+		entity flare3 = sys.getEntity("garage_elevator_call_flare_" + station + "_3");
+		entity topflare = sys.getEntity("garage_elevator_top_flare");
+		entity bottomflare = sys.getEntity("garage_elevator_bottom_flare");
+
+		entity light1 = sys.getEntity("garage_elevator_call_light_" + station + "_1");
+		entity light2 = sys.getEntity("garage_elevator_call_light_" + station + "_2");
+		entity light3 = sys.getEntity("garage_elevator_call_light_" + station + "_3");
+		entity toplight = sys.getEntity("garage_elevator_top_light");
+		entity bottomlight = sys.getEntity("garage_elevator_bottom_light");
+
+		while(garageElevatorState == 2)
+		{
+			thread FlashCallLight(toptex, topflare, toplight);			
+			FlashCallLight(tex1, flare1, light1);
+			thread FlashCallLight(bottomtex, bottomflare, bottomlight);
+			FlashCallLight(tex2, flare2, light2);
+			FlashCallLight(tex3, flare3, light3);
+		}
+
+		if(garageElevatorState == 1)
+		{
+			toptex.setColor(0,1,0);
+			topflare.show();
+			toplight.show();
+
+			bottomtex.setColor(0.125,0,0);
+			bottomflare.hide();
+			bottomlight.hide();
+		}
+		else
+		{
+			bottomtex.setColor(0,1,0);
+			bottomflare.show();
+			bottomlight.show();
+
+			toptex.setColor(0.125,0,0);
+			topflare.hide();
+			toplight.hide();
+		}		
+	}
+	
+	void ToggleGarageElevatorInner(float callSound)
+	{		
+		//17*64 - 24 = 1064
+		
+		if(garageElevatorState != 2 )
+		{
+			$garage_elevator_item.setKey ("click_item", "0");			
+
+			if(callSound == 1)
+			{
+				thread ShowNPCSubtitles("PA", "Calling elevator.", 2.25);
+				sys.trigger($speaker_garagevoice_call);
+			}
+
+			thread AnimateGarageElevatorCall(1);
+			thread AnimateGarageElevatorCall(2);
+			thread AnimateGarageElevatorCall(3);
+			thread AnimateGarageElevatorCall(4);
+
+			if( garageElevatorState == 0 )
+			{
+				garageElevatorState = 2;
+
+				$garage_elevator_handle.move(UP, 12);
+				$garage_elevator_handle.startSoundShader("sound/shav/e1m5_3/large_switch.ogg", SND_CHANNEL_ANY);
+				
+				sys.wait(.75);
+
+				$bigelev_lowerdoor_1.move(UP, 50);
+				sys.wait(.25);				
+				$bigelev_lowerdoor_2.move(UP, 50);
+				
+				sys.waitFor($bigelev_lowerdoor_2);
+				
+				$GarageElevator.move(UP, 1064);
+
+				$GarageElevator_wheel_east_1.rotateOnce('3200 0 0');
+				$GarageElevator_wheel_east_2.rotateOnce('3200 0 0');
+				$GarageElevator_wheel_east_3.rotateOnce('3200 0 0');
+				$GarageElevator_wheel_east_4.rotateOnce('3200 0 0');
+				$GarageElevator_wheel_west_1.rotateOnce('-3200 0 0');
+				$GarageElevator_wheel_west_2.rotateOnce('-3200 0 0');
+				$GarageElevator_wheel_west_3.rotateOnce('-3200 0 0');
+				$GarageElevator_wheel_west_4.rotateOnce('-3200 0 0');
+				
+				sys.waitFor($GarageElevator);
+				
+				$GarageElevator.startSoundShader("c1_pipeupaway", SND_CHANNEL_ANY);
+				
+				$bigelev_upperdoor_1.move(DOWN, 50);
+				sys.wait(.25);				
+				$bigelev_upperdoor_2.move(DOWN, 50);
+				
+				sys.waitFor($bigelev_upperdoor_2);
+				
+				garageElevatorState = 1;
+
+				thread ShowNPCSubtitles("PA", "Elevator has arrived.", 2.25); 
+				sys.trigger($speaker_garagevoice_arrive);
+			}
+			else if( garageElevatorState == 1 )
+			{
+				garageElevatorState = 2;
+
+				$garage_elevator_handle.move(DOWN, 12);
+				$garage_elevator_handle.startSoundShader("sound/shav/e1m5_3/large_switch.ogg", SND_CHANNEL_ANY);
+				
+				sys.wait(.75);
+
+				$bigelev_upperdoor_1.move(UP, 50);
+				sys.wait(.25);				
+				$bigelev_upperdoor_2.move(UP, 50);
+				
+				sys.waitFor($bigelev_upperdoor_2);
+				
+				$GarageElevator.move(DOWN, 1064);
+
+				$GarageElevator_wheel_east_1.rotateOnce('-3200 0 0');
+				$GarageElevator_wheel_east_2.rotateOnce('-3200 0 0');
+				$GarageElevator_wheel_east_3.rotateOnce('-3200 0 0');
+				$GarageElevator_wheel_east_4.rotateOnce('-3200 0 0');
+				$GarageElevator_wheel_west_1.rotateOnce('3200 0 0');
+				$GarageElevator_wheel_west_2.rotateOnce('3200 0 0');
+				$GarageElevator_wheel_west_3.rotateOnce('3200 0 0');
+				$GarageElevator_wheel_west_4.rotateOnce('3200 0 0');
+				
+				sys.waitFor($GarageElevator);
+				
+				$GarageElevator.startSoundShader("c1_pipeupaway", SND_CHANNEL_ANY);
+				
+				$bigelev_lowerdoor_1.move(DOWN, 50);
+				sys.wait(.25);				
+				$bigelev_lowerdoor_2.move(DOWN, 50);
+				
+				sys.waitFor($bigelev_lowerdoor_2);
+
+				
+				garageElevatorState = 0;
+			}			
+			$garage_elevator_item.setKey ("click_item", "1");
+			MaintainGarageElevatorCallers();
+		}		
+	}
+
+	void ToggleGarageElevator()
+	{
+		ToggleGarageElevatorInner(1);
+	}
+
+	void ToggleGarageElevatorNoSound()
+	{
+		ToggleGarageElevatorInner(0);
+	}
+	
+	void CallGarageElevatorTop()
+	{
+		if( garageElevatorState == 0 )
+		{			
+			ToggleGarageElevator();
+		}
+	}
+	
+	void CallGarageElevatorBottom()
+	{
+		if( garageElevatorState == 1 )
+		{
+			ToggleGarageElevator();
+		}
+	}
+	
+	void CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+
+	float ConfScreenReady = 0;
+
+	void TurnOnScreen(entity screen)
+	{
+		
+		screen.setGuiParm("gui_parm91", "0");
+		screen.startSoundShader("guisounds_open", SND_CHANNEL_ANY);
+		sys.trigger(screen);		
+	}
+	
+	void ConferenceScene()
+	{
+		//Flare
+		thread crossFadeEnt ($func_static_89141, '0 0 0', '0.458824 0.415686 0.364706', 1);
+
+		//Lamp
+		thread crossFadeEnt ($func_static_98772, '0 0 0', '1 1 1', 1);
+		
+		//Lights
+		thread crossFadeEnt ($light_59951, '0 0 0', '0.65 0.64 0.53', 1);
+		thread crossFadeEnt ($light_59950, '0 0 0', '0.65 0.64 0.53', 1);			
+
+		sys.wait(1.5);
+
+		TurnOnScreen(sys.getEntity("func_static_89138"));
+		sys.wait(.25);
+		TurnOnScreen(sys.getEntity("func_static_89140"));
+		sys.wait(.25);
+		TurnOnScreen(sys.getEntity("func_static_98773"));		
+	}
+	
+	void endMilesConvo()
+	{
+		sys.trigger($intercom_click_spkr);
+		$comm_snapin.hide();
+		
+		sys.wait(.1);
+		$commscreen.hide();
+		sys.wait(.1);
+		$commscreen_offline.show();
+		sys.wait(1);
+		sys.trigger($trigger_relay_231);
+
+		sys.quickSave("Stranger in a Strange Land - Checkpoint 9");
+		
+		ConferenceScene();		
+	}
+	
+	void InsertSnapin()
+	{
+		sys.trigger($comm_beep);
+		$comm_blinker_tex.hide();
+		$comm_blinking_light.hide();
+		sys.wait(.1);
+		$commscreen_online.hide();
+		sys.wait(.1);
+		$commscreen.show();
+		sys.wait(.1);
+		$player1.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+		$comm_snapin.show();
+		sys.wait(.1);
+		$Comm_Holder.setKey ("click_item", "0");
+
+		$commscreen.setGuiParm("gui_parm41", 1);
+		sys.trigger($commscreen);
+
+		sys.wait(1.6);
+		sys.trigger($trigger_once_306);
+		sys.trigger($convo_start_relay);
+	}		
+	
+	void Miles1Sub()
+	{
+		ShowNPCSubtitles("Miles", "Hi Sam. Are you Okay?", 2.25);
+	}
+	
+	void Miles2Sub()
+	{		
+		ShowNPCSubtitles("Miles", "Are you safe? Stop calling me Smiles.", 2.5);
+	}
+	
+	void Miles3Sub()
+	{
+		ShowNPCSubtitles("Miles", "I did.", 1);
+		ShowNPCSubtitles("Miles", "There are a couple thousand soldiers, federal agents, staff and personnel around me.", 5);
+		ShowNPCSubtitles("Miles", "Safety in numbers.", 2);
+	}
+	
+	void Miles4Sub()
+	{		
+		ShowNPCSubtitles("Miles", "We can't. The flagship is heading to Phobos to reinforce our position there.", 4.25);
+		ShowNPCSubtitles("Miles", "It's not a place you want to be near.\nIt's even worse there.", 4);
+		ShowNPCSubtitles("Miles", "No. What I would higly suggest, is that you catch the shuttle in the Landing Terminal near by.", 5.25);
+		ShowNPCSubtitles("Miles", "I told you about that.\nAnd Frank. He's waiting for you.", 5);
+	}
+	
+	void Miles5Sub()
+	{
+		ShowNPCSubtitles("Miles", "The Bulwark.", 1);
+		ShowNPCSubtitles("Miles", "All traffic going back to Earth or any noneffected sites have been shut down.\nCompletely.", 7);
+		ShowNPCSubtitles("Miles", "The Bulwark is probably the safest place on Mars and Phobos right now.", 4);
+		ShowNPCSubtitles("Miles", "Besides. Calloway is there.\nHe knows you. He can help you.", 3.5);
+		ShowNPCSubtitles("Miles", "But you have to hurry.", 2);
+	}
+	
+	void Miles6Sub()
+	{
+		ShowNPCSubtitles("Miles", "We arent completely sure yet.", 2);
+		ShowNPCSubtitles("Miles", "But we believe they're a product of what the UAC have been experimenting with down at delta labs.", 10);
+	}
+	
+	void Miles7Sub()
+	{		
+		ShowNPCSubtitles("Miles", "No. Teleportation experiments.", 3);
+		ShowNPCSubtitles("Miles", "For years we have been investigating UAC matters.", 4);
+		ShowNPCSubtitles("Miles", "The coorporation is the very prototype of greed and self serving and total disregard of personal security and freedom.", 7);
+		ShowNPCSubtitles("Miles", "The experiments have gone on for years.", 2.45);
+		ShowNPCSubtitles("Miles", "Reality finally caught up to them.", 3);
+		ShowNPCSubtitles("Miles", "So it's more like they went to the zoo.\nAnd then left the gate open.", 10);
+	}
+	
+	void Miles8Sub()
+	{
+		ShowNPCSubtitles("Miles", "We don't know. Maybe. Not likely.", 2);
+		ShowNPCSubtitles("Miles", "Look, I need to debrief some higher up about my meeting on Mars.", 3.35);
+		ShowNPCSubtitles("Miles", "Anyway. You need to get moving.\nDo you know where to go?", 6);
+	}
+	
+	void Miles9Sub()
+	{
+		ShowNPCSubtitles("Miles", "The way things are going, be prepared to go through vents. Machinery. Pipes.", 10);
+	}
+	
+	void Miles10Sub()
+	{
+		ShowNPCSubtitles("Miles", "Take care. Call me when you can.", 3);
+	}
+	
+	void Sam1Sub()
+	{
+		ShowNPCSubtitles("Sam", "Hey Smiles.\nOne question. What the fuck are those things?", 4);
+	}
+	
+	void Sam2Sub()
+	{
+		ShowNPCSubtitles("Sam", "I'm holed up in some dark room with a console.", 5);
+		ShowNPCSubtitles("Sam", "I'm safe for now, but I need to get out of here.", 2);
+		ShowNPCSubtitles("Sam", "Yeah I'm okay.\nWhat about you? Did you get to the ship?", 4.5);
+	}
+	
+	void Sam3Sub()
+	{
+		ShowNPCSubtitles("Sam", "So. Are you all coming back for anyone stranded down here? For me?", 5);
+	}
+	
+	void Sam4Sub()
+	{
+		ShowNPCSubtitles("Sam", "Going to Bul...War...Castle.\nWouldn't I be safer off planet?", 6);
+	}
+	
+	void Sam5Sub()
+	{
+		ShowNPCSubtitles("Sam", "Alright I will.\nJust one last question. What the fuck are those things?", 5);
+	}
+	
+	void Sam6Sub()
+	{
+		ShowNPCSubtitles("Sam", "Experimenting. They created these things?", 5);
+	}
+	
+	void Sam7Sub()
+	{
+		ShowNPCSubtitles("Sam", "They opened it on purpose?", 3);
+	}
+	
+	void Sam8ASub()
+	{
+		ShowNPCSubtitles("Sam", "I fond a route to the Landing Terminal. But it's impassible.\nSo I'm still looking around.", 8);
+	}
+	
+	void Sam8BSub()
+	{
+		ShowNPCSubtitles("Sam", "I'm still looking for a route to the Landing Terminal.", 6);
+	}
+	
+	void Sam9Sub()
+	{
+		ShowNPCSubtitles("Sam", "You don't say.", 2.5);
+	}
+
+	void HatchInspectDelay()
+	{
+		thread ShowNPCSubtitles("Sam", "Hmm?", 2);
+		$func_static_98760.setKey ("click_item", "0");
+		sys.wait(1);
+		$func_static_98760.setKey ("click_item", "1");
+	}
+
+	void OpenConfDrawer()
+	{
+		$conf_drawer.move(90, 24);
+
+		sys.wait(2);
+		$item_key_red2_2.setKey("click_item", 1);	
+	}
+	
+	void CloseConfDrawer()
+	{
+		sys.wait(1);
+
+		$conf_drawer.move(90, -24);		
+	}
+
+	void SetupConfScene()
+	{
+		$commscreen.hide();
+
+		//Flare
+		thread crossFadeEnt ($func_static_89141, '0.458824 0.415686 0.364706', '0 0 0', .1);
+
+		//Lamp
+		thread crossFadeEnt ($func_static_98772, '1 1 1', '0 0 0', .1);
+		
+		//Lights
+		thread crossFadeEnt ($light_59951, '0.65 0.64 0.53', '0 0 0',.1);
+		thread crossFadeEnt ($light_59950, '0.65 0.64 0.53', '0 0 0',.1);			
+	}
+	
+	void OneWayShouldLeadToLtSub()
+	{
+		ShowNPCSubtitles("Sam", "One of these paths should lead to the Landing Terminal.", 2.5);
+	}
+	
+	void SeemsToBeBrokenSub()
+	{
+		ShowNPCSubtitles("Sam", "Seems to be broken.", 2);
+	}
+	
+	void IntercomEmergencyBroadcastSub()
+	{
+		ShowNPCSubtitles("AP", "This is an emergency broadcast. This is not a test.\nThere has been an explosion at the Delta Labs.", 6);
+		
+		ShowNPCSubtitles("AP", "The following instructions are vital to your safety.\nFind a safe place as soon as possible.", 6);
+		
+		ShowNPCSubtitles("AP", "If you hear any strange noises or see anything suspicious, please do not investigate.\nThe UAC is handling the situation.", 10);
+	}
+	
+	void IntercomEmergencyEvacuationSub()
+	{
+		ShowNPCSubtitles("AP", "This is an emergency broadcast. This is not a test.\nThe following instructions are vital to your safety.", 6);
+		
+		ShowNPCSubtitles("AP", "Anyone close to The Mars City Landing Terminal\nshould go there as quickly as possible for immediate evacuation.", 8);
+	}
+	
+	void GarageDoorFuckery()
+	{
+		$garage_door_fuckery.startSoundShader("metal_door_slam2", SND_CHANNEL_ANY);
+		$garage_door_fuckery.move(DOWN, 40);
+		
+		sys.wait(1);
+		
+		thread ShowNPCSubtitles("Sam", "Shit!", 2);
+		sys.trigger($speaker_1045);
+	}
+	
+	
+	//===========================================
+	// START CHECKPOINTS
+	//===========================================
+	
+	void firstgarage_checkpoint()
+	{
+		sys.quickSave("Stranger in a Strange Land - Checkpoint 5");
+	}
+	
+	void secondgarage_checkpoint()
+	{
+		sys.quickSave("Stranger in a Strange Land - Checkpoint 6");
+	}
+	
+	void third_checkpoint()
+	{
+		sys.quickSave("Stranger in a Strange Land - Checkpoint 7");
+	}
+	
+	void fourth_checkpoint()
+	{
+		sys.quickSave("Stranger in a Strange Land - Checkpoint 8");
+	}
+	
+	void nodirectroute_checkpoint()
+	{
+		sys.quickSave("Stranger in a Strange Land - Checkpoint 10");
+	}
+	
+	//===========================================
+	// END CHECKPOINTS
+	//===========================================
+	
+	//===========================================
+	// RANDOM MONSTER SPAWNS
+	//===========================================		
+	
+	void select_monsterconfig(float encounterNum)
+	{
+		float monsterselect;
+		entity monster_config_a = sys.getEntity("monster_config_a" + encounterNum);
+		entity monster_config_b = sys.getEntity("monster_config_b" + encounterNum);
+
+		while (1)
+		{
+			monsterselect = sys.random(15);
+		
+				if (monsterselect <= 8){
+					sys.trigger (monster_config_a);
+					//sys.println("monster_configa" + encounterNum + "selected");
+					sys.wait(.5);
+				} else {
+					sys.trigger (monster_config_b);
+					//sys.println("monster_configb" + encounterNum + "selected");
+					sys.wait(.5);
+				} 
+		}
+	}
+	
+	void select_monsterconfig1()
+	{
+		select_monsterconfig(1);
+	}		
+
+	void select_monsterconfig2()
+	{
+		select_monsterconfig(2);
+	}	
+	
+	void select_monsterconfig3()
+	{
+		select_monsterconfig(3);
+	}		
+	
+	void kill_monster_selection1()
+	{sys.killthread ("map_e1m2::select_monsterconfig1");}
+	
+	void kill_monster_selection2()
+	{sys.killthread ("map_e1m2::select_monsterconfig2");}
+	
+	void kill_monster_selection3()
+	{sys.killthread ("map_e1m2::select_monsterconfig3");}
+
+	
+	//===========================================
+	// END RANDOM MONSTER SPAWNS
+	//===========================================
+	
+	void main()
+	{
+		SetupConfScene();		
+
+		MaintainGarageElevatorCallers();	
+
+		sys.wait(5);
+		thread select_monsterconfig2();
+		sys.wait(5);
+		thread select_monsterconfig3();		
+		sys.wait(3);
+		thread select_monsterconfig1();	
+
+		thread ToggleEndBridge();
+		thread rotate_fan();		
+	}
+}

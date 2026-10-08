@@ -1,0 +1,1226 @@
+namespace map_e1m4_2
+{
+	float objective_drainstartpipe_state = 0;
+	//0 = started
+	//1 = completed
+	
+	float objective_drainsecondpipe_state = 0;
+	//0 = not started
+	//1 = started
+	//2 = completed
+	
+	void StartObjectiveTwo()
+	{
+		objective_drainsecondpipe_state = 1;
+	}
+	
+	//1 = bottom
+	//2 = middle
+	//3 = top
+	//4 = in transition
+	float corebridge_position = 0;
+
+	float usingMatches = 1;
+	float clockRunning = 0;
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m4_2(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}	
+	
+	void MoveCoreBridge(float position)
+	{
+		$CoreBridgeCaller.setKey ("click_item", "0");
+
+		$corebridge_gui.setGuiParm("gui_parm2", 1);
+		sys.trigger($corebridge_gui);
+
+		// If the bridge is moving or already in the right position, move along!
+		if( corebridge_position == position || corebridge_position == 6)
+			return;
+
+		// 1: Find out which undeployment to use
+		float undeployHeight = 16;
+		if( corebridge_position == 0 )
+			undeployHeight = 16;
+		else if( corebridge_position == 5 )
+			undeployHeight = 8;
+
+		// 2: Calculate the route from the current position to the destination
+		float gothroughmiddle = 1;
+		if( (position == 0 && corebridge_position == 1) || (position == 1 && corebridge_position == 0))
+			gothroughmiddle = 0;
+
+		float goingfromdock = 0;
+		if( corebridge_position == 0 )
+		{		
+			goingfromdock = 1;			
+		}
+		
+		float goingtodock = 0;
+		if( position == 0 )
+			goingtodock = 1;
+
+		float goingthroughdoor = 0;
+		if( position == 0 || corebridge_position == 0)
+		goingthroughdoor = 1;
+
+		// 3: Find out which deployment to use
+		float deployHeight = 16;
+		if( position == 0)
+			deployHeight = 16;
+		else if( position == 5)
+			deployHeight = 8;
+
+		// 4: Undeploy
+		//if(corebridge_position != 5)
+		{
+			$corebridge_mover.move(DOWN, undeployHeight);
+		}
+		//corebridge_position = 6;
+
+		
+		if( goingfromdock == 0 && corebridge_position != 5)
+		{			
+			$corebridge_extender_east.move(180, 80);
+			$corebridge_extender_west.move(0, 80);				
+			sys.waitFor($corebridge_extender_west);
+		}
+		// 5: If going through door, make sure to open it
+		
+		if( goingfromdock == 1 )
+		{
+			$corebridge_door_east.move(180, 32);
+			$corebridge_door_west.move(0, 32);
+
+			$corebridge_door_light1.show();
+			$corebridge_door_light2.show();
+			$corebridge_door_light2.startSoundShader("loop_alarm_08", SND_CHANNEL_BODY);
+			
+			sys.trigger($moving_bridge_clip);
+			
+			$fuelcore_door.open();
+			sys.waitFor($fuelcore_door);
+			
+			$corebridge_mover.moveTo($corebridge_pos1);
+			sys.waitFor($corebridge_mover);			
+			
+			sys.trigger($moving_bridge_clip);
+			
+			$fuelcore_door.close();
+			$corebridge_door_light1.hide();
+			$corebridge_door_light2.hide();
+		}
+
+		// 6: If going through the middle, do that
+		if( gothroughmiddle == 1 )
+		{
+			$corebridge_mover.moveTo($corebridge_pos5);
+			sys.waitFor($corebridge_mover);
+		}
+
+		if( goingtodock == 1 )
+		{
+			$corebridge_mover.moveTo($corebridge_pos1);
+			sys.waitFor($corebridge_mover);
+
+			$corebridge_door_east.move(0, 32);
+			$corebridge_door_west.move(180, 32);
+		}
+
+		// 7: If gone through door, make sure to close it
+		
+
+		// 9: If going to the dock, go there
+		if( goingtodock == 1 )
+		{			
+			$corebridge_door_light1.show();
+			$corebridge_door_light2.show();
+			$corebridge_door_light2.startSoundShader("loop_alarm_08", SND_CHANNEL_BODY);
+
+			$fuelcore_door.open();
+			sys.waitFor($fuelcore_door);			
+		}
+
+				// 8: Go to the end destination
+		entity destination = sys.getEntity("corebridge_pos" + position);
+		
+		$corebridge_mover.moveTo(destination);
+		sys.waitFor($corebridge_mover);
+
+		if( goingtodock == 1 )
+		{
+			$fuelcore_door.close();
+			$corebridge_door_light1.hide();
+			$corebridge_door_light2.hide();
+		}		
+		// 10: Deploy		
+		//if(position != 5)
+		{
+			$corebridge_mover.move(UP, deployHeight);
+		}
+		if( goingtodock == 0 && position != 5)
+		{
+			$corebridge_extender_east.move(0, 80);
+			$corebridge_extender_west.move(180, 80);
+		
+			sys.waitFor($corebridge_extender_west);
+		}
+		corebridge_position = position;
+		
+		$corebridge_gui.setGuiParm("gui_parm1", position);
+		
+		sys.wait(3);
+		
+		$corebridge_gui.setGuiParm("gui_parm2", 2);
+		sys.trigger($corebridge_gui);
+
+		if(position != 5)
+		{
+			$CoreBridgeCaller.setKey ("click_item", "1");
+		}
+	}
+		
+	void MoveCoreBridgeToPos1()
+	{
+		MoveCoreBridge(1);
+	}
+
+	void MoveCoreBridgeToPos2()
+	{
+		MoveCoreBridge(2);
+	}
+	
+	void MoveCoreBridgeToPos3()
+	{
+		MoveCoreBridge(3);
+	}
+	
+	void MoveCoreBridgeToPos4()
+	{
+		MoveCoreBridge(4);
+	}
+	
+	void MoveCoreBridgeToPos5()
+	{
+		MoveCoreBridge(5);
+	}
+	
+	void PostBossSave()
+	{
+		sys.quickSave("Live together, Die alone - Checkpoint 2");
+	}
+	
+	float coreDrained = 0;
+	//0 = no
+	//1 = yes
+	
+	void DrainCore()
+	{
+		sys.trigger($target_lock_1);
+	
+		sys.wait(1.5);
+		
+		// Make sure the bridge inspection clicker is gone
+		$bridge_coreisfull_clicker.setKey ("click_item", "0");
+		$bridge_coreisfull_clicker.move(UP, 1024);
+
+		$corebridge_nogogui.hide();
+		$corebridge_gui.show();
+			
+		sys.trigger($SetGearsRoomUnlockLights);
+
+		sys.trigger($remove_wraith_pretrigs);
+		
+		sys.trigger($hellshock_relay);				
+		
+		sys.trigger($sp_hellcrash1);
+		sys.wait(.15);
+		sys.trigger($sp_hellcrash2);
+		sys.wait(1.5);
+		sys.trigger($sp_hellcrash3);
+		sys.wait(2.2);
+		sys.trigger($sp_hellcrash4);
+		sys.wait(1);
+		sys.trigger($sp_hellcrash5);
+		sys.wait(2.15);
+		sys.trigger($sp_hellcrash6);
+		sys.wait(1.2);
+		sys.trigger($sp_hellcrash7);
+		sys.wait(.5);
+		sys.trigger($sp_hellcrash8);
+		sys.wait(.3);
+		sys.trigger($sp_hellcrash9);
+		sys.wait(1.25);
+		sys.trigger($sp_hellcrash10);
+		sys.wait(1.5);
+		sys.trigger($sp_hellcrash11);
+		sys.trigger($giant_growl_sp1);
+		sys.trigger($growl_sp_relay);
+		
+		sys.quickSave("Live together, Die alone - Checkpoint 1");
+		
+		sys.wait(1);
+
+		thread ShowNPCSubtitles("Sam", "What the fuck?", 2.25);
+		$player1.startSoundShader("sound/vo/player/general/WhatTheFuckInternal.ogg", SND_CHANNEL_BODY);
+
+		sys.wait(3);
+		
+		sys.trigger($item_objective_4);
+		
+		sys.wait(7);
+		
+		sys.trigger($show_hellstuff_relay);
+		sys.trigger($fuel_drain_sfx_relay);
+		sys.trigger($postdrain_wraith_relay);
+		sys.trigger($wraith_warning_sp_relay);
+		sys.trigger($trigger_post_coredrain_stuff);
+		sys.trigger($fuel_drain_sfx1);
+		sys.trigger($wraith_config_activate_relay);
+
+		$fuel_indicator_north_liquid.move(0, 64);
+		thread crossFadeEnt ($fuel_indicator_north_flare, '0.023529 0.403922 0.521569', '0 0 0', 4);
+		thread crossFadeEnt ($fuel_indicator_north_light, '0.11 0.63 1', '0 0 0', 4);
+		sys.wait(.5);
+		$fuel_indicator_center_liquid.move(0, 64);
+		thread crossFadeEnt ($fuel_indicator_center_flare, '0.023529 0.403922 0.521569', '0 0 0', 4);
+		thread crossFadeEnt ($fuel_indicator_center_light, '0.11 0.63 1', '0 0 0', 4);
+		sys.wait(.5);
+		$fuel_indicator_south_liquid.move(0, 64);
+		thread crossFadeEnt ($fuel_indicator_south_flare, '0.023529 0.403922 0.521569', '0 0 0', 4);
+		thread crossFadeEnt ($fuel_indicator_south_light, '0.11 0.63 1', '0 0 0', 4);		
+
+		$mcwatermass.hide();
+		$mcwaterfog.hide();
+		sys.trigger($mcwaterfog_post);
+		sys.trigger($fuel_core_liquid_post);
+		coreDrained = 1;
+		
+		$first_puzzle_fuel_glass_light.hide();
+		$first_puzzle_fuel_glass_water.hide();
+	}
+	
+	void deposit_fuel()	
+	{
+		$fuel_dump.move(-1, 648);
+	}
+	
+	void DrainCoreObjective()
+	{
+		if( coreDrained == 0 )
+		{
+			sys.trigger($item_objective_3);
+		}
+	}
+
+	void FullCoreComment()
+	{
+		thread ShowNPCSubtitles("Sam", "Right...", 2);
+		$player1.startSoundShader("sound/vo/player/general/rightinternal.ogg", SND_CHANNEL_BODY);
+	}
+	
+	void pendulum_lightswing() 
+	{
+		$lightswing_pendulum.sway( 5, 1, '12 0 0' );
+	}
+
+	vector darkBlue = '0.05 0.1 0.3';
+	vector lightBlue = '0.05 0.2 0.6';
+
+	void fuel_rods()		
+	{
+		thread crossFadeEnt ($fog_light, '0.26 0.55 1', '0.26 0.19 1', 1);
+		thread crossFadeEnt ($fog_light2, '0.26 0.55 1', '0.26 0.19 1', 1);
+		thread crossFadeEnt ($sin_light, '0 0.62 1', '0 0.22 1', 1);
+		thread crossFadeEnt ($sin_light2, '0 0.62 1', '0 0.22 1', 1);
+		thread crossFadeEnt ($fuel_light_1, lightBlue, darkBlue, 1);		
+		thread crossFadeEnt ($fuel_light_2, lightBlue, darkBlue, 1);		
+		//thread crossFadeEnt ($fuel_light_21, lightBlue, darkBlue, 1);
+		thread crossFadeEnt ($fuel_rod, '0.1 0.78 1', '0.1 0.27 1', 1);
+		thread crossFadeEnt ($fuel_rodflare, '0.18 0.67 1', '0.8 0.88 1', 1);		
+		sys.wait(2.5);
+		sys.trigger($fuel_rods_darkblue);
+	}
+		
+	void fuel_rods2()		
+	{
+		thread crossFadeEnt ($fog_light, '0.26 0.19 1', '0.26 0.55 1', 1);
+		thread crossFadeEnt ($fog_light2, '0.26 0.19 1', '0.26 0.55 1', 1);
+		thread crossFadeEnt ($sin_light, '0 0.22 1', '0 0.62 1', 1);
+		thread crossFadeEnt ($sin_light2, '0 0.22 1', '0 0.62 1', 1);
+		thread crossFadeEnt ($fuel_light_1, darkBlue, lightBlue, 1);
+		thread crossFadeEnt ($fuel_light_2, darkBlue, lightBlue, 1);
+		//thread crossFadeEnt ($fuel_light_21, darkBlue, lightBlue, 1);
+		thread crossFadeEnt ($fuel_rod, '0.1 0.27 1', '0.1 0.78 1', 1);
+		thread crossFadeEnt ($fuel_rodflare, '0.8 0.88 1', '0.18 0.67 1', 1);
+		sys.wait(2.5);
+		sys.trigger($fuel_rods_lightblue);
+	}	
+
+	float northToggle = 0;
+	float northToggling = 0;
+	float centerToggle = 0;
+	float centerToggling = 0;
+	float southToggle = 0;
+	float southToggling = 0;
+
+	void SetLightPanel(string locality, float num, float state)
+	{		
+		entity e = sys.getEntity("fuel_pipe_" + locality + "_light_" + num);
+
+		if(state == 0)
+		{
+			thread crossFadeEnt (e, '0 0 0', '0 0 0', .0125);
+		}
+		else if(state == 1)
+		{
+			thread crossFadeEnt (e, '.125 .125 .125', '.125 .125 .125', .0125);
+		}
+		else if(state == 2)
+		{
+			thread crossFadeEnt (e, '0.125 0.125 .75', '0.125 0.125 .75', .0125);			
+		}		
+		else if(state == 3)
+		{
+			thread crossFadeEnt (e, '0.75 0.125 .125', '0.75 0.125 .125', .0125);
+		}
+		else
+		{
+			thread crossFadeEnt (e, '0.125 0.75 .125', '0.125 0.75 .125', .0125);
+		}
+	}
+
+	void CheckDrainConfiguration()
+	{
+		float correct = 0;
+
+		if(northToggle == 2)
+		{
+			$fuel_indicator_north_light.show();
+			$fuel_indicator_north_liquid.show();
+			$fuel_indicator_north_flare.show();
+		}
+		else
+		{
+			$fuel_indicator_north_light.hide();
+			$fuel_indicator_north_liquid.hide();
+			$fuel_indicator_north_flare.hide();
+		}
+
+		if(centerToggle == 2)
+		{
+			$fuel_indicator_center_light.show();
+			$fuel_indicator_center_liquid.show();
+			$fuel_indicator_center_flare.show();
+		}
+		else
+		{
+			$fuel_indicator_center_light.hide();
+			$fuel_indicator_center_liquid.hide();
+			$fuel_indicator_center_flare.hide();
+		}
+
+		if(southToggle == 1)
+		{
+			$fuel_indicator_south_light.show();
+			$fuel_indicator_south_liquid.show();
+			$fuel_indicator_south_flare.show();
+		}
+		else
+		{
+			$fuel_indicator_south_light.hide();
+			$fuel_indicator_south_liquid.hide();
+			$fuel_indicator_south_flare.hide();
+		}
+
+
+		if(northToggle == 2 && centerToggle == 2 && southToggle == 1)
+		{
+			correct = 1;	
+
+			// Disable the togglers
+			$func_static_99284.setKey ("click_item", "0");
+			$func_static_99283.setKey ("click_item", "0");
+			$func_static_99176.setKey ("click_item", "0");
+
+			$player1.startSoundShader("e1m4_3_success", SND_CHANNEL_BODY);
+
+			sys.wait(1);
+
+			// Show final
+			SetLightPanel("south", 1, 4);
+			SetLightPanel("center", 1, 4);
+			SetLightPanel("north", 1, 4);
+
+			SetLightPanel("north", 6, 3);
+			SetLightPanel("north", 3, 3);
+			SetLightPanel("center", 6, 3);
+			SetLightPanel("center", 3, 3);
+			SetLightPanel("south", 6, 3);
+			SetLightPanel("south", 3, 3);
+
+			SetLightPanel("north", 5, 2);
+			SetLightPanel("north", 8, 2);			
+			SetLightPanel("north", 4, 2);			
+			SetLightPanel("center", 5, 2);
+			SetLightPanel("center", 8, 2);			
+			SetLightPanel("center", 4, 2);			
+			SetLightPanel("south", 5, 2);
+			SetLightPanel("south", 8, 2);			
+			SetLightPanel("south", 4, 2);			
+
+			SetLightPanel("south", 7, 0);
+			SetLightPanel("center", 7, 0);
+			SetLightPanel("north", 7, 0);
+			SetLightPanel("south", 9, 0);
+			SetLightPanel("center", 9, 0);
+			SetLightPanel("north", 9, 0);
+			SetLightPanel("south", 2, 0);
+			SetLightPanel("center", 2, 0);
+			SetLightPanel("north", 2, 0);			
+		}
+		
+		$drainpuzzleconsole.setGuiParm("gui_parm41", correct);
+		sys.trigger($drainpuzzleconsole);
+	}
+
+	void MoveLightPanelToggler(string locality, float toNum)
+	{
+		entity toggler = sys.getEntity("fuel_pipe_" + locality + "_toggler");
+		entity to = sys.getEntity("fuel_pipe_" + locality + "_toggler_" + toNum);
+
+		toggler.moveTo(to);
+	}
+
+	void TogglePipeNorth()
+	{
+		if(northToggling == 0)
+		{
+			northToggling = 1;
+
+			$player1.startSoundShader("sound/gui_simpleout.ogg", SND_CHANNEL_BODY);
+
+			if(northToggle == 0)
+			{
+				MoveLightPanelToggler("north", 3);
+
+				SetLightPanel("north", 1, 1);
+				SetLightPanel("north", 2, 1);
+				SetLightPanel("north", 8, 1);
+				SetLightPanel("north", 9, 1);
+
+				SetLightPanel("north", 7, 3);
+				SetLightPanel("north", 4, 3);
+				SetLightPanel("north", 5, 3);
+				SetLightPanel("north", 6, 3);
+				SetLightPanel("north", 3, 3);				
+			}
+			else if(northToggle == 1)
+			{
+				MoveLightPanelToggler("north", 2);
+
+				SetLightPanel("north", 1, 1);
+				SetLightPanel("north", 2, 1);
+				SetLightPanel("north", 4, 1);
+				SetLightPanel("north", 5, 1);
+				SetLightPanel("north", 7, 1);
+				SetLightPanel("north", 8, 1);
+				SetLightPanel("north", 9, 1);
+
+				SetLightPanel("north", 6, 3);
+				SetLightPanel("north", 3, 3);				
+			}
+			else if(northToggle == 2)
+			{
+				MoveLightPanelToggler("north", 1);
+
+				SetLightPanel("north", 2, 1);
+				SetLightPanel("north", 3, 1);
+				SetLightPanel("north", 5, 1);
+				SetLightPanel("north", 6, 1);
+				SetLightPanel("north", 8, 1);
+				SetLightPanel("north", 9, 1);
+
+				SetLightPanel("north", 4, 3);
+				SetLightPanel("north", 1, 3);
+				SetLightPanel("north", 7, 3);								
+			}
+
+			northToggle = (northToggle + 1) % 3;
+
+			sys.wait(.0125);
+
+			CheckDrainConfiguration();
+
+			//sys.wait(.2);
+
+			northToggling = 0;			
+		}
+	}	
+
+	void TogglePipeCenter()
+	{
+		if(centerToggling == 0)
+		{
+			centerToggling = 1;
+
+			$player1.startSoundShader("sound/gui_simpleout.ogg", SND_CHANNEL_BODY);
+
+			if(centerToggle == 0)
+			{
+				MoveLightPanelToggler("center", 1);
+
+				SetLightPanel("center", 1, 1);
+				SetLightPanel("center", 2, 1);
+				SetLightPanel("center", 4, 1);
+				SetLightPanel("center", 5, 1);
+				SetLightPanel("center", 7, 1);
+				SetLightPanel("center", 8, 1);
+
+				SetLightPanel("center", 3, 2);
+				SetLightPanel("center", 6, 2);
+				SetLightPanel("center", 9, 2);
+			}
+			else if(centerToggle == 1)
+			{
+				MoveLightPanelToggler("center", 2);
+
+				SetLightPanel("center", 1, 1);
+				SetLightPanel("center", 2, 1);
+				SetLightPanel("center", 3, 1);
+				SetLightPanel("center", 6, 1);
+				SetLightPanel("center", 7, 1);
+				SetLightPanel("center", 9, 1);
+
+				SetLightPanel("center", 5, 2);
+				SetLightPanel("center", 8, 2);			
+				SetLightPanel("center", 4, 2);			
+			}
+			else if(centerToggle == 2)
+			{
+				MoveLightPanelToggler("center", 3);
+
+				SetLightPanel("center", 3, 1);
+				SetLightPanel("center", 5, 1);
+				SetLightPanel("center", 6, 1);
+				SetLightPanel("center", 7, 1);
+				SetLightPanel("center", 8, 1);
+				SetLightPanel("center", 9, 1);
+
+				SetLightPanel("center", 4, 2);
+				SetLightPanel("center", 1, 2);
+				SetLightPanel("center", 2, 2);
+			}
+
+			centerToggle = (centerToggle + 1) % 3;
+
+			sys.wait(.0125);
+
+			CheckDrainConfiguration();
+
+			//sys.wait(.2);
+
+			centerToggling = 0;
+		}
+	}	
+
+	void TogglePipeSouth()
+	{
+		if(southToggling == 0)
+		{
+			southToggling = 1;
+
+			$player1.startSoundShader("sound/gui_simpleout.ogg", SND_CHANNEL_BODY);
+
+			if(southToggle == 0)
+			{
+				MoveLightPanelToggler("south", 1);
+
+				SetLightPanel("south", 2, 1);
+				SetLightPanel("south", 3, 1);
+				SetLightPanel("south", 4, 1);
+				SetLightPanel("south", 5, 1);
+				SetLightPanel("south", 6, 1);							
+				SetLightPanel("south", 7, 1);
+				SetLightPanel("south", 8, 1);							
+				SetLightPanel("south", 9, 1);
+				
+				SetLightPanel("south", 1, 4);							
+			}
+			else if(southToggle == 1)
+			{
+				MoveLightPanelToggler("south", 2);
+
+				SetLightPanel("south", 1, 1);
+				SetLightPanel("south", 2, 1);							
+				SetLightPanel("south", 3, 1);
+				SetLightPanel("south", 4, 1);							
+				SetLightPanel("south", 5, 1);
+				SetLightPanel("south", 6, 1);
+
+				SetLightPanel("south", 7, 4);
+				SetLightPanel("south", 8, 4);
+				SetLightPanel("south", 9, 4);
+			}
+			else if(southToggle == 2)
+			{
+				MoveLightPanelToggler("south", 3);
+
+				SetLightPanel("south", 2, 1);
+				SetLightPanel("south", 3, 1);							
+				SetLightPanel("south", 6, 1);
+				SetLightPanel("south", 7, 1);							
+				SetLightPanel("south", 9, 1);				
+
+				SetLightPanel("south", 8, 4);
+				SetLightPanel("south", 5, 4);
+				SetLightPanel("south", 4, 4);
+				SetLightPanel("south", 1, 4);
+			}
+
+			southToggle = (southToggle + 1) % 3;
+
+			sys.wait(.0125);
+
+			CheckDrainConfiguration();
+
+			//sys.wait(.125);
+
+			southToggling = 0;
+		}
+	}
+
+	float drainToggle = 0;
+
+	void DrainPuzzle_Reset()
+	{
+		if(drainToggle == 0)
+		{
+			$drainpuzzleconsole.setGuiParm("gui_parm1", 1);
+			$drainpuzzleconsole.setGuiParm("gui_parm2", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm3", 1);
+			$drainpuzzleconsole.setGuiParm("gui_parm4", 1);
+			$drainpuzzleconsole.setGuiParm("gui_parm5", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm6", 1);
+			$drainpuzzleconsole.setGuiParm("gui_parm7", 1);
+			$drainpuzzleconsole.setGuiParm("gui_parm8", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm9", 1);			
+		}
+		else if(drainToggle == 1)
+		{
+			$drainpuzzleconsole.setGuiParm("gui_parm1", 1);
+			$drainpuzzleconsole.setGuiParm("gui_parm2", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm3", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm4", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm5", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm6", 1);
+			$drainpuzzleconsole.setGuiParm("gui_parm7", 1);
+			$drainpuzzleconsole.setGuiParm("gui_parm8", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm9", 0);			
+		}
+		else
+		{
+			$drainpuzzleconsole.setGuiParm("gui_parm1", 1);
+			$drainpuzzleconsole.setGuiParm("gui_parm2", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm3", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm4", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm5", 1);
+			$drainpuzzleconsole.setGuiParm("gui_parm6", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm7", 1);
+			$drainpuzzleconsole.setGuiParm("gui_parm8", 0);
+			$drainpuzzleconsole.setGuiParm("gui_parm9", 1);			
+		}
+
+		drainToggle = (drainToggle + 1) % 3;
+
+		sys.trigger($drainpuzzleconsole);
+	}
+
+	void NorthManual()
+	{
+		$fuel_pipe_north_auto_toggler_mover.rotateOnce('0 0 90');
+		$fuel_pipe_north_auto_toggler_mover.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+
+		sys.wait(.125);
+
+		$fuel_pipe_north_toggler_hinge1.rotateOnce('0 -125 0');
+		$fuel_pipe_north_toggler_hinge2.rotateOnce('0 125 0');
+
+		SetLightPanel("north", 1, 1);
+		SetLightPanel("north", 2, 1);							
+		SetLightPanel("north", 3, 1);
+		SetLightPanel("north", 4, 1);							
+		SetLightPanel("north", 5, 1);
+		SetLightPanel("north", 6, 1);
+		SetLightPanel("north", 7, 1);							
+		SetLightPanel("north", 8, 1);
+		SetLightPanel("north", 9, 1);
+
+		sys.wait(.125);
+
+		$func_static_99176.setKey ("click_item", "1");
+	}
+
+	void SouthManual()
+	{
+		$fuel_pipe_south_auto_toggler_mover.rotateOnce('0 0 90');
+		$fuel_pipe_south_auto_toggler_mover.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+
+		sys.wait(.125);
+
+		$fuel_pipe_south_toggler_hinge1.rotateOnce('0 -125 0');
+		$fuel_pipe_south_toggler_hinge2.rotateOnce('0 125 0');
+
+		SetLightPanel("south", 1, 1);
+		SetLightPanel("south", 2, 1);							
+		SetLightPanel("south", 3, 1);
+		SetLightPanel("south", 4, 1);							
+		SetLightPanel("south", 5, 1);
+		SetLightPanel("south", 6, 1);
+		SetLightPanel("south", 7, 1);							
+		SetLightPanel("south", 8, 1);
+		SetLightPanel("south", 9, 1);
+
+		sys.wait(.125);
+
+		$func_static_99283.setKey ("click_item", "1");
+	}
+
+	void DrainPuzzle_Solved()
+	{
+		$func_static_99283.setKey ("click_item", "0");
+		$func_static_99176.setKey ("click_item", "0");
+		$func_static_99284.setKey ("click_item", "0");
+
+		sys.trigger($draincore_relay);
+	}
+
+	void SetupGear1()
+	{
+		float i = 0;
+		while(i < 36)
+		{
+			entity e = sys.getEntity("gear_tooth_" + i);
+			e.bind($gear_mover);
+			$gear_mover.rotateOnce('0 0 10');
+			sys.waitFor($gear_mover);
+			//e.unbind();
+			i++;
+		}
+	}
+
+	void SetupGear4()
+	{
+		$gear4_arm.bind($gear4_mover);
+		$gear4_base.bind($gear4_mover);
+		$gear4_mover.rotateOnce('0 0 22.5');
+		sys.waitFor($gear4_mover);
+
+		$gear4_mover.bind($gear4_arm);
+		$gear4_arm.bind($gear4_base);
+
+		$gear4_arm.unbind();
+		$gear4_base.unbind();
+
+		float i = 0;
+		while(i < 9)
+		{
+			entity e = sys.getEntity("gear4_tooth_" + i);
+			e.bind($gear4_mover);
+			$gear4_mover.rotateOnce('0 0 40');
+			sys.waitFor($gear4_mover);
+			//e.unbind();
+			i++;
+		}
+
+		$gear4_mover.rotateOnce('0 0 20');
+		sys.waitFor($gear4_mover);
+	}
+
+	void RotateGears(vector rot)
+	{
+		$gear_mover.rotateOnce(rot);
+		$gear4_mover.rotateOnce(rot * 4);
+
+		sys.waitFor($gear_mover);
+	}
+
+	float gearPos = 0;
+
+	void UpdateGearsOnBridge()
+	{
+		float a = 0;
+		float b = 0;
+		float c = 0;
+		float d = 0;
+
+		if(gearPos == 0)
+		{
+			a = 1;
+		}
+		else if(gearPos == 1)
+		{
+			b = 1;
+		}
+		else if(gearPos == 3)
+		{
+			c = 1;
+		}
+		else
+		{
+			d = 1;
+		}
+
+		$corebridge_gui.setGuiParm("gui_parm31", a);
+		$corebridge_gui.setGuiParm("gui_parm32", b);
+		$corebridge_gui.setGuiParm("gui_parm33", c);
+		$corebridge_gui.setGuiParm("gui_parm34", d);
+		sys.trigger($corebridge_gui);
+	}
+
+	void UpdateGearsOnFuelDoors(float oldPos, float newPos)
+	{
+		if(oldPos == 2)
+		{
+			oldPos = 3;
+		}
+		else if(oldPos == 3)
+		{
+			oldPos = 2;
+		}
+
+		if(newPos == 2)
+		{
+			newPos = 3;
+		}
+		else if(newPos == 3)
+		{
+			newPos = 2;
+		}
+
+		entity toGreen = sys.getEntity("core_" + (oldPos + 1) + "_setcolor_green");
+		entity toRed = sys.getEntity("core_" + (newPos + 1) + "_setcolor_red");
+		entity oldToggle = sys.getEntity("core_" + (oldPos + 1) + "_light_toggle");
+		entity newToggle = sys.getEntity("core_" + (newPos + 1) + "_light_toggle");
+		
+		entity oldGui1 = sys.getEntity("core_" + (oldPos + 1) + "_door_gui_1");
+		entity oldGui2 = sys.getEntity("core_" + (oldPos + 1) + "_door_gui_2");
+
+		entity newGui1 = sys.getEntity("core_" + (newPos + 1) + "_door_gui_1");
+		entity newGui2 = sys.getEntity("core_" + (newPos + 1) + "_door_gui_2");
+
+		sys.trigger(toGreen);
+		sys.trigger(toRed);
+		sys.trigger(oldToggle);
+		sys.trigger(newToggle);
+
+		oldGui1.setGuiParm("gui_parm2", 0);
+		oldGui2.setGuiParm("gui_parm2", 0);
+		sys.trigger(oldGui1);
+		sys.trigger(oldGui2);
+
+		newGui1.setGuiParm("gui_parm2", 1);
+		newGui2.setGuiParm("gui_parm2", 1);
+		sys.trigger(newGui1);
+		sys.trigger(newGui2);
+	}
+
+	void RotateGearsCCW()
+	{
+		float oldPos = gearPos;
+
+		$GearsGui.setGuiParm("gui_parm1", 1);
+		sys.trigger($GearsGui);
+		
+		RotateGears('0 0 -90');
+	
+		gearPos--;
+		if(gearPos < 0)
+			gearPos = 3;		
+
+		$GearsGui.setGuiParm("gui_parm1", 0);
+		$GearsGui.setGuiParm("gui_parm2", gearPos);
+		sys.trigger($GearsGui);
+
+		UpdateGearsOnBridge();
+		UpdateGearsOnFuelDoors(oldPos, gearPos);
+	}
+
+	void RotateGearsCW()
+	{
+		float oldPos = gearPos;
+
+		$GearsGui.setGuiParm("gui_parm1", 1);
+		sys.trigger($GearsGui);
+
+		RotateGears('0 0 90');
+
+		gearPos++;
+		if(gearPos > 3)
+			gearPos = 0;
+
+		$GearsGui.setGuiParm("gui_parm1", 0);
+		$GearsGui.setGuiParm("gui_parm2", gearPos);
+		sys.trigger($GearsGui);
+
+		UpdateGearsOnBridge();
+		UpdateGearsOnFuelDoors(oldPos, gearPos);
+	}
+
+	void DisengageWheel()
+	{
+		RotateGears('0 0 -45');
+	}	
+
+	void EngageWheel()
+	{
+		$gears_handle_mover.move(REL_RIGHT, 8);
+		$gears_handle_mover.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+		sys.waitFor($gears_handle_mover);
+		
+		sys.trigger($ArchVile_Relay);
+
+		RotateGears('0 0 45');
+
+		$GearsGui.setGuiParm("gui_parm1", 0);
+		$GearsGui.setGuiParm("gui_parm2", gearPos);
+		sys.trigger($GearsGui);
+
+		float i = 0;
+		while(i < 3)
+		{
+			entity toGreen = sys.getEntity("core_" + (i + 1) + "_setcolor_green");			
+			entity newToggle = sys.getEntity("core_" + (i + 1) + "_light_toggle");
+		
+			entity oldGui1 = sys.getEntity("core_" + (i + 1) + "_door_gui_1");
+			entity oldGui2 = sys.getEntity("core_" + (i + 1) + "_door_gui_2");
+
+			sys.trigger(toGreen);
+			sys.trigger(newToggle);
+
+			oldGui1.setGuiParm("gui_parm2", 0);
+			oldGui2.setGuiParm("gui_parm2", 0);
+			sys.trigger(oldGui1);
+			sys.trigger(oldGui2);
+
+			i++;
+		}
+
+		UpdateGearsOnBridge();
+	}
+
+	void SetupGears()
+	{
+		$gears_handle_mover.rotateOnce('0 0 -15');
+
+		SetupGear1();
+		SetupGear4();
+		
+		DisengageWheel();
+
+		sys.wait(.5);
+
+		$gear_mover.time(6);
+		$gear_mover.accelTime(1);
+		$gear_mover.decelTime(1);
+
+		$gear_mover.rotateOnce('0 0 180');
+		
+		gearPos+=2;
+		gearPos %= 4;				
+
+		$gear4_mover.time(6);
+		$gear4_mover.accelTime(1);
+		$gear4_mover.decelTime(1);
+	}
+
+	void RunFilter(entity filter)
+	{
+		while(1)
+		{
+			filter.move(90, 112);
+			sys.waitFor(filter);
+			sys.wait(1.5);
+			filter.move(270, 112);
+			sys.wait(2.5);
+		}
+	}
+
+	void RunFuelFilters()
+	{
+		thread RunFilter($fuel_filter_2);
+		sys.wait(.5);
+		thread RunFilter($fuel_filter_1);
+		sys.wait(.125);
+		thread RunFilter($fuel_filter_3);
+	}
+	
+	void maintenance_ladder()
+	{
+		sys.trigger($ladder_aas);
+		$service_ladder.move(-1, 192);
+		sys.trigger($sp_service_ladder);
+		sys.waitFor($service_ladder);
+		sys.trigger($ladder_brush);
+	}
+
+	void CallCoreBridge()
+	{
+		$CoreBridgeCallerButton.move(90, 1);
+		$CoreBridgeCallerButton.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+		sys.waitFor($CoreBridgeCallerButton);
+		sys.wait(.125);
+		$CoreBridgeCallerButton.startSoundShader("e1m1_intercomclick2", SND_CHANNEL_ANY);
+		$CoreBridgeCallerButton.move(270, 1);
+
+		MoveCoreBridge(5);
+	}
+
+	void TurnOffScreen(entity screen, entity flare)
+	{
+		screen.setColor(0, 0, 0);
+		flare.setColor(0, 0, 0 );
+		screen.setGuiParm ("gui_parm91", 1);
+		screen.startSoundShader("guisounds_close", SND_CHANNEL_ANY);
+		sys.trigger(screen);
+	}
+	
+	void TurnOnScreen(entity screen, entity flare)
+	{		
+		screen.setColor(1, 1, 1);
+		flare.setColor(0.05, 0.08, 0.14);
+		screen.setGuiParm ("gui_parm91", 0);
+		screen.startSoundShader("guisounds_open", SND_CHANNEL_ANY);
+		sys.trigger(screen);
+	}
+	
+	void hide_bridge_guis()
+	{
+		$func_static_89775.hide();
+		$func_static_101509.hide();
+		$GearsGui.hide();	
+	}
+	
+	//===========================================
+	// START CHECKPOINTS
+	//===========================================
+	
+	void postbridgearchvile_checkpoint()
+	{
+		sys.quickSave("Live together, Die alone - Checkpoint 3");
+	}
+	
+	//===========================================
+	// END CHECKPOINTS
+	//===========================================
+	
+		void wraith_group1_select()
+			{
+				sys.trigger($wraith_trig_1);
+				sys.trigger($wraith_trig_2);
+				sys.trigger($wraith_trig_3);
+				sys.trigger($wraith_trig_4);
+				sys.trigger($wraith_trig_5);
+				sys.trigger($wraith_trig_7);
+				sys.trigger($wraith_trig_8);
+			}
+		
+		void wraith_group2_select()
+			{
+				sys.trigger($wraith_trig_1a);
+				sys.trigger($wraith_trig_2a);
+				sys.trigger($wraith_trig_3a);
+				sys.trigger($wraith_trig_4a);
+				sys.trigger($wraith_trig_5a);
+				sys.trigger($wraith_trig_7a);
+				sys.trigger($wraith_trig_8a);
+			}
+			
+		void wraith_group3_select()
+			{
+				sys.trigger($wraith_trig_1b);
+				sys.trigger($wraith_trig_2b);
+				sys.trigger($wraith_trig_3a);
+				sys.trigger($wraith_trig_4b);
+				sys.trigger($wraith_trig_5b);
+				sys.trigger($wraith_trig_7b);
+				sys.trigger($wraith_trig_8);
+			}
+			
+	
+	void select_wraithconfig()
+	{
+		float wraithselect;
+
+		while (1)
+		{
+			wraithselect = sys.random(15);
+		
+				if (wraithselect <= 5){
+					sys.trigger ($wraith_config1);
+					//sys.println("wraith_config1 selected");
+					sys.wait(1);
+				} else if (wraithselect >= 11){
+					sys.trigger ($wraith_config2);
+					//sys.println("wraith_config2 selected");
+					sys.wait(1);
+				} 
+				  else {
+					sys.trigger ($wraith_config3);
+					//sys.println("wraith_config3 selected");
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_wraith_selection()
+	{
+		sys.killthread ("map_e1m4_2::select_wraithconfig");
+	}	
+	
+	void wraith_selection()
+	{	
+		thread select_wraithconfig();
+	}
+	
+	void main()
+	{			
+		$func_mover_amodel_4.rotate( '0 360 0' );
+		$func_mover_amodel_5.rotate( '0 360 0' );
+		$func_mover_amodel_6.rotate( '0 360 0' );
+		$func_mover_amodel_7.rotate( '0 360 0' );
+		$func_mover_amodel_8.rotate( '0 360 0' );
+		thread pendulum_lightswing();
+		sys.trigger($trigger_relay_272);
+		SetupGears();		
+		$corebridge_gui.hide();
+		thread select_wraithconfig();
+	}
+
+}

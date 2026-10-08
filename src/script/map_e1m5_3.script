@@ -1,0 +1,1520 @@
+namespace map_e1m5_3
+{	
+	float hideSubTime = 0;
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m5_3(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+
+	void mister_move2()
+	{
+		//start decon1 computer voice
+		thread ShowSubtitles("PA", "Purification process initiated.", 3.15);
+		sys.trigger ($decon1_start_speaker);
+		sys.wait (1.5);
+		
+		thread crossFadeEnt ($misterlight_white1, '1 1 1', '1 0 0', 1.0);
+		thread crossFadeEnt ($decontop_fade1, '1 1 1', '1 0 0', 1.0);
+		thread crossFadeEnt ($decon_toplight_red1, '0 0 0', '1 0 0', 1.0);		
+		
+		sys.trigger ($decon1_mister1start_spkr);
+		sys.trigger ($decon1_mister2start_spkr);
+		sys.wait (.15);
+		sys.trigger ($decon1_mister1loop_spkr);
+		sys.trigger ($decon1_mister2loop_spkr);
+		
+		$mister1_anchor.moveTo ($mister1_spot2);
+		$mister2_anchor.moveTo ($mister2_spot2);
+		sys.waitFor ($mister2_anchor);
+		
+		$mister1_anchor.rotateOnce ('0 0 -60');
+		$mister2_anchor.rotateOnce ('0 0 60');
+		sys.waitFor ($mister2_anchor);
+		
+		$mister1_anchor.rotateOnce ('0 0 60');
+		$mister2_anchor.rotateOnce ('0 0 -60');
+		sys.waitFor ($mister2_anchor);
+		
+		$mister1_anchor.moveTo ($mister1_spot1);
+		$mister2_anchor.moveTo ($mister2_spot1);
+		sys.waitFor ($mister2_anchor);
+		
+		sys.trigger ($decon1_mister1stop_spkr);
+		sys.trigger ($decon1_mister2stop_spkr);
+		//trigger looping speaker again to turn off
+		sys.trigger ($decon1_mister1loop_spkr);
+		sys.trigger ($decon1_mister2loop_spkr);
+		
+		//turn off emitter
+		sys.trigger($mister1_emitter);
+		sys.trigger($mister2_emitter);
+		
+		sys.wait (.5);
+		thread crossFadeEnt ($misterlight_white1, '1 0 0', '1 1 1', 1.0);
+		thread crossFadeEnt ($decontop_fade1, '1 0 0', '1 1 1', 1.0);
+		thread crossFadeEnt ($decon_toplight_red1, '1 0 0', '0 0 0', 1.0);		
+	}
+	
+	void mister2()
+	{		
+		sys.trigger($decondoor1);
+		sys.trigger($decondoor1_aas);
+
+		$decon_trigger1.disable ();
+		
+		//turn on emitter
+		sys.trigger($mister1_emitter);
+		sys.trigger($mister2_emitter);
+		
+		float i;
+			i = thread mister_move2();
+			sys.waitForThread (i);
+		
+		//complete decon1 computer voice
+		thread ShowSubtitles("PA", "Purification complete.", 2.15);
+		sys.trigger ($decon1_complete_speaker);
+		
+		sys.wait (.25);
+
+			sys.trigger($decondoor2);
+			sys.trigger($decondoor2_aas);
+			$trig_exit_decon1.enable();
+			$drfrm4.setColor(1, 0.823529, 0.521569);
+	}
+
+	void decon_cycle1 ()
+	{		
+		$decon_trigger1.enable ();
+		$trig_exit_decon1.enable();
+		sys.trigger($decondoor1);
+		sys.trigger($decondoor1_aas);
+		$trig_enter_decon1.disable();
+	}
+
+	void seal_decon1 ()
+	{		
+		sys.trigger($decondoor2);
+		sys.trigger($decondoor2_aas);
+		$trig_enter_decon1.enable();
+		$trig_exit_decon1.disable();
+		$drfrm4.setColor(0.5, 0, 0);
+	}
+
+	void OpenSomaDoor(float number)
+	{
+		entity door = sys.getEntity("somadoor_round_" + number);
+		entity door_aas = sys.getEntity("soma_aas_obstacle_" + number);
+		entity portal = sys.getEntity("somadoor_portal_" + number);
+
+		entity switch_a = sys.getEntity("somadoor" + number + "_gui_a");
+		entity switch_b = sys.getEntity("somadoor" + number + "_gui_b");
+		
+		entity somaguis_off = sys.getEntity("disable_soma" + number + "_guis");
+		entity somaguis_on = sys.getEntity("enable_soma" + number + "_guis");
+		entity somaguis_blue = sys.getEntity("soma" + number + "_guilights_blue");
+		entity somaguis_green = sys.getEntity("soma" + number + "_guilights_green");
+		
+		float state = door.getFloatKey("state");
+		float openDir = door.getFloatKey("openDir");
+		float closeDir = door.getFloatKey("closeDir");
+		vector rv = door.getVectorKey("rotateVector");
+
+		if( state == 0)
+		{
+			door.setKey("state", 2);
+
+			sys.trigger(portal);
+			
+			sys.trigger(somaguis_off);
+			
+			sys.trigger(door_aas);
+			
+			if(debug)
+				sys.println("AAS triggered");
+			
+			switch_a.setShaderParm( 7, 2 );
+			switch_b.setShaderParm( 7, 2 );
+			sys.trigger(somaguis_blue);
+			
+			door.accelTime(1);
+			door.decelTime(1);
+			door.time(2.5);
+
+			door.startSoundShader ("al4_openslats_2s", SND_CHANNEL_VOICE);
+			door.rotateOnce(rv * 135);
+			sys.waitFor(door);
+			
+			door.accelTime(1);
+			door.decelTime(.5);
+			door.time(3.5);
+
+			door.startSoundShader ("sound/doors/large/hugedoor_01_open.wav", SND_CHANNEL_VOICE);
+			
+			door.move(openDir, 128);
+			door.rotateOnce(rv * 90);
+		
+			sys.waitFor(door);			
+
+			door.setKey("state", 1);
+
+			sys.wait(5);
+
+			door.setKey("state", 2);
+			
+			sys.trigger(door_aas);
+			
+			if(debug)
+				sys.println("AAS triggered");
+
+			door.startSoundShader ("sound/doors/large/hugedoor_01_close.wav", SND_CHANNEL_VOICE);
+			door.move(closeDir, 128);
+			door.rotateOnce(rv * -90);
+
+			sys.waitFor(door);
+
+			door.accelTime(1);
+			door.decelTime(1);
+			door.time(2.5);
+
+			door.startSoundShader ("al4_openslats_2s", SND_CHANNEL_VOICE);
+			door.rotateOnce(rv * -135);
+			sys.waitFor(door);
+
+			sys.trigger(portal);
+
+			switch_a.setShaderParm( 7, 1 );
+			switch_b.setShaderParm( 7, 1 );
+			sys.trigger(somaguis_green);
+			
+			sys.trigger(somaguis_on);
+			
+			door.setKey("state", 0);
+		}
+	}
+
+	void OpenSomaDoor1()
+	{
+		OpenSomaDoor(1);
+	}
+
+	void OpenSomaDoor2()
+	{
+		OpenSomaDoor(2);
+	}	
+
+	float lobbySpeaking = 0;
+	void LockedLobbyElevator()
+	{
+		if(lobbySpeaking == 0)
+		{
+			lobbySpeaking = 1;
+			thread ShowSubtitles("PA", "Surface access offline.", 2.25);
+			$lobby_callstation_locked.startSoundShader("sound/shav/e1m5_3/surfaceaccessoffline.ogg", SND_CHANNEL_ANY);
+
+			sys.wait(5);
+			lobbySpeaking = 0;
+		}
+	}
+
+	void OldPlatform1()
+	{
+		$old_platform_1_handle.time(0.15);
+		$old_platform_1_handle.rotateOnce('0 0 90');
+		$old_platform_1_handle.startSoundShader("sound/shav/e1m5_3/large_switch.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(.5);
+
+		$old_platform_1_handle.time(12);
+
+		$old_platform_1_handle.rotateOnce('0 0 -90');
+
+		$old_platform_1.move(DOWN, 256);
+		sys.waitFor($old_platform_1);
+		sys.wait(2);
+		$old_platform_1.move(UP, 256);
+
+		sys.waitFor($old_platform_1);
+		sys.waitFor($old_platform_1_handle);
+
+		sys.wait(1);
+
+		$func_static_100810.setKey("click_item", 1);
+	}
+
+	void OldPlatform1Lower()
+	{
+		$old_platform_1_lower_handle.time(0.15);
+		$old_platform_1_lower_handle.rotateOnce('0 0 -90');
+		$old_platform_1_lower_handle.startSoundShader("sound/shav/e1m5_3/large_switch.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(.5);
+
+		$old_platform_1_lower_handle.time(12);
+
+		$old_platform_1_lower_handle.rotateOnce('0 0 90');
+
+		$old_platform_1.move(DOWN, 256);
+		sys.waitFor($old_platform_1);
+		sys.wait(2);
+		$old_platform_1.move(UP, 256);
+
+		sys.waitFor($old_platform_1);
+		sys.waitFor($old_platform_1_lower_handle);
+
+		sys.wait(1);
+
+		$func_static_101773.setKey("click_item", 1);
+	}
+	
+	void floorhatch_open()
+	{
+		$office_floor_panel_1.move(-2, 1);
+		sys.waitFor($office_floor_panel_1);
+		$office_floor_panel_1.move(270, 60);
+	}
+
+	void RunElecSounds(float runTime, entity emitter1, entity emitter2, entity emitter3, entity emitter4)
+	{
+		float t = 0.0;
+		float tD = 1;
+		float tDH = tD / 2.0;
+
+		while(t < runTime)
+		{
+			emitter1.startSoundShader("electrical_sparks", SND_CHANNEL_ANY);
+			emitter3.startSoundShader("electrical_sparks", SND_CHANNEL_ANY);
+
+			sys.wait(tDH);
+
+			emitter2.startSoundShader("electrical_sparks", SND_CHANNEL_ANY);
+			emitter4.startSoundShader("electrical_sparks", SND_CHANNEL_ANY);
+
+			sys.wait(tDH);
+
+			t += tD;
+		}		
+	}
+
+	void RunElecs()
+	{		
+		while(1)
+		{
+			$elec_west_rod.move(0, 128);
+			$elec_east_rod.move(180, 128);
+
+			sys.waitFor($elec_east_rod);
+
+			sys.wait(1);
+
+			// Turn on elec
+			sys.trigger($elec_top_trighurt_1);
+			sys.trigger($elec_top_trighurt_2);
+			sys.trigger($elec_bottom_trighurt_1);
+			sys.trigger($elec_bottom_trighurt_2);
+			
+			sys.trigger($elec_top_rod_emitter_1);
+			sys.trigger($elec_top_rod_emitter_2);
+			sys.trigger($elec_top_emitter_1);
+			sys.trigger($elec_top_emitter_2);
+			sys.trigger($elec_top_light);
+			sys.trigger($elec_east_rod_emitter_1);
+			sys.trigger($elec_east_rod_emitter_2);
+
+			thread RunElecSounds(6, $elec_top_rod_emitter_1, $elec_top_rod_emitter_2, $elec_east_rod_emitter_1, $elec_east_rod_emitter_2);
+			$elec_top_emitter_1.startSoundShader("loop_hum_03", SND_CHANNEL_ANY);
+			$elec_top_emitter_2.startSoundShader("loop_hum_02", SND_CHANNEL_ANY);
+
+			sys.trigger($elec_bottom_rod_emitter_1);
+			sys.trigger($elec_bottom_rod_emitter_2);
+			sys.trigger($elec_bottom_emitter_1);
+			sys.trigger($elec_bottom_emitter_2);
+			sys.trigger($elec_bottom_light);
+			sys.trigger($elec_west_rod_emitter_1);
+			sys.trigger($elec_west_rod_emitter_2);
+
+			thread RunElecSounds(6, $elec_bottom_rod_emitter_1, $elec_bottom_rod_emitter_2, $elec_west_rod_emitter_1, $elec_west_rod_emitter_2);
+			$elec_bottom_emitter_1.startSoundShader("loop_hum_03", SND_CHANNEL_ANY);
+			$elec_bottom_emitter_2.startSoundShader("loop_hum_02", SND_CHANNEL_ANY);
+			
+			sys.trigger($elec_relay_topbot);
+			
+			sys.wait(6);
+
+			$elec_top_emitter_1.stopSound(SND_CHANNEL_ANY, false);
+			$elec_top_emitter_2.stopSound(SND_CHANNEL_ANY, false);
+			$elec_bottom_emitter_1.stopSound(SND_CHANNEL_ANY, false);
+			$elec_bottom_emitter_2.stopSound(SND_CHANNEL_ANY, false);
+
+			$elec_west_rod.startSoundShader("al4_pounder_point2seconds", SND_CHANNEL_ANY);
+			$elec_east_rod.startSoundShader("al4_pounder_point2seconds", SND_CHANNEL_ANY);
+
+			// Turn off elec
+			sys.trigger($elec_top_rod_emitter_1);
+			sys.trigger($elec_top_rod_emitter_2);
+			sys.trigger($elec_top_emitter_1);
+			sys.trigger($elec_top_emitter_2);
+			sys.trigger($elec_top_light);
+			sys.trigger($elec_east_rod_emitter_1);
+			sys.trigger($elec_east_rod_emitter_2);
+
+			sys.trigger($elec_bottom_rod_emitter_1);
+			sys.trigger($elec_bottom_rod_emitter_2);
+			sys.trigger($elec_bottom_emitter_1);
+			sys.trigger($elec_bottom_emitter_2);
+			sys.trigger($elec_bottom_light);
+			sys.trigger($elec_west_rod_emitter_1);
+			sys.trigger($elec_west_rod_emitter_2);
+			
+			sys.trigger($elec_relay_topbot);
+
+			sys.wait(1);
+			
+			sys.trigger($elec_top_trighurt_1);
+			sys.trigger($elec_top_trighurt_2);
+			sys.trigger($elec_bottom_trighurt_1);
+			sys.trigger($elec_bottom_trighurt_2);
+
+			$elec_west_rod.move(180, 128);
+			$elec_east_rod.move(0, 128);
+
+			sys.waitFor($elec_east_rod);
+
+			sys.wait(1);
+
+			$elec_west.move(UP, 624);
+			$elec_east.move(DOWN, 624);
+			sys.trigger($elec_east_down_aas);
+			sys.trigger($elec_east_up_aas);
+			sys.trigger($elec_west_down_aas);
+			sys.trigger($elec_west_up_aas);
+
+			sys.waitFor($elec_east);
+			sys.wait(1);
+
+			$elec_west_rod.move(0, 128);
+			$elec_east_rod.move(180, 128);
+
+			sys.waitFor($elec_east_rod);
+			sys.wait(1);
+
+			// Turn on elec
+			sys.trigger($elec_middle_trighurt_1);
+			sys.trigger($elec_middle_trighurt_2);
+			
+			sys.trigger($elec_east_rod_emitter_1);
+			sys.trigger($elec_east_rod_emitter_2);
+			sys.trigger($elec_middle_emitter_1);
+			sys.trigger($elec_middle_emitter_2);
+			sys.trigger($elec_middle_light);
+			sys.trigger($elec_west_rod_emitter_1);
+			sys.trigger($elec_west_rod_emitter_2);
+
+			thread RunElecSounds(6, $elec_east_rod_emitter_1, $elec_east_rod_emitter_2, $elec_west_rod_emitter_1, $elec_west_rod_emitter_2);
+			$elec_middle_emitter_1.startSoundShader("loop_hum_03", SND_CHANNEL_ANY);
+			$elec_middle_emitter_2.startSoundShader("loop_hum_02", SND_CHANNEL_ANY);
+
+			sys.trigger($elec_relay_mid);
+
+			sys.wait(6);
+
+			// Turn off elec
+			sys.trigger($elec_east_rod_emitter_1);
+			sys.trigger($elec_east_rod_emitter_2);
+			sys.trigger($elec_middle_emitter_1);
+			sys.trigger($elec_middle_emitter_2);
+			sys.trigger($elec_middle_light);
+			sys.trigger($elec_west_rod_emitter_1);
+			sys.trigger($elec_west_rod_emitter_2);
+
+			$elec_middle_emitter_1.stopSound(SND_CHANNEL_ANY, false);
+			$elec_middle_emitter_2.stopSound(SND_CHANNEL_ANY, false);
+			
+			sys.trigger($elec_relay_mid);
+
+			$elec_west_rod.startSoundShader("al4_pounder_point2seconds", SND_CHANNEL_ANY);
+			$elec_east_rod.startSoundShader("al4_pounder_point2seconds", SND_CHANNEL_ANY);
+
+			sys.wait(1);
+			
+			sys.trigger($elec_middle_trighurt_1);
+			sys.trigger($elec_middle_trighurt_2);
+
+			// Move elec rods back in
+			$elec_west_rod.move(180, 128);
+			$elec_east_rod.move(0, 128);
+
+			sys.waitFor($elec_east_rod);
+			sys.wait(1);
+
+			// Move them back to their initial positions
+			$elec_west.move(DOWN, 624);
+			$elec_east.move(UP, 624);
+			sys.trigger($elec_east_down_aas);
+			sys.trigger($elec_east_up_aas);
+			sys.trigger($elec_west_down_aas);
+			sys.trigger($elec_west_up_aas);
+
+			sys.waitFor($elec_east);
+			sys.wait(1);
+		}
+	}
+	
+	
+	void calculateArchHealth(float arch_num)
+		{
+			
+				entity archvile = sys.getEntity("monster_demon_archvile_" + arch_num);
+				entity archdoll = sys.getEntity("monster_demon_archvile_" + arch_num + "_healthdoll");
+				
+				float archdoll_health = archdoll.getHealth();
+				
+				float arch_health = archdoll_health / 5;
+				
+				if(debug)
+					sys.println(archdoll_health);
+		
+					if (arch_health <= 100) 
+						{				
+							archvile.setHealth(100);
+						}	
+						else
+						{
+							archvile.setHealth(arch_health);
+						}
+					
+				if(debug)
+					sys.println(arch_health);
+					
+		}
+	
+		
+	void calculateArchHealth1()
+	{
+		calculateArchHealth(1);
+	}
+	
+	void calculateArchHealth2()
+	{
+		calculateArchHealth(2);
+	}
+	
+	void calculateArchHealth3()
+	{
+		calculateArchHealth(3);
+	}
+	
+	void calculateArchHealth4()
+	{
+		calculateArchHealth(4);
+	}
+	
+	void calculateArchHealth5()
+	{
+		calculateArchHealth(5);
+	}
+	
+	void calculateArchHealth6()
+	{
+		calculateArchHealth(6);
+	}
+	
+	void calculateArchHealth7()
+	{
+		calculateArchHealth(7);
+	}
+	
+	void calculateArchHealth8()
+	{
+		calculateArchHealth(8);
+	}
+	
+	void calculateArchHealth9()
+	{
+		calculateArchHealth(9);
+	}
+	
+	void calculateArchHealth10()
+	{
+		calculateArchHealth(10);
+	}
+	
+	void calculateArchHealth11()
+	{
+		calculateArchHealth(11);
+	}
+	
+	void calculateArchHealth12()
+	{
+		calculateArchHealth(12);
+	}
+	
+	void calculateLumpArchHealth()
+	{
+		calculateArchHealth1();
+		calculateArchHealth2();
+		calculateArchHealth3();
+		calculateArchHealth4();
+		calculateArchHealth5();
+		calculateArchHealth6();
+		calculateArchHealth7();
+		calculateArchHealth8();
+		calculateArchHealth9();
+		calculateArchHealth10();
+		calculateArchHealth11();
+		calculateArchHealth12();
+	}
+	
+	
+	void resetArchTrigs1_ab()
+	{
+		sys.wait(1);
+		$ArchTrig1a.enable();
+		$ArchTrig1b.enable();
+		$ArchTrig1c.disable();
+	}
+	
+	void resetArchTrigs1_ac()
+	{
+		sys.wait(1);
+		$ArchTrig1a.enable();
+		$ArchTrig1b.disable();
+		$ArchTrig1c.enable();
+	}
+	
+	void resetArchTrigs1_bc()
+	{
+		sys.wait(1);
+		$ArchTrig1a.disable();
+		$ArchTrig1b.enable();
+		$ArchTrig1c.enable();
+	}
+	
+	void resetArchTrigs2_a()
+	{
+		sys.wait(1);
+		$ArchTrig2a.enable();
+		$ArchTrig2b.disable();
+	}
+	
+	void resetArchTrigs2_b()
+	{
+		sys.wait(1);
+		$ArchTrig2a.disable();
+		$ArchTrig2b.enable();
+	}
+	
+	void resetArchTrigs3_a()
+	{
+		sys.wait(1);
+		$ArchTrig3a.enable();
+		$ArchTrig3b.disable();
+	}
+	
+	void resetArchTrigs3_b()
+	{
+		sys.wait(1);
+		$ArchTrig3a.disable();
+		$ArchTrig3b.enable();
+	}
+	
+	void resetArchTrigs4_a()
+	{
+		sys.wait(1);
+		$ArchTrig4a.enable();
+		$ArchTrig4b.disable();
+	}
+	
+	void resetArchTrigs4_b()
+	{
+		sys.wait(1);
+		$ArchTrig4a.disable();
+		$ArchTrig4b.enable();
+	}
+	
+	void resetArchTrigs5_a()
+	{
+		sys.wait(1);
+		$ArchTrig5a.enable();
+		$ArchTrig5b.disable();
+	}
+	
+	void resetArchTrigs5_b()
+	{
+		sys.wait(1);
+		$ArchTrig5a.disable();
+		$ArchTrig5b.enable();
+	}
+	
+	void trig_selection1()
+	{
+		float trigselect1;
+
+		while (1)
+		{
+			trigselect1 = sys.random(15);
+		
+				if (trigselect1 <= 5){
+					sys.trigger ($spawn_config1);
+					sys.wait(1);
+				} else if (trigselect1 >= 11){
+					sys.trigger ($spawn_config2);
+					sys.wait(1);
+				} 
+				  else {
+					sys.trigger ($spawn_config3);
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_trig_selection1()
+	{
+		sys.killthread ("map_e1m5_3::trig_selection1");
+	}
+	
+	void spawn_configuration1()
+	{
+		sys.trigger ($trigger_count_1);
+		sys.trigger ($trigger_count_3);
+		sys.trigger ($trigger_count_5);
+		sys.trigger ($trigger_count_7);
+		sys.trigger ($trigger_count_9);
+		sys.trigger ($trigger_count_11);
+		sys.trigger ($trigger_count_13);
+		sys.trigger ($trigger_count_15);
+		sys.trigger ($trigger_count_17);
+		sys.trigger ($trigger_count_19);
+		sys.trigger ($trigger_count_23);
+		if(debug)
+		sys.println("spawn_config1 selected");
+	}
+	
+	void spawn_configuration2()
+	{
+		sys.trigger ($trigger_count_2);
+		sys.trigger ($trigger_count_4);
+		sys.trigger ($trigger_count_6);
+		sys.trigger ($trigger_count_8);
+		sys.trigger ($trigger_count_10);
+		sys.trigger ($trigger_count_12);
+		sys.trigger ($trigger_count_14);
+		sys.trigger ($trigger_count_16);
+		sys.trigger ($trigger_count_18);
+		sys.trigger ($trigger_count_20);
+		sys.trigger ($trigger_count_22);
+		if(debug)
+		sys.println("spawn_config2 selected");
+	}
+	
+	void spawn_configuration3()
+	{
+		sys.trigger ($trigger_count_1);
+		sys.trigger ($trigger_count_4);
+		sys.trigger ($trigger_count_5);
+		sys.trigger ($trigger_count_8);
+		sys.trigger ($trigger_count_9);
+		sys.trigger ($trigger_count_12);
+		sys.trigger ($trigger_count_13);
+		sys.trigger ($trigger_count_16);
+		sys.trigger ($trigger_count_17);
+		sys.trigger ($trigger_count_20);
+		sys.trigger ($trigger_count_22);
+		if(debug)
+		sys.println("spawn_config3 selected");
+	}
+	
+	void select_monsterconfig1()
+	{
+		float monsterselect1;
+
+		while (1)
+		{
+			monsterselect1 = sys.random(15);
+		
+				if (monsterselect1 <= 8){
+					sys.trigger ($monster_select_count1a);
+					if(debug)
+					sys.println("monster_select_count1a selected");
+					sys.wait(.5);
+				} else {
+					sys.trigger ($monster_select_count1b);
+					if(debug)
+					sys.println("monster_select_count1b selected");
+					sys.wait(.5);
+				} 
+		}
+	}
+	
+	void kill_monster_selection1()
+	{
+		sys.killthread ("map_e1m5_3::select_monsterconfig1");
+	}
+	
+	void select_monsterconfig2()
+	{
+		float monsterselect2;
+
+		while (1)
+		{
+			monsterselect2 = sys.random(15);
+		
+				if (monsterselect2 <= 5){
+					sys.trigger ($monster_select_count2a);
+					if(debug)
+					sys.println("monster_select_count2a selected");
+					sys.wait(.5);
+				} else if (monsterselect2 >= 11){
+					sys.trigger ($monster_select_count2b);
+					if(debug)
+					sys.println("monster_select_count2b selected");
+					sys.wait(.5);
+				} 
+				  else {
+					sys.trigger ($monster_select_count2c);
+					if(debug)
+					sys.println("monster_select_count2c selected");
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_monster_selection2()
+	{
+		sys.killthread ("map_e1m5_3::select_monsterconfig2");
+	}
+	
+	void select_monsterconfig3()
+	{
+		float monsterselect3;
+
+		while (1)
+		{
+			monsterselect3 = sys.random(15);
+		
+				if (monsterselect3 <= 5){
+					sys.trigger ($monster_select_count3a);
+					if(debug)
+					sys.println("monster_select_count3a selected");
+					sys.wait(.5);
+				} else if (monsterselect3 >= 11){
+					sys.trigger ($monster_select_count3b);
+					if(debug)
+					sys.println("monster_select_count3b selected");
+					sys.wait(.5);
+				} 
+				  else {
+					sys.trigger ($monster_select_count3c);
+					if(debug)
+					sys.println("monster_select_count3c selected");
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_monster_selection3()
+	{
+		sys.killthread ("map_e1m5_3::select_monsterconfig3");
+	}
+	
+	void select_monsterconfig4()
+	{
+		float monsterselect4;
+
+		while (1)
+		{
+			monsterselect4 = sys.random(15);
+		
+				if (monsterselect4 <= 8){
+					sys.trigger ($monster_select_count4a);
+					if(debug)
+					sys.println("monster_select_count4a selected");
+					sys.wait(.5);
+				} else {
+					sys.trigger ($monster_select_count4b);
+					if(debug)
+					sys.println("monster_select_count4b selected");
+					sys.wait(.5);
+				} 
+		}
+	}
+	
+	void kill_monster_selection4()
+	{
+		sys.killthread ("map_e1m5_3::select_monsterconfig4");
+	}
+	
+	
+	void Lower_Platform_Railing()
+	{
+		$StartPipe_Platform_Railing.move(DOWN, 50);
+		sys.trigger($StartPipe_Platform_Railing_Spkr);
+	}
+
+	void Raise_Platform()
+	{
+		$StartPipe_Platform.move(UP, 128);
+		sys.waitFor($StartPipe_Platform);
+		sys.wait(1);
+		Lower_Platform_Railing();
+	}
+	
+	void fadein_tension_loop()
+	{
+		$speaker_43.fadeSound(SND_CHANNEL_ANY, 33, 2);
+	}
+	
+	void fadeout_tension_loop()
+	{
+		$speaker_43.fadeSound(SND_CHANNEL_ANY, -33, 5);
+	}
+	
+	void fadein_levelexit_loop()
+	{
+		sys.trigger($speaker_31);
+		sys.trigger($speaker_39);
+		sys.trigger($speaker_85);
+		sys.trigger($speaker_86);
+		$speaker_43.fadeSound(SND_CHANNEL_ANY, 20, 2);
+	}		
+	
+	void StartCrusher(float crusherNum)
+	{	
+		entity crusher = sys.getEntity("crusher" + crusherNum);
+		entity crusherlift = sys.getEntity("crusherlift" + crusherNum);
+		entity crusherlift_dest1 = sys.getEntity("crusherlift" + crusherNum + "_dest_1");
+		entity crusherlift_dest2 = sys.getEntity("crusherlift" + crusherNum + "_dest_2");
+		entity crusherlift_dest3 = sys.getEntity("crusherlift" + crusherNum + "_dest_3");
+		entity crusher_poundspkr = sys.getEntity("crusher" + crusherNum + "_poundspkr");
+		entity crusherlift_door = sys.getEntity("crusherlift" + crusherNum + "_door_r");
+		entity crusherlift_door_in = sys.getEntity("crusherlift" + crusherNum + "_door_r_in");
+		entity crusher_spkrdown = sys.getEntity("crusher" + crusherNum + "_spkrdown");
+		entity crusher_spkrup = sys.getEntity("crusher" + crusherNum + "_spkrup");
+		entity crusher_aas = sys.getEntity("crusher" + crusherNum + "_aas");
+		entity crusher_portal = sys.getEntity("crusherportal" + crusherNum);
+		entity klaxon_relay = sys.getEntity("crusher" + crusherNum + "_klaxon_relay");
+		
+		float crusherRaised = crusher.getFloatKey("crusherRaised");
+		
+		if( crusherRaised == 1)
+		{
+		
+			crusher.setKey("crusherRaised", 0);
+		
+			crusher.time(.85);
+			crusher.decelTime(0);
+			crusher.accelTime(.25);
+			sys.wait(1);
+			sys.trigger(klaxon_relay);
+			crusherlift.moveTo(crusherlift_dest1);
+			sys.waitFor(crusherlift);
+			crusherlift.bind(crusher);
+			sys.wait(.5);
+			sys.trigger(crusher_aas);
+			sys.trigger(crusher_spkrdown);
+			crusher.move(DOWN, 264);
+			sys.waitFor(crusher);
+			sys.trigger(crusher_poundspkr);
+			crusherlift.unbind();
+			sys.wait(.65);
+			crusherlift.moveTo(crusherlift_dest2);
+			sys.wait(.75);
+	
+		{
+			float numBarrels = sys.random(3);
+			float spawnPlace = sys.random(4);			
+
+			if( spawnPlace >= 4 )
+				spawnPlace = 0;
+			else if( spawnPlace >= 3)
+				spawnPlace = 2;
+			else if( spawnPlace >= 2)
+				spawnPlace = 1;
+			else
+				spawnPlace = 0;			
+				
+			entity barrelOne;
+			entity barrelTwo;
+			entity spawner;
+			
+			if( numBarrels >= 1 )
+			{
+				barrelOne = sys.spawn("moveable_explodingbarrel_slime");
+				spawner = sys.getEntity("crusherlift" + crusherNum + "_barrelspawn" + (spawnPlace + 1));
+				barrelOne.setOrigin(spawner.getOrigin());				
+			}
+			
+			if( numBarrels >= 2 )
+			{
+				barrelTwo = sys.spawn("moveable_explodingbarrel_slime");
+				spawner = sys.getEntity("crusherlift" + crusherNum + "_barrelspawn" + (spawnPlace + 2));
+				barrelTwo.setOrigin(spawner.getOrigin());				
+			}
+				
+		}
+		
+			sys.wait(.75);
+			crusher.time(5);
+			crusher.decelTime(1);
+			crusher.accelTime(.5);
+			sys.trigger(crusher_spkrup);
+			crusher.move(UP, 264);
+			sys.wait(2);
+			sys.trigger(crusher_portal);
+			sys.trigger(klaxon_relay);
+			sys.trigger(crusherlift_door);
+			sys.trigger(crusherlift_door_in);
+			sys.wait(1.5);
+			crusherlift.moveTo(crusherlift_dest3);
+			sys.waitFor(crusher);
+			crusher.setKey("crusherRaised", 1);
+			sys.trigger(crusher_aas);
+			sys.trigger(crusherlift_door);
+			sys.trigger(crusherlift_door_in);
+			sys.waitFor(crusherlift);
+		
+		if( numBarrels >= 1 )
+			{
+				barrelOne.remove();
+			}
+			
+		if( numBarrels >= 2 )
+			{
+				barrelTwo.remove();
+			}
+		crusherlift.restorePosition();
+		}
+		
+		else if( crusherRaised == 0 && debug){sys.println("crusher " + crusherNum + " is not ready!");}
+	}
+	
+	
+	void StartCrusher1()
+	{
+		StartCrusher(1);
+	}
+	
+	void StartCrusher2()
+	{
+		StartCrusher(2);
+	}
+	
+	void StartCrusher3()
+	{
+		StartCrusher(3);
+	}
+	
+	void StartCrusher4()
+	{
+		StartCrusher(4);
+	}
+	
+	void activate_crushers()
+	{
+		float crusherselect;
+
+		while (1)
+		{
+			crusherselect = sys.random(20);
+		
+				if (crusherselect <= 5){
+					sys.trigger ($crusher1_relay);
+					sys.wait(.5);
+				} else if (crusherselect <= 10){
+					sys.trigger ($crusher2_relay);
+					sys.wait(.5);
+				} 
+				else if (crusherselect <= 15){
+					sys.trigger ($crusher3_relay);
+					sys.wait(.5);
+				} 
+				 else {
+					sys.trigger ($crusher4_relay);
+					sys.wait(.5);
+				}
+		}
+	}	
+		
+		
+void StartCrusher_NB(float crusherNumNB)
+	{	
+		entity crusher = sys.getEntity("crusher" + crusherNumNB);
+		entity crusherlift = sys.getEntity("crusherlift" + crusherNumNB);
+		entity crusher_poundspkr = sys.getEntity("crusher" + crusherNumNB + "_poundspkr");
+		entity crusher_spkrdown = sys.getEntity("crusher" + crusherNumNB + "_spkrdown");
+		entity crusher_spkrup = sys.getEntity("crusher" + crusherNumNB + "_spkrup");
+		entity klaxon_relay = sys.getEntity("crusher" + crusherNumNB + "_klaxon_relay");
+		
+		float crusherRaised = crusher.getFloatKey("crusherRaised");
+		
+		if( crusherRaised == 1)
+		{
+		
+			crusher.setKey("crusherRaised", 0);
+		
+			crusher.time(.85);
+			crusher.decelTime(0);
+			crusher.accelTime(.25);
+			sys.trigger(klaxon_relay);
+			sys.wait(.5);
+			sys.trigger(crusher_spkrdown);
+			crusher.move(DOWN, 264);
+			sys.waitFor(crusher);
+			sys.trigger(crusher_poundspkr);
+			sys.wait(.5);
+			crusher.time(5);
+			crusher.decelTime(1);
+			crusher.accelTime(.5);
+			sys.trigger(crusher_spkrup);
+			crusher.move(UP, 264);
+			sys.wait(2);
+			sys.trigger(klaxon_relay);
+			sys.wait(2);
+			sys.waitFor(crusher);
+			crusher.setKey("crusherRaised", 1);
+		}
+			else if( crusherRaised == 0 && debug){sys.println("crusher " + crusherNumNB + " is not ready!");}
+	}
+	
+	void StartCrusher5()
+	{
+		StartCrusher_NB(5);
+	}
+	
+	void StartCrusher7()
+	{
+		StartCrusher_NB(7);
+	}
+	
+	void StartCrusher8()
+	{
+		StartCrusher_NB(8);
+	}
+	
+	void activate_crushers_nb()
+	{
+		float crusherselect_nb;
+
+		while (1)
+		{
+			crusherselect_nb = sys.random(15);
+		
+				if (crusherselect_nb <= 5){
+					sys.trigger ($crusher5_relay);
+					sys.wait(.5);
+				} else if (crusherselect_nb >= 9){
+					sys.trigger ($crusher7_relay);
+					sys.wait(.5);
+				}  
+				 else {
+					sys.trigger ($crusher8_relay);
+					sys.wait(.5);
+				}
+		}
+	}		
+	
+	void BarrelProcessing(float barrelnum)
+	{
+		while(1)
+	
+		{
+			entity barrel_conv = sys.getEntity("barrel_conv_" + barrelnum);
+			
+			barrel_conv.moveTo($barrel_blue_end);
+			sys.waitFor(barrel_conv);
+			barrel_conv.restorePosition();
+
+		}
+	}
+	
+	float mancubus_state = 0; 
+	// 0 = not spawned, 1 = spawned, 2 = dead
+	
+	void check_mancubus()
+	{
+		if(mancubus_state == 0)
+		{
+		if(debug)
+			sys.println("Mancubus is not spawned");
+		}
+		else if(mancubus_state == 1)
+		{
+			sys.trigger($monster_demon_mancubus_1);
+		}
+		else if(mancubus_state == 2)
+		{
+		if(debug)
+			sys.println("Mancubus is dead");
+		}
+	}
+	
+	void flag_manc_spawned()
+	{
+		mancubus_state = 1;
+	}
+	
+	void flag_manc_dead()
+	{
+		mancubus_state = 2;
+	}
+	
+		
+	void preelectricrods_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 17");
+	}			
+	
+	void postelectricrods_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 18");
+	}		
+	
+	void complexkeycard_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 19");
+	}	
+	
+	void postmancubus_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 20");
+	}	
+	
+	void switch1_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 21");
+	}
+		
+	void switch2_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 22");
+	}	
+		
+	void switch3_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 23");
+	}
+	
+	void cargoswitch_checkpoint()
+	{
+		sys.quickSave("Just Us - Checkpoint 24");
+	}	
+	
+	void main()
+	{
+		$ArchTrig1b.disable();
+		$ArchTrig1c.disable();
+		$ArchTrig2b.disable();
+		$ArchTrig3b.disable();
+		$ArchTrig4b.disable();
+		$ArchTrig5b.disable();
+		thread trig_selection1();
+		
+		thread select_monsterconfig1();
+		sys.wait(1);
+		thread select_monsterconfig2();
+		sys.wait(2);
+		thread select_monsterconfig3();
+		sys.wait(3);
+		thread select_monsterconfig4();
+		
+		sys.trigger($trigger_relay_1037);
+		sys.trigger($trigger_relay_1041);
+		sys.trigger($trigger_relay_645);
+		sys.trigger($trigger_relay_955);
+		
+		sys.trigger($func_static_101395);
+		sys.trigger($func_static_101315);
+		
+		sys.trigger($trigger_count_27);
+		sys.trigger($trigger_count_28);
+		sys.trigger($func_door_188592);
+
+		// Move elec rods back in
+		$elec_west_rod.move(180, 128);
+		$elec_east_rod.move(0, 128);
+
+		// Move them back to their initial positions
+		$elec_west.move(DOWN, 624);
+		$elec_east.move(UP, 624);
+		sys.trigger($elec_east_down_aas);
+		sys.trigger($elec_east_up_aas);
+		sys.trigger($elec_west_down_aas);
+		sys.trigger($elec_west_up_aas);
+
+		sys.waitFor($elec_east);
+		sys.waitFor($elec_east_rod);
+
+		sys.wait(1);
+
+		thread RunElecs();
+		thread activate_crushers();
+		thread activate_crushers_nb();
+		
+		$barrel_conv_2.move(UP, 128);
+		$barrel_conv_3.move(UP, 256);
+		$barrel_conv_4.move(UP, 384);
+		$barrel_conv_5.move(UP, 512);
+		$barrel_conv_6.move(UP, 640);
+		$barrel_conv_7.move(UP, 768);
+		sys.waitFor($barrel_conv_7);
+		
+		thread BarrelProcessing(1);
+		thread BarrelProcessing(2);
+		thread BarrelProcessing(3);
+		thread BarrelProcessing(4);
+		thread BarrelProcessing(5);
+		thread BarrelProcessing(6);
+		thread BarrelProcessing(7);
+	}
+
+	void UpdateCameraAngle()
+	{
+		while(1)
+		{
+			//$scanner_camera.setAngles($player1.getHead().getAngles());
+			$scanner_camera.setAngles($player1.getViewAngles());
+			sys.wait(GAME_FRAMETIME);
+		}
+	}
+
+	void SayA()
+	{
+		$scanner_camera.startSoundShader("sound/vo/player/general/What.ogg", SND_CHANNEL_ANY);
+	}
+
+	void SayB()
+	{
+		$scanner_camera.startSoundShader("sound/vo/player/general/Shit.ogg", SND_CHANNEL_ANY);
+	}
+
+	void FuckNuAf()
+	{
+		thread UpdateCameraAngle();
+	}
+
+	float power4 = 0;
+
+	#define POWER_STATE_OFF 0
+	#define POWER_STATE_ON 1
+	#define POWER_STATE_TRANSITION 2
+
+	float power1_state = POWER_STATE_OFF;
+	float power2_state = POWER_STATE_OFF;
+	float power3_state = POWER_STATE_OFF;
+
+	void OpenBrokenSomaDoor()
+	{
+		entity door = $somadoor_round_3;
+		float openDir = door.getFloatKey("openDir");		
+		vector rv = door.getVectorKey("rotateVector");
+
+		door.startSoundShader("sound/doors/large/hugedoor_01_open.wav", SND_CHANNEL_VOICE);
+		
+		$somadoor3_gui_a.setShaderParm( 7, 2 );
+		$somadoor3_gui_b.setShaderParm( 7, 2 );
+		sys.trigger($soma3_guilights_blue);
+		
+		sys.trigger($soma_aas_obstacle_3);
+			
+		door.accelTime(2);
+		door.decelTime(2);
+		door.time(4.5);
+
+		door.move(openDir, 80);
+		door.rotateOnce(rv * 56.25);
+		
+		sys.waitFor(door);
+		
+		$somadoor3_gui_a.setShaderParm( 7, 1 );
+		$somadoor3_gui_b.setShaderParm( 7, 1 );
+		sys.trigger($soma3_guilights_green);
+	}
+
+	void PowerUp(float station)
+	{
+		entity handle = sys.getEntity("power_station_handle_" + station);
+		entity gui = sys.getEntity("power_station_gui_" + station);
+		entity redPanelOff = sys.getEntity("power_station_redlight_off_" + station);
+		entity redPanelOn = sys.getEntity("power_station_redlight_on_" + station);
+		entity redLight = sys.getEntity("power_station_redlight_light_" + station);
+		entity greenPanelOff = sys.getEntity("power_station_greenlight_off_" + station);
+		entity greenPanelOn = sys.getEntity("power_station_greenlight_on_" + station);
+		entity greenLight = sys.getEntity("power_station_greenlight_light_" + station);
+		entity speaker_start = sys.getEntity("power_station_speaker_start_" + station);
+		entity speaker_loop = sys.getEntity("power_station_speaker_loop_" + station);
+		entity beep_speaker = sys.getEntity("power_station_beepspeaker_" + station);
+
+		vector rv = handle.getVectorKey("rotaxis");
+
+		gui.hide();
+		
+		handle.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+		handle.rotateOnce(rv * 90);
+		sys.waitFor(handle);
+
+		redPanelOff.show();
+		redPanelOn.hide();
+		redLight.hide();
+
+		greenPanelOff.hide();
+		greenPanelOn.show();
+		greenLight.show();
+
+		sys.trigger(speaker_start);
+		sys.trigger(beep_speaker);
+
+		sys.wait(2.75);
+				
+		sys.trigger(speaker_loop);
+	}
+
+	void PowerUp1()
+	{
+		PowerUp(1);
+		power1_state = POWER_STATE_ON;
+
+		$cargolift_power_1_light.setColor(0, .5, 0);
+		$cargolift_power_1_light1.setColor(0, .5, 0);
+		$cargolift_power_1_light2.setColor(0, .5, 0);
+		$cargolift_power_1_light3.setColor(0, .5, 0);
+		sys.trigger($cargolift_power_1_onoff_relay);
+		sys.trigger($levelend_sounscape_trigcount);
+		sys.trigger($powerswitchsave_relay);
+	}
+
+	void PowerUp2()
+	{
+		PowerUp(2);
+		power2_state = POWER_STATE_ON;
+
+		$cargolift_power_2_light.setColor(0, .5, 0);
+		$cargolift_power_2_light1.setColor(0, .5, 0);
+		$cargolift_power_2_light2.setColor(0, .5, 0);
+		$cargolift_power_2_light3.setColor(0, .5, 0);
+		sys.trigger($cargolift_power_2_onoff_relay);
+		sys.trigger($levelend_sounscape_trigcount);
+		sys.trigger($powerswitchsave_relay);
+	}
+
+	void PowerUp3()
+	{
+		sys.trigger($trigger_broken_somadoor);
+		PowerUp(3);		
+
+		power3_state = POWER_STATE_ON;
+
+		$cargolift_power_3_light.setColor(0, .5, 0);
+		$cargolift_power_3_light1.setColor(0, .5, 0);
+		$cargolift_power_3_light2.setColor(0, .5, 0);
+		$cargolift_power_3_light3.setColor(0, .5, 0);
+		sys.trigger($cargolift_power_3_onoff_relay);
+		sys.trigger($levelend_sounscape_trigcount);
+		sys.trigger($powerswitchsave_relay);
+	}
+
+	void PowerCargo()
+	{
+		$cargolift_power_junction_handle.time(0.15);
+		$cargolift_power_junction_handle.rotateOnce('-90 0 0');
+		$cargolift_power_junction_handle.startSoundShader("sound/shav/e1m5_3/large_switch.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(.5);
+
+		if(power1_state && power2_state && power3_state)
+		{
+			sys.trigger($liftcable_current);
+			thread crossFadeEnt ($liftcable_current, '0 0 0', '0.33 0.33 0.85', 0.75);
+			thread crossFadeEnt ($cargoliftlights_redtogreen, '1 0 0', '0 1 0', 0.65);
+			thread crossFadeEnt ($cargoliftlights_blacktogreen, '0 0 0', '0.3 0.71 0.3', 0.85);
+			power4 = 1;
+			sys.wait(1);
+			sys.trigger($trigger_count_26);
+			sys.trigger($trigger_count_24);
+			sys.trigger($func_forcefield_12);
+			sys.trigger($endlevel_archvile_aas);
+			sys.trigger($levelexit_archvile_relay);
+			sys.trigger($levelendsave_relay);
+		}
+		else
+		{
+			$cargolift_power_junction_handle.time(2);
+			$cargolift_power_junction_handle.rotateOnce('90 0 0');			
+			sys.waitFor($cargolift_power_junction_handle);
+
+			sys.wait(1);
+
+			$cargolift_power_junction_handle_clicker.setKey("click_item", 1);
+		}
+	}
+
+	void CargoLift()
+	{
+		$cargolift_handle.time(0.35);
+		$cargolift_handle.move(UP, 12);
+		$cargolift_handle.startSoundShader("sound/shav/e1m5_3/large_switch.ogg", SND_CHANNEL_ANY);
+
+		sys.waitFor($cargolift_handle);
+
+		sys.wait(.5);
+
+		if(power4)
+		{
+			sys.trigger($cargo_lift_player_clip);
+		
+			$func_static_58415.setColor(0, 0.494118, 0.090196);
+			$func_static_58408.setColor(0, 0.5, 0);
+			$func_static_58411.setColor(0.5, 0, 0);
+			$func_static_58412.setColor(0.5, 0, 0);
+			
+			sys.wait(1);
+
+			$tension_leg_top_cargo_lift.move(UP, 192);
+			sys.wait(3);
+			sys.trigger($target_endlevel_1);
+		}
+		else
+		{
+			$cargolift_handle.time(2);
+			$cargolift_handle.move(DOWN, 12);
+			sys.waitFor($cargolift_handle);
+
+			sys.wait(1);
+
+			$cargolift_handle_clicker.setKey("click_item", 1);
+		}
+	}
+	
+	void VentValve()
+	{
+		sys.trigger($trigger_relay_644);
+		$firehurt_rotator.rotateOnce('0 0 270');
+	}
+
+	void GamleOle()
+	{
+		while(1)
+		{
+			$SkyFuckerMover.move(90, 2304);
+			sys.waitFor($SkyFuckerMover);
+			$SkyFuckerMover.setWorldOrigin('-6304 -1888 240');
+		}
+	}
+}

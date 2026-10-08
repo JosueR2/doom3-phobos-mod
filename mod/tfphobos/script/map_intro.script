@@ -1,0 +1,633 @@
+namespace map_intro
+{
+	float activeCam = 0;
+	float introSkipped = 0;
+	float introActive = 0;
+	float canSkipIntro = 0;
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_intro(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+
+	void Intro_CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+	
+	void Intro_CharacterSaysInterupt(entity characterEntity, string line, float interrupt)
+    {
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY) - interrupt);
+    }	
+
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}
+
+	void showTextCam(string text, entity e)
+	{		
+		e.setGuiParm("gui_parm1", text);
+		e.setGuiParm("gui_parm2", 0);
+		sys.trigger(e);
+
+		sys.fadeTo('0 0 0', 0, 2);
+
+		sys.wait(7);
+
+		e.setGuiParm("gui_parm2", 1);
+		sys.trigger(e);
+
+		sys.fadeTo('0 0 0', 1, 1);
+
+		sys.wait(1);		
+	}
+
+	void showText(string text)
+	{
+		entity e = sys.getEntity("cameraGui1");
+		showTextCam(text, e);
+	}
+	
+	vector offColor = '0.074510 0.047059 0.000000';
+	vector onColor = '1 0.698039 0';
+	
+	void turnOffHouseLights()
+	{
+		crossFadeEnt ($intro_house_light_1, onColor, offColor, .0625);
+		sys.wait(5);
+		crossFadeEnt ($intro_house_light_2, onColor, offColor, .0625);
+		sys.wait(4);
+		crossFadeEnt ($intro_house_light_3, onColor, offColor, .0625);
+		sys.wait(3);
+		crossFadeEnt ($intro_house_light_4, onColor, offColor, .0625);
+		sys.wait(6);
+		crossFadeEnt ($intro_house_light_5, onColor, offColor, .0625);
+		sys.wait(3);
+		crossFadeEnt ($intro_house_light_6, onColor, offColor, .0625);
+		sys.wait(5);
+		crossFadeEnt ($intro_house_light_7, onColor, offColor, .0625);
+		sys.wait(2);
+		crossFadeEnt ($intro_house_light_8, onColor, offColor, .0625);
+		sys.wait(5);
+		crossFadeEnt ($intro_house_light_9, onColor, offColor, .0625);
+		sys.wait(7);
+		crossFadeEnt ($intro_house_light_10, onColor, offColor, .0625);
+	}
+
+	void main2()
+	{
+		$cameraMover.rotateOnce('0 0 90');
+		sys.trigger($introCamera);
+
+		sys.wait(1);
+
+		sys.wait(10);
+		$cameraMover.speed(10);
+		$cameraMover.move(180, 512);
+		$cameraMover.rotateOnce('0 0 -90');		
+	}	
+
+	float inTransition = 0;	
+
+	vector green = '0 .5 0';
+	vector blue = '0 0 .5';
+	vector red = '.5 0 0';
+	vector teal = '0 .5 .5';
+	vector magenta = '.5 0 .5';
+	vector yellow = '.5 .5 0';
+
+	vector nColor = '0 .5 0';
+	float brighter = 1.5;	
+
+	void ToggleCrystal(float number)
+	{		
+		if(inTransition == 0)
+		{
+			entity crystal = sys.getEntity("crystal" + number);
+			entity light = sys.getEntity("crystal_light" + number);
+			entity fade = sys.getEntity("crystal_fade" + number);
+
+			float crystalState = crystal.getFloatKey("cstate");
+
+			vector oColor = nColor;
+			
+			if(crystalState == 0)
+				nColor = green;
+			else if(crystalState == 1)
+				nColor = blue;
+			else if(crystalState == 2)
+				nColor = red;
+			else if(crystalState == 3)
+				nColor = teal;
+			else if(crystalState == 4)
+				nColor = magenta;
+			else if(crystalState == 5)
+				nColor = yellow;
+
+			inTransition = 1;
+			thread crossFadeEnt (crystal, oColor * brighter, nColor * brighter, .25);
+			thread crossFadeEnt (light, oColor, nColor, .25);
+			thread crossFadeEnt (fade, oColor * (1 / brighter), nColor * ( 1 / brighter), .25);
+			sys.wait(.25);
+
+			crystalState++;
+			crystalState %= 6;
+
+			crystal.setKey("cstate", crystalState);
+
+			inTransition = 0;
+		}		
+	}
+
+	void ToggleCrystal1()
+	{
+		ToggleCrystal(1);
+	}
+
+	void ToggleCrystal2()
+	{
+		ToggleCrystal(2);
+	}
+
+	float lightCounter = 0;
+
+	vector noLight = '0 0 0';
+	vector lampTexColor = '0.9 0.4 0.28';
+	vector lampLightColor = '0.32 0.21 0.13';
+	vector lampGlareColor = '0.419608 0.180392 0.129412';
+	vector lampEffectColor = '0.45 0.2 0.14';
+
+	void ToggleLight()
+	{
+		if(lightCounter < 7)
+		{
+			$LightClicker.startSoundShader("switch_02", SND_CHANNEL_ANY);			
+
+			if(lightCounter % 2 == 0)
+			{
+				thread crossFadeEnt ($LampLight, noLight, lampLightColor, .0625);
+				thread crossFadeEnt ($LampGlare, noLight, lampGlareColor, .0625);
+				thread crossFadeEnt ($LampTex, noLight, lampTexColor, .0625);
+				thread crossFadeEnt ($LampEffect, noLight, lampEffectColor, .0625);
+			}
+			else
+			{
+				thread crossFadeEnt ($LampLight, lampLightColor, noLight, .0625);
+				thread crossFadeEnt ($LampGlare, lampGlareColor, noLight, .0625);
+				thread crossFadeEnt ($LampTex, lampTexColor, noLight, .0625);
+				thread crossFadeEnt ($LampEffect, lampEffectColor, noLight, .0625);
+			}
+
+			lightCounter++;
+
+			if(lightCounter > 6)
+			{
+				sys.trigger($LightClicker);
+
+				sys.wait(1);
+
+				thread ShowNPCSubtitles("Girl", "We would then crawl out of our rooms, and down to the fence.", 3.5);
+				Intro_CharacterSays($player1, "sound/vo/e1m1/Intro/Lee5.ogg");
+
+				sys.trigger($WindowClicker);
+			}
+		}
+	}
+
+	void OpenCloset()
+	{
+		$SliderLeft.move(180, 35);
+		sys.trigger($SliderLeftSpeaker);
+
+		sys.wait(.125);
+
+		$SliderRight.move(0, 32);
+		sys.trigger($SliderRightSpeaker);
+	}
+
+	float stillCalling = 1;
+
+	void ExitWindow()
+	{
+		if (introSkipped == 1)
+		{
+			return;
+		}
+
+		sys.fadeTo('0 0 0', 1, .25);
+		
+		$WindowClicker.startSoundShader("sound/shav/intro/openwindow.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(2);
+
+		$RoomFog.move(UP, 2048);
+
+		sys.trigger($info_player_teleport_1);
+
+		sys.fadeTo('0 0 0', 0, 1);
+
+		sys.wait(5);
+
+		thread ShowNPCSubtitles("Girl", "Hey! Are you there? Come on. I'm here.", 3);
+		Intro_CharacterSays($FenceClicker, "sound/vo/e1m1/Intro/Lee6.ogg");
+
+		sys.trigger($FenceClicker);
+
+		while(stillCalling == 1)
+		{
+			sys.wait(5);
+
+			if(stillCalling == 0)
+				break;
+
+			thread ShowNPCSubtitles("Girl", "Come here.", 2);
+			Intro_CharacterSays($FenceClicker, "sound/vo/e1m1/Intro/Lee6_1.ogg");
+			
+			if(stillCalling == 0)
+				break;
+
+			sys.wait(5);
+
+			if(stillCalling == 0)
+				break;
+
+			thread ShowNPCSubtitles("Girl", "Hey dickwad.", 2);
+			Intro_CharacterSays($FenceClicker, "sound/vo/e1m1/Intro/Lee6_2.ogg");
+			
+			if(stillCalling == 0)
+				break;
+
+			sys.wait(5);
+
+			if(stillCalling == 0)
+				break;
+
+			thread ShowNPCSubtitles("Girl", "Hello?", 2);
+			Intro_CharacterSays($FenceClicker, "sound/vo/e1m1/Intro/Lee6_3.ogg");
+		}
+	}
+
+	void BlueTunnel()
+	{
+		if (introSkipped == 1)
+		{
+			return;
+		}
+
+		sys.fadeTo('0 0 0', 1, 1);
+
+		sys.wait(.9);
+
+		sys.trigger($SpeakerCrickets);
+
+		sys.wait(3);
+
+		sys.trigger($SpeakerVoidBack);
+		
+		sys.trigger($BlueWorldCam);
+		activeCam = 2;
+		sys.fadeTo('0 0 0', 0, .0625);
+
+		sys.wait(5);
+		sys.trigger($SpeakerVoid);
+		sys.wait(1);
+
+		$BlueWorldRotator.rotateOnce('90 0 0');
+		sys.waitFor($BlueWorldRotator);
+		
+		$BlueWorldMover.move(DOWN, 2688);
+
+		sys.wait(21.5);
+		sys.trigger($SpeakerVoidHorn);
+
+		sys.wait(15);
+
+		sys.trigger($SpeakerAlarmIntro);
+
+		sys.wait(1.277);
+		sys.fadeTo('0 0 0', 1, .01);
+		sys.wait(4);
+
+		sys.fadeTo('0 0 0', 0, 2);
+
+		sys.trigger($intro_cam_titletext);
+
+		sys.wait(4);
+
+		sys.fadeTo('0 0 0', 1, 1);
+
+		sys.wait(12);
+
+		if (introSkipped == 1)
+		{
+			return;
+		}
+
+		activeCam = 3;
+		sys.trigger($trigger_relay_478);
+
+		$speaker_1012.fadeSound(SND_CHANNEL_ANY, 10, 10);
+	}
+
+	void Lee10Sub()
+	{
+		PhobosShowSubtitle_intro("Girl", "Wow a year? Let's stay out here for an hour. And make it two.");
+		
+		sys.wait(5);
+		
+		PhobosShowSubtitle_intro("Girl", "I totally want to see you grounded in room prison.\nStripes look good on you.");
+	}
+
+	void TalkFence()
+	{
+		stillCalling = 0;
+		$FenceClicker.stopSound(SND_CHANNEL_ANY,0);
+
+		thread ShowNPCSubtitles("Girl", "Took your sweet time girl.", 2);
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Lee7.ogg");
+
+		Beat(.5);
+
+		PhobosShowSubtitle_intro("...", "Hey I'm not your girl.");
+		Intro_CharacterSays($player1, "sound/vo/e1m1/Intro/Player2.ogg");
+
+		Beat(.75);
+
+		PhobosShowSubtitle_intro("Girl", "You are so my girl.");
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Lee8.ogg");
+
+		Beat(.55);
+
+		PhobosShowSubtitle_intro("...", "Whatever man. So what did you want?");
+		Intro_CharacterSays($player1, "sound/vo/e1m1/Intro/Player3.ogg");
+
+		Beat(.85);
+
+		PhobosShowSubtitle_intro("Girl", "I desperately wanted your company.\nIn fact. I need it.");
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Lee9.ogg");
+
+		Beat(.85);
+
+		PhobosShowSubtitle_intro("...", "Now? It's almost midnight.\nThey're gonna ground me for a year if they find out.");
+		Intro_CharacterSays($player1, "sound/vo/e1m1/Intro/Player4.ogg");
+
+		Beat(1.0);
+		
+		thread Lee10Sub();
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Lee10.ogg");
+		 
+		Beat(.7);
+
+		PhobosShowSubtitle_intro("...", "Stripes don't look good on anybody.\nBut you can be my prison wife.");
+		Intro_CharacterSays($player1, "sound/vo/e1m1/Intro/Player5.ogg");
+
+		Beat(1);
+
+		PhobosShowSubtitle_intro("Girl", "Yeah no. I'm gonna be out here, free as a bird.\nLiving next door to a criminal mastermind weirdo.");
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Lee11.ogg");
+
+		Beat(.5);
+
+		thread ShowNPCSubtitles("...", "You're the weirdo.", 2);
+		Intro_CharacterSays($player1, "sound/vo/e1m1/Intro/Player6.ogg");
+
+		Beat(2.75);
+		
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Sigh.ogg");
+
+		Beat(.7);
+
+		sys.trigger($speaker_1092);
+
+		Beat(.15);		
+
+		PhobosShowSubtitle_intro("Girl", "Look. Samuel got his letter today.\nOf acceptance. You know?");
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Lee12.ogg");
+
+		Beat(1.75);
+
+		PhobosShowSubtitle_intro("Girl", "He'll be going away. Soon.");
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Lee13.ogg");		
+
+		Beat(1.15);
+
+		PhobosShowSubtitle_intro("...", "He'll come back.");
+		Intro_CharacterSays($player1, "sound/vo/e1m1/Intro/Player7.ogg");
+
+		Beat(1);
+
+		PhobosShowSubtitle_intro("Girl", "That's what he tells me too.\nBut I know it's just a lie.");
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Lee14.ogg");		
+
+		Beat(.75);
+
+		PhobosShowSubtitle_intro("...", "He would never lie to you.");
+		Intro_CharacterSays($player1, "sound/vo/e1m1/Intro/Player8.ogg");
+
+		Beat(.5);
+
+		PhobosShowSubtitle_intro("Girl", "Everybody lies.");
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Lee15.ogg");
+
+		Beat(1.5);
+
+		PhobosShowSubtitle_intro("...", "But he's your brother.");
+		Intro_CharacterSays($player1, "sound/vo/e1m1/Intro/Player9.ogg");
+		
+		Beat(.5);
+
+		PhobosShowSubtitle_intro("Girl", "But he's leaving.");
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Lee16.ogg");		
+
+		Beat(.5);
+
+		PhobosShowSubtitle_intro("...", "I will still be here.");
+		Intro_CharacterSays($player1, "sound/vo/e1m1/Intro/Player10.ogg");
+
+		sys.trigger($SpeakerShitShitShit);
+
+		Beat(1);
+
+		crossFadeEnt ($ParentsWindow, offColor, onColor, .0625);
+
+		Beat(1);
+
+		PhobosShowSubtitle_intro("Girl", "Yeah I don't know.\nDoes your prison allow visitors?");
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Lee17.ogg");
+		
+		Beat(1.0);
+
+		PhobosShowSubtitle_intro("...", "Come on. They're not that bad...");
+		Intro_CharacterSays($player1, "sound/vo/e1m1/Intro/Player11.ogg");
+
+		crossFadeEnt ($ExtraLight, offColor, onColor, .0625);
+		crossFadeEnt ($ExtraLightEffect, offColor, onColor, .0625);
+
+		Beat(.15);
+
+		sys.trigger($SpeakerSceneBreak);
+		
+		PhobosShowSubtitle_intro("Girl", "Shit shit shit. Your parents.\nYou. Me. Our place. Tomorrow.");
+		Intro_CharacterSays($LeeSpeaker, "sound/vo/e1m1/Intro/Lee18.ogg");
+		sys.hideSubtitles();
+
+		BlueTunnel();
+	}
+
+	void CrawlBack()
+	{
+		sys.fadeTo('0 0 0', 1, 1);
+	}
+
+	void PushSwing()
+	{
+		vector o1 = $intro_swingset_push_clicker.getOrigin();
+		vector o2 = $player1.getOrigin();
+		
+		float sign = -1;
+
+		if(o2_x < o1_x)
+		{
+			sign = 1;
+		}
+
+		$SwingRotator.accelTime(.0625);
+		$SwingRotator.time(1);
+		$SwingRotator.decelTime(.5);
+
+		$SwingRotator.startSoundShader("sound/shav/intro/swingset.ogg", SND_CHANNEL_ANY);
+		$SwingRotator.rotateOnce(sign * '-10 0 0');
+
+		sys.waitFor($SwingRotator);
+		$SwingRotator.accelTime(.5);		
+
+		float angle = 20;
+		vector rotAngle = '1 0 0';
+
+		while(angle > 0)
+		{
+			vector sa = sign * angle * rotAngle;
+
+			$SwingRotator.rotateOnce(sa);
+			//$SwingRotator.startSoundShader("sound/shav/intro/swingset.ogg", SND_CHANNEL_ANY);
+			sys.waitFor($SwingRotator);
+
+			sign *= -1;
+			angle -= 2;
+		}
+	}
+	
+	void Lee4Sub()
+	{
+		PhobosShowSubtitle_intro("Girl", "I remember how we used to signal to eachother, after our parents had gone to bed.");
+		
+		sys.wait(5);
+		
+		ShowNPCSubtitles("Girl", "We would turn a lamp.\nOn and off three times.", 4);
+	}
+	
+	void Gogo()
+	{		
+		ToggleLight();
+
+		sys.fadeTo('0 0 0', 1, 0.01);
+
+		sys.trigger($introCamera);
+		activeCam = 1;
+
+		sys.wait(3.5);
+		
+		thread showText("Emerald Valley, Oregon\nFederal Commonwealth of Earth");
+
+		sys.wait(10);
+
+		PhobosShowSubtitle_intro("Girl", "Hey. How did you get here?\nI almost didn't recognize you.");
+		Intro_CharacterSays($introCamera, "sound/vo/e1m1/Intro/Lee1.ogg");
+
+		Beat(1.5);
+
+		PhobosShowSubtitle_intro("...", "I don't even recognize myself.\nWhere are you?");
+		Intro_CharacterSays($introCamera, "sound/vo/e1m1/Intro/Player1.ogg");
+
+		Beat(1.5);
+
+		PhobosShowSubtitle_intro("Girl", "I'm here.");
+		Intro_CharacterSays($introCamera, "sound/vo/e1m1/Intro/Lee2.ogg");
+
+		Beat(1);
+		thread showText("TEAM FUTURE PRESENTS");
+
+		thread ShowNPCSubtitles("Girl", "I need your help. Do you remember the last night?\nBefore everything changed.", 7);
+		Intro_CharacterSaysInterupt($introCamera, "sound/vo/e1m1/Intro/Lee3.ogg", 3);
+		
+		sys.wait(2.5);
+
+		sys.trigger($SpeakerRemember);
+
+		sys.wait(2);			
+		
+		sys.trigger($introCamera);
+		activeCam = 0;
+		sys.trigger($intro_target_setinfluence_1);
+		
+		sys.fadeTo('0 0 0', 0, 2);
+
+		sys.wait(1);
+
+		sys.wait(8);
+
+		thread Lee4Sub();
+		Intro_CharacterSays($player1, "sound/vo/e1m1/Intro/Lee4.ogg");
+		
+		sys.wait(1);
+		
+		thread turnOffHouseLights();
+
+		crossFadeEnt ($LeeLight, offColor, onColor, .0625);
+
+		sys.wait(.25);
+
+		crossFadeEnt ($LeeLight, onColor, offColor, .0625);
+
+		sys.wait(.75);
+
+		crossFadeEnt ($LeeLight, offColor, onColor, .0625);
+
+		sys.wait(.25);
+
+		crossFadeEnt ($LeeLight, onColor, offColor, .0625);
+
+		sys.wait(.75);
+
+		crossFadeEnt ($LeeLight, offColor, onColor, .0625);
+
+		sys.wait(.25);
+
+		crossFadeEnt ($LeeLight, onColor, offColor, .0625);
+
+		sys.wait(.5);
+
+		sys.trigger($LightClicker);
+	}
+}

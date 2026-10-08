@@ -1,0 +1,1081 @@
+namespace map_e1m5_6
+{
+	//===========================================
+	// START SOMA DOORS
+	//===========================================
+
+	void OpenSomaDoor(string name)
+	{
+		entity door = sys.getEntity("somadoor_round_" + name);
+		entity portal = sys.getEntity("somadoor_portal_" + name);
+
+		entity switch_a = sys.getEntity("somadoor" + name + "_gui_a");
+		entity switch_b = sys.getEntity("somadoor" + name + "_gui_b");
+				
+		entity somaguis_off = sys.getEntity("disable_soma" + name + "_guis");
+		entity somaguis_on = sys.getEntity("enable_soma" + name + "_guis");
+		entity somaguis_blue = sys.getEntity("soma" + name + "_guilights_blue");
+		entity somaguis_green = sys.getEntity("soma" + name + "_guilights_green");
+		
+		float state = door.getFloatKey("state");
+		float openDir = door.getFloatKey("openDir");
+		float closeDir = door.getFloatKey("closeDir");
+		vector rv = door.getVectorKey("rotateVector");
+
+		if( state == 0)
+		{
+			door.setKey("state", 2);
+
+			sys.trigger(portal);
+			
+			sys.trigger(somaguis_blue);
+			sys.trigger(somaguis_off);
+			
+			switch_a.setShaderParm( 7, 2 );
+			switch_b.setShaderParm( 7, 2 );
+			
+			door.accelTime(1);
+			door.decelTime(1);
+			door.time(2.5);
+
+			door.startSoundShader ("al4_openslats_2s", SND_CHANNEL_VOICE);
+			door.rotateOnce(rv * 135);
+			sys.waitFor(door);
+			
+			door.accelTime(1);
+			door.decelTime(.5);
+			door.time(3.5);
+
+			door.startSoundShader ("sound/doors/large/hugedoor_01_open.wav", SND_CHANNEL_VOICE);
+			
+			door.move(openDir, 128);
+			door.rotateOnce(rv * 90);
+		
+			sys.waitFor(door);
+			
+
+			door.setKey("state", 1);
+
+			sys.wait(5);
+
+			door.setKey("state", 2);
+
+			door.startSoundShader ("sound/doors/large/hugedoor_01_close.wav", SND_CHANNEL_VOICE);
+			door.move(closeDir, 128);
+			door.rotateOnce(rv * -90);
+
+			sys.waitFor(door);
+
+			door.accelTime(1);
+			door.decelTime(1);
+			door.time(2.5);
+
+			door.startSoundShader ("al4_openslats_2s", SND_CHANNEL_VOICE);
+			door.rotateOnce(rv * -135);
+			sys.waitFor(door);
+
+			sys.trigger(portal);
+
+			switch_a.setShaderParm( 7, 1 );
+			switch_b.setShaderParm( 7, 1 );
+			
+			sys.trigger(somaguis_on);
+			sys.trigger(somaguis_green);
+			
+			door.setKey("state", 0);
+		}
+	}
+	
+	void OpenSomaDoorDetention()
+	{
+		OpenSomaDoor("detention");
+	}
+
+	//===========================================
+	// END SOMA DOORS
+	//===========================================
+
+	// BEGIN TURRETS
+
+	void DeactivateTurretLasers()
+	{
+			$turret_laser_flicker.hide();
+			$turret_laser_flare.hide();
+			$TurretLaserTrig.disable();
+	}		
+
+	void ActivateTurretLasers()
+	{
+			$turret_laser_flicker.show();
+			$turret_laser_flare.show();
+			$TurretLaserTrig.enable();
+	}
+
+	float point_turrets = 1;
+	void UpdateTurrets()
+	{		
+		$sec_point_turret_1_barrel.rotate('360 0 0');
+
+		while(point_turrets)
+		{
+			vector dir = $player1.getWorldOrigin() - $sec_point_turret_1.getWorldOrigin();
+			dir = sys.vecNormalize(dir);
+
+			vector angles = sys.VecToAngles(dir);
+			angles_z = 180-angles_x;
+			angles_x = 0;
+			angles_y += -90;
+
+			$sec_point_turret_1.setAngles(angles);
+
+			sys.waitFrame();
+		}
+
+		$sec_point_turret_1.time (5);
+		$sec_point_turret_1.accelTime (1);
+		$sec_point_turret_1.decelTime (2);
+		//$sec_point_turret_1.rotateTo('0 -90 15 ');
+
+		$sec_point_turret_1.rotateOnce('0 -10 -15 ');
+		$sec_point_turret_1_barrel.stopRotating();
+		sys.wait(1.5);
+		DeactivateTurretLasers();
+		
+	}
+
+	// BEGIN SECURITY CAMERAS
+
+	float security_camera_num;
+
+	void UpdateCameras()
+	{
+		while(1)
+		{
+			float i = 0;
+			while(i < security_camera_num)
+			{
+				entity onlycams = sys.getEntity("security_camera_" + i);
+
+				// If the camera exists and therefor has an onlycams account, update it
+				if(onlycams)
+				{
+					// We add 72 units to the z-component because the player world origin is his/her/kangaruwus feet.
+					// 72 units up makes it look directly into your soul
+					vector dir = ($player1.getWorldOrigin() + '0 0 72') - onlycams.getWorldOrigin();
+					dir = sys.vecNormalize(dir);			
+			
+					vector angles = sys.VecToAngles(dir);
+					
+					// For some reason the vector components in the script and in the engine aren't the same
+					// Z needs to be the inverted x
+					angles_z = 180-angles_x;
+					
+					// X here is the roll component and we definitely do not need to spin the camera
+					// Even if it's a neat trick
+					angles_x = 0;
+
+					// The model is -90 degrees off angle by default
+					angles_y += -90;
+			
+					onlycams.setAngles(angles);
+				}
+				i++;
+			}
+			sys.waitFrame();
+		}
+	}
+
+	void SetupSecurityCameras()
+	{
+		// Find all the cameras in the level. Right now the max is 64. That's lofty.
+		// Should we need more, add to this number. If we end up using 16, just lower the number
+		// NOTE: If you want to add more security cameras to the level, simply call it security_cam_[X]
+		security_camera_num = 0;
+		while(security_camera_num < 64)
+		{
+			entity ent = sys.getEntity("security_camera_" + security_camera_num);
+			security_camera_num++;
+		}
+		
+		// If we have cameras in the level, start updating them
+		if(security_camera_num > 0)
+		{
+			thread UpdateCameras();
+		}
+	}
+
+	float detentionUnlocked = 0;
+	float detentionStarted = 0;
+	float detentionTimeDone = 0;
+	float detentionNextTrigger = 0;	
+	float detentionProgNum = 0;
+
+	void DetentionSecPoint()
+	{
+		if(detentionStarted == 2)
+		{
+			return;
+		}
+
+		if(detentionStarted == 0)
+		{
+			ActivateTurretLasers();
+			detentionTimeDone = sys.getTime() + 3;
+			detentionNextTrigger = sys.getTime() + 0.5;
+			detentionStarted = 1;
+			// Start the scanning sound
+			sys.trigger($speaker_scanning);
+		}
+
+		if(sys.getTime() > detentionNextTrigger)
+		{			
+			// Stop the scanning sound
+			$speaker_scanning.stopSound(SND_CHANNEL_ANY, 0);
+			detentionStarted = 0;
+			//$sec_point_turret_1_barrel.stopRotating();
+
+			return; 
+		}
+
+		detentionNextTrigger = sys.getTime() + 0.5;
+
+		float i = 0;
+		while(i < 4)
+		{
+			entity prog = sys.getEntity("detention_sec_prog_" + i);
+
+			vector color = '0 0.125 0';
+			if(i == detentionProgNum)
+			{
+				color = '0 0.75 0';
+			}
+
+			prog.setColor(color_x, color_y, color_z);
+			i++;
+		}
+		
+		detentionProgNum = (detentionProgNum + 1) % 4;
+			
+		if(sys.getTime() > detentionTimeDone)
+		{
+			detentionStarted = 2;
+
+			float fadeTime = 0.5;			
+
+			i = 0;
+			while(i < 4)
+			{
+				prog = sys.getEntity("detention_sec_prog_" + i);				
+				prog.setColor(0, 0.75, 0);
+				i++;
+			}
+
+			thread crossFadeEnt ($detention_sec_light_red, '0.75 0 0', '0 0 0', fadeTime);
+			thread crossFadeEnt ($detention_sec_fixture_red, '1 1 1', '0.125 0 0', fadeTime);
+			thread crossFadeEnt ($detention_sec_flare_red, '0.75 0 0', '0 0 0', fadeTime);
+
+			thread crossFadeEnt ($detention_sec_light_green, '0 0 0', '0 0.75 0', fadeTime);
+			thread crossFadeEnt ($detention_sec_fixture_green, '0 0.125 0', '1 1 1', fadeTime);
+			thread crossFadeEnt ($detention_sec_flare_green, '0 0 0', '0 0.75 0', fadeTime);
+
+			thread crossFadeEnt ($func_static_106650, '0.5 0 0', '1 0.823529 0.521569', fadeTime);
+			thread crossFadeEnt ($light_67185, '1 0.03 0', '1 0.7 0', fadeTime);
+			thread crossFadeEnt ($func_static_106826, '0.549020 0.125490 0.000000', '0.54902 0.392157 0', fadeTime);						
+
+			sys.wait(fadeTime);
+
+			$TurretLaserTrig.disable();
+			point_turrets = 0;			
+			detentionUnlocked = 1;
+			$detention_main_door.lock(0);
+			$detention_main_door_frame.setColor(1,0.823529,0.521569);
+			sys.trigger($drippy_trigger);
+
+			sys.wait(1);
+			
+			sys.trigger($turret_inactive_light_dec);
+			sys.trigger($turret_active_light_dec);
+			thread crossFadeEnt ($turret_active_light, '1 0.15 0.15', '0 1 0.31', fadeTime);
+
+			i = 0;
+			while(i < 4)
+			{
+				prog = sys.getEntity("detention_sec_prog_" + i);
+				thread crossFadeEnt (prog, '0 0.75 0', '0 0.125 0', 4);
+				i++;
+			}
+		}
+	}
+
+	// END SECURITY CAMERAS
+
+	float first_cell_reaction = 0; 
+	void ReactToCell()
+	{
+		if(first_cell_reaction > 0)
+		{
+			return;
+		}
+
+		first_cell_reaction = 1;
+		sys.wait(.5);
+		
+		thread ShowSubtitles("Sam", "Shit...", 2);
+		$player1.startSoundShader("sound/vo/player/general/ShitInternal.ogg", SND_CHANNEL_ANY);
+
+		$CallPepperShakerClicker.setKey("click_item", 1);
+	}
+	
+	// BEGIN PEPPER SHAKER
+	
+	float PEPPER_SHAKER_DOCK_OUT = 0;
+	float PEPPER_SHAKER_DOCK_HOME = 1;	
+	float PEPPER_SHAKER_DOCK_BLOCK_A = 2;
+	float PEPPER_SHAKER_DOCK_BLOCK_B = 3;
+	float PEPPER_SHAKER_DOCK_BLOCK_C = 4;
+	float PEPPER_SHAKER_DOCK_BLOCK_D = 5;
+	float PEPPER_SHAKER_MOVING = 6;
+	
+	float pepper_shaker_state = 0;
+
+	void CallPepperShaker()
+	{
+		sys.trigger($TriggerMilesTalk);
+
+		// bress the button, idiot
+		$intercom_button.move(0, 1);
+		$intercom_button.startSoundShader("sound/shav/e1m1/intercomclick1.ogg", SND_CHANNEL_ANY);
+		sys.waitFor($intercom_button);
+		sys.wait(.125);
+		$intercom_button.startSoundShader("sound/shav/e1m1/intercomclick2.ogg", SND_CHANNEL_ANY);
+		$intercom_button.move(180, 1);
+
+		sys.wait(0.7);
+
+		// open door to area
+		$func_door_188619.lock(0);
+		$func_static_103757.setColor(1, 0.823529, 0.521569);
+		$light_65842.setColor(1, 0.7, 0);
+
+		$peppershaker_main.startSoundShader("m3_start_low", SND_CHANNEL_ANY);
+
+		float move_speed = 80.0;
+		float time_to_move = 592.0 / move_speed;
+		$peppershaker_feet.time(time_to_move);
+		$peppershaker_feet.accelTime(1);
+		$peppershaker_feet.decelTime(0);
+		$peppershaker_feet.move(0, 592);
+
+		sys.waitFor($peppershaker_feet);
+
+		$peppershaker_feet.bind($peppershaker_turn_2);
+		$peppershaker_turn_2.rotateOnce('0 -90 0');
+
+		$peppershaker_axle_mover.rotateOnce('0 -90 0');
+
+		sys.waitFor($peppershaker_turn_2);
+
+		$peppershaker_feet.unbind();
+
+		time_to_move = 928.0 / move_speed;
+		$peppershaker_feet.time(time_to_move);
+		$peppershaker_feet.accelTime(0);
+		$peppershaker_feet.decelTime(0);
+		$peppershaker_feet.move(270, 928);
+
+		sys.waitFor($peppershaker_feet);
+
+		$peppershaker_feet.bind($peppershaker_turn_1);
+		$peppershaker_turn_1.rotateOnce('0 -90 0');
+		$peppershaker_axle_mover.rotateOnce('0 -90 0');
+
+		sys.waitFor($peppershaker_turn_1);
+
+		$peppershaker_feet.unbind();
+
+		time_to_move = 1792.0 / move_speed;
+		$peppershaker_feet.time(time_to_move);
+		$peppershaker_feet.accelTime(0);
+		$peppershaker_feet.decelTime(4);
+		$peppershaker_feet.move(180, 1792);
+
+		sys.wait(time_to_move - 1);
+		
+		//$peppershaker_main.startSoundShader("al4_plat_stop", SND_CHANNEL_ANY);
+
+		sys.waitFor($peppershaker_feet);		
+
+		$func_mover_51.startSoundShader("sound/doors/Adoor1_open_low.wav", SND_CHANNEL_ANY);
+		$func_mover_51.move(90, 30);
+		$func_mover_52.move(270, 30);
+
+		sys.waitFor($func_mover_52);
+
+		sys.trigger($peppershaker_inside_trigger);
+		
+		$Peppershaker_Platform_Railing.move(DOWN, 48);
+		sys.trigger($Peppershaker_Platform_Railing_Spkr);
+		sys.waitFor($Peppershaker_Platform_Railing);
+		sys.trigger($peppershaker_gateclip);	
+	}
+
+	void MovePepperShakerToCell()
+	{
+		// Fade out the music as it swells up
+		$SpeakerAdrift16.fadeSound (SND_CHANNEL_ANY, -100, 30);
+		sys.trigger($PeppershakerMusic);
+
+		$func_mover_51.startSoundShader("sound/doors/Adoor1_close_low.wav", SND_CHANNEL_ANY);
+		$func_mover_51.move(270, 30);
+		$func_mover_52.move(90, 30);
+
+		sys.waitFor($func_mover_52);
+		
+		$Peppershaker_Platform_Railing.move(UP, 48);
+		sys.trigger($Peppershaker_Platform_Railing_Spkr);
+
+		$peppershaker_main.startSoundShader("m3_start_low", SND_CHANNEL_ANY);
+		
+		float move_speed = 80.0;
+		float time_to_move = 1792.0 / move_speed;
+		$peppershaker_feet.time(time_to_move);
+		$peppershaker_feet.accelTime(8);
+		$peppershaker_feet.decelTime(0);
+		$peppershaker_feet.move(0, 1792);
+
+		sys.waitFor($peppershaker_feet);
+
+		$peppershaker_feet.bind($peppershaker_turn_1);
+		$peppershaker_turn_1.rotateOnce('0 90 0');
+		$peppershaker_axle_mover.rotateOnce('0 90 0');
+		sys.waitFor($peppershaker_turn_1);
+		$peppershaker_feet.unbind();
+		
+		time_to_move = 112.0 / move_speed;
+		$peppershaker_feet.time(time_to_move);
+		$peppershaker_feet.accelTime(0);
+		$peppershaker_feet.decelTime(4);
+		$peppershaker_feet.move(90, 112);
+		sys.waitFor($peppershaker_feet);
+
+		$peppershaker_feet.bind($peppershaker_elevator);
+
+		$peppershaker_elevator.move(DOWN, 560);
+		sys.waitFor($peppershaker_elevator);
+
+		sys.wait(1);
+
+		$func_mover_51.startSoundShader("sound/doors/Adoor1_open_low.wav", SND_CHANNEL_ANY);
+		$func_mover_51.move(270, 30);
+		$func_mover_52.move(90, 30);
+
+		sys.waitFor($func_mover_52);
+	}
+
+	// END PEPPER SHAKER
+	
+	void FinalPlayer4Sub()
+	{
+		ShowSubtitles("Sam", "Ever since you shared his last message,\nI wanted to find him for you.", 4.8);
+		ShowSubtitles("Sam", "I guess what I'm trying to say is that I understand.", 4.65);
+		ShowSubtitles("Sam", "Are you okay?", 2);
+	}
+
+	void FinalMiles3Sub()
+	{
+		ShowSubtitles("Miles", "Heh. Well. No.", 2.9);
+		ShowSubtitles("Miles", "I thought I was better prepared for this, but I guess...not\nIt's just more...baggage.", 8.1);
+		ShowSubtitles("Miles", "All though it feels so wrong to call him that.\nThis really leaves you at a d...an impasse.", 7.1);
+	}
+
+	void FinalMiles5sub()
+	{
+		ShowSubtitles("Miles", "Calloway has...had a hypothesis about it.", 4.65);
+		ShowSubtitles("Miles", "The receptacle is a door of sorts. To somewhere else.\nAnother plane of existence.", 6.28);
+		ShowSubtitles("Miles", "It may be a long shot, but everything points towards this realm.\nI think she might be in there.", 7.5);
+		ShowSubtitles("Miles", "Either way, it's the last bullet in the chamber.", 4.6);
+	}
+
+	void FinalMiles8sub()
+	{
+		ShowSubtitles("Miles", "You're on Mars. I'm on Phobos.", 4.2);
+		ShowSubtitles("Miles", "This is the end of the line. For me, at least.\nI have to do this.", 6);
+		ShowSubtitles("Miles", "Look. I don't want to drag you down any further.\n I have put you through enough.", 5.35);
+	}
+
+	void FinalMiles10Sub()
+	{
+		ShowSubtitles("Miles", "Sam.\nIt's done.", 2.8);
+		ShowSubtitles("Miles", "If all goes well, I'll see you again.\nIf not...thank you...for everything.", 8.5);
+	}	
+
+	void MilesTalkFinal()
+	{
+		thread ShowSubtitles("Sam", "Samantha...I have bad news...About Calloway.\nHe didn't make it.", 10.5);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player1.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "Samantha?", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player2.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Miles", "I hear you.", 2); 
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles1.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "I'm sorry.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player3.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Miles", "He was a good man.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles2.ogg");
+
+		Beat(0.5);
+
+		thread FinalPlayer4Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player4.ogg");
+
+		Beat(0.5);
+
+		thread FinalMiles3Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles3.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "You as well.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player5.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Miles", "I know what to do.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles4.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "Receptacle base?", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player6.ogg");
+
+		Beat(0.5);
+
+		thread FinalMiles5sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles5.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "And I'm guessing that door may be one-way?", 3);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player7.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Miles", "It may very well be.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles6.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "I don't know. Sounds like Russian roulette to me.", 3);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player8.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Miles", "Well so be it.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles7.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "Wait. Can't we reconvene? Find out a better solution?", 3.5);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player9.ogg");
+
+		Beat(0.5);
+
+		thread FinalMiles8sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles8.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "You can't go! Where do you want me to go?\nTo do? You can't leave me here now!", 6);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player10.ogg");
+
+		Beat(0.5);
+		
+		thread ShowSubtitles("Miles", "Get to the surface. You can send out an SOS.\nWe have dropships close by. Maybe they can bring you to safety.", 7);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles9.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "But wait...You're my clean slate Samantha.\nYou're all that I have. I get it now.", 9.5);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player11.ogg");
+
+		Beat(0.5);
+
+		thread FinalMiles10Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles10.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "Are you sure about this?", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player12.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Miles", "Go home, Sam. It's not too late for you.\nGoodbye.", 6.5);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles11.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "Wait...What happened to Kaylee?", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player13.ogg");
+	}
+
+	float sitting = 0;
+	void UpdateCameraAngles3()
+	{			
+		while(sitting == 1)
+		{						
+			vector angles = $player1.getViewAngles();
+			//angles_y += 0;
+			$calloblock_sit_camera.setAngles(angles);
+			sys.wait(GAME_FRAMETIME);
+		}
+	}
+	
+	float finding_calloway = 0;
+	void FindCalloway()
+	{
+		if(finding_calloway == 1)
+		{
+			return;
+		}
+		finding_calloway = 1;
+
+		// Fade out the background music...
+		$PeppershakerMusic.fadeSound (SND_CHANNEL_ANY, -100, 10);
+
+		//...and start the scene specific music
+		sys.trigger($SpeakerAdrift4);
+
+		// Fade to black
+		sys.fadeTo('0 0 0', 1, .75);
+
+		sys.wait(1);
+		
+		// Rotate the camera slightly to give it an upsetting angle
+		$calloblock_cam_1_mover.time(0.1);
+		$calloblock_cam_1_mover.accelTime(0);
+		$calloblock_cam_1_mover.decelTime(0);
+		$calloblock_cam_1_mover.rotateOnce('0 0 15');
+
+		sys.wait(4);
+		
+		// Start viewing through the cam (1/DOOR)
+		sys.trigger($calloblock_cam_1);
+
+		// Set up the camera so it moves towards the target as the door opens
+		$calloblock_cam_1_mover.time(60);
+		$calloblock_cam_1_mover.moveTo($calloblock_cam_1_target);
+
+		sys.wait(1);
+		
+		// Fade in
+		sys.fadeTo('0 0 0', 0, .25);
+		
+		sys.wait(1.5);
+
+		// Change the door light color to the 'unlocked' state and play the dumb little sound
+		thread crossFadeEnt ($calloblock_door_frame, '0.64 0.11 0.05', '1 0.823529 0.521569', .25);
+		thread crossFadeEnt ($calloblock_door_light, '0.64 0.11 0.05', '1 0.7 0', .25);
+		$calloblock_door.startSoundShader("default_door_unlocked", SND_CHANNEL_ANY);
+		
+		sys.wait(3);
+
+		// Open the door
+		$calloblock_door.open();
+
+		sys.wait(3.5);
+
+		// Start moving the camera along the corridor
+		$calloblock_cam_2_mover.time(60);
+		$calloblock_cam_2_mover.move(0, 128);
+
+		// Switch to the camera (2/HALLWAY)
+		sys.trigger($calloblock_cam_2);
+
+		sys.wait(1);
+
+		// Close the door behind us
+		$calloblock_door.close();
+
+		sys.wait(7);
+
+		// Show details of the interior, move towards the fan
+		$calloblock_cam_3_mover.time(60);
+		$calloblock_cam_3_mover.moveTo($calloblock_cam_3_target);
+
+		// Switch to the camera (3/FAN)
+		sys.trigger($calloblock_cam_3);
+
+		sys.wait(6);
+
+		// Show the calloway door from the fan perspective
+		$calloblock_cam_4_mover.time(60);
+		$calloblock_cam_4_mover.moveTo($calloblock_cam_4_target);
+
+		// Switch to the camera (4/CALLODOOR)
+		sys.trigger($calloblock_cam_4);
+
+		sys.wait(6);
+
+		// Show the callodoor dead on
+		$calloblock_cam_5_mover.time(60);
+		$calloblock_cam_5_mover.move(90, 128);
+
+		// Switch to the camera (5/CALLODOOR DEAD ON)
+		sys.trigger($calloblock_cam_5);		
+		
+		$SpeakerAdrift4.fadeSound (SND_CHANNEL_ANY, -100, 50);
+
+		sys.wait(5);
+
+		sys.trigger($SpeakerGloomy);
+		$speaker_callo_ambient1.fadeSound (SND_CHANNEL_ANY, -100, 100);
+		$speaker_callo_ambient2.fadeSound (SND_CHANNEL_ANY, -100, 100);
+
+		thread ShowSubtitles("Sam", "Samantha...I have bad news...About Calloway.\nHe didn't make it.", 10.5);
+		thread CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player1.ogg");
+
+		// Change the door light color to the 'unlocked' state and play the dumb little sound
+		thread crossFadeEnt ($calloblock_door_2_frame, '0.64 0.11 0.05', '1 0.823529 0.521569', .25);
+		thread crossFadeEnt ($calloblock_door_2_light, '0.64 0.11 0.05', '1 0.7 0', .25);
+		$calloblock_door_2.startSoundShader("default_door_unlocked", SND_CHANNEL_ANY);
+
+		sys.wait(3);
+
+		$calloblock_door_2.open();
+
+		sys.wait(6);
+
+		// Show the dead Calloway
+		$calloblock_cam_6_mover.time(120);
+		$calloblock_cam_6_mover.moveTo($calloblock_cam_6_target);
+
+		// Switch to the camera (6/CALLOBODY)
+		sys.trigger($calloblock_cam_6);
+
+		sys.wait(6);
+
+		thread ShowSubtitles("Sam", "Samantha?", 2);
+		thread CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player2.ogg");
+
+		sys.wait(2);
+
+		thread ShowSubtitles("Miles", "I hear you.", 2); 
+		thread CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles1.ogg");
+
+		// Show the blood coming down from his body
+		$calloblock_cam_7_mover.time(12);
+		$calloblock_cam_7_mover.rotateOnce('0 0 90');
+
+		// Switch to the camera (7/BLOOD)
+		sys.trigger($calloblock_cam_7);
+
+		sys.wait(1);
+
+		thread ShowSubtitles("Sam", "I'm sorry.", 2);
+		thread CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player3.ogg");
+
+		sys.wait(5);
+
+		sys.fadeTo('0 0 0', 1, .25);
+
+		sys.wait(.5);
+		
+		// We change to the "sit cam" in calloway's cell
+		sitting = 1;
+		sys.trigger($e1m5_6_sam_1);
+		thread UpdateCameraAngles3();
+
+		Beat(.5);
+
+		sys.trigger($calloblock_sit_camera);
+
+		Beat(.5);
+
+		sys.fadeTo('0 0 0', 0, .25);
+
+		
+		// Finish the conversation
+
+		thread ShowSubtitles("Miles", "He was a good man.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles2.ogg");
+
+		Beat(3);
+
+		// Ever since you shared his last message, I wanted to find him for you.
+		// I guess what Im trying to say is that I understand.
+		// [PAUSE]
+		// Are you okay?
+		thread FinalPlayer4Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player4.ogg");
+
+		Beat(1);
+
+		// Heh. Well. No.
+		// I thought I was better prepared for this, but I guess..not.
+		// Its just more...baggage.
+		// [LONG PAUSE]
+		// (Starting to doubt her own principles)
+		// All though it feels so wrong to call him that.
+		// [LONG PAUSE]
+		// This really leaves you at a d...an impasse.
+		thread FinalMiles3Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles3.ogg");
+
+		Beat(1.25);
+
+		thread ShowSubtitles("Sam", "You as well.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player5.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Miles", "I know what to do.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles4.ogg");
+
+		Beat(0.75);
+
+		thread ShowSubtitles("Sam", "Receptacle base?", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player6.ogg");
+
+		Beat(1.0);
+
+		thread FinalMiles5sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles5.ogg");
+
+		Beat(1.5);
+
+		thread ShowSubtitles("Sam", "And I'm guessing that door may be one-way?", 2.2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player7.ogg");
+
+		Beat(1.5);
+
+		thread ShowSubtitles("Miles", "It may very well be.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles6.ogg");
+
+		Beat(0.75);
+
+		thread ShowSubtitles("Sam", "I don't know. Sounds like Russian roulette to me.", 3);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player8.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Miles", "Well so be it.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles7.ogg");
+
+		Beat(1.5);
+
+		thread ShowSubtitles("Sam", "Wait. Can't we reconvene? Figure out a better solution?", 3.5);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player9.ogg");
+
+		Beat(0.75);
+
+		thread FinalMiles8sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles8.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "You can't go! You can't leave me here now!", 3.2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player10.ogg");
+
+		Beat(0.25);
+		
+		thread ShowSubtitles("Miles", "Get to the surface. You can send out an SOS.\nWe have dropships close by. Maybe they can bring you to safety.", 6.25);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles9.ogg");
+
+		Beat(0.75);
+
+		thread ShowSubtitles("Sam", "But wait...You're my clean slate Samantha.\nYou're all that I have. I get it now.", 8);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player11.ogg");
+
+		Beat(.25);
+
+		thread FinalMiles10Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles10.ogg");
+
+		Beat(1.25);
+
+		thread ShowSubtitles("Sam", "Are you sure about this?", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player12.ogg");
+		
+		Beat(0.5);
+		
+		thread ShowSubtitles("Miles", "Go home, Sam. It's not too late for you.\nGoodbye.", 6);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Miles11.ogg");
+		
+		sys.fadeTo('0 0 0', 1, 0);
+
+
+		$player1.startSoundShader("sound/shav/e1m5_6/what_happened.ogg", SND_CHANNEL_ANY);
+
+		Beat(2.5);
+		
+		thread ShowSubtitles("Sam", "Wait...What happened to Kaylee?", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkFinal/Player13.ogg");
+
+		sys.wait(1);
+
+		sys.wait($player1.startSoundShader("sound/shav/e1m5_6/sinister.ogg", SND_CHANNEL_ANY));
+
+		//sys.trigger($calloblock_sit_camera);
+		Start_Outro();
+	}
+
+	void ShowConsequences()
+	{
+		$player1.showConsequences();
+		sys.trigger($speaker_consequences);
+	}	
+
+	void MilesTalkStart()
+	{
+		Beat(5);
+
+		thread ShowSubtitles("Sam", "Samantha?", 2); 
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkStart/Player1.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Miles", "I..I need some time.\nI have somewhere to be. Something to do. Sorry.", 8.10);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkStart/Miles1.ogg");
+	}
+
+	void MidPlayer1Sub()
+	{
+		ShowSubtitles("Sam", "Miles, look at it this way.", 1.6);
+		ShowSubtitles("Sam", "We haven't found him yet,\nso he may very well be locked inside a cell.", 5);
+		ShowSubtitles("Sam", "But wouldn't a locked cell be the safest place to be in a situation like this?\nIt may not be so bad after all.", 6.05);
+	}
+
+	void MidMiles5Sub()
+	{
+		ShowSubtitles("Miles", "I joined the FCE to accomplish two things.\nNo more, no less.", 6.75);
+		ShowSubtitles("Miles", "The first thing has been done.", 2.1);
+		ShowSubtitles("Miles", "The second was to help Calloway find out the truth about Kaylee.", 5);
+	}
+
+	void MilesTalkMid()
+	{
+		thread MidPlayer1Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Player1.ogg");
+
+		Beat(1.5);
+
+		thread ShowSubtitles("Miles", "For someone who was basically born yesterday,\nyou sure know what to say.", 4);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Miles1.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "Hey, I'm a good person.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Player2.ogg");
+
+		Beat(1);
+
+		thread ShowSubtitles("Miles", "I'll miss this you know.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Miles2.ogg");
+
+		Beat(.75);
+
+		thread ShowSubtitles("Sam", "I'm not going anywhere.", 2); 
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Player3.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Miles", "I know.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Miles3.ogg");
+
+		Beat(0.75);
+
+		thread ShowSubtitles("Sam", "Soo...?", 2); 
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Player4.ogg");
+
+		Beat(1.0);
+
+		thread ShowSubtitles("Miles", "To be perfectly honest, I'm going to Receptacle base and...\nIt might be a one-way ticket.", 6.2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Miles4.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "What? The research station?", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Player5.ogg");
+
+		Beat(0.75);
+
+		thread MidMiles5Sub();
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Miles5.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Sam", "What's the first?", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Player6.ogg");
+
+		Beat(0.5);
+
+		thread ShowSubtitles("Miles", "The first is burning to a crisp.", 2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Miles6.ogg");
+
+		Beat(0.75);
+
+		thread ShowSubtitles("Sam", "Oh...Benson...\nAbout the second...don't do anything rash...", 6.1);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Player7.ogg");
+
+		Beat(0.65);
+
+		thread ShowSubtitles("Miles", "I won't.\nI will await your findings on Calloway at least.", 4.2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Miles7.ogg");
+
+		Beat(0.85);
+
+		thread ShowSubtitles("Sam", "Okay well if I can find myself, I can find him.\nI'll get back to you.", 4.2);
+		CharacterSays($Sam_Miles_Convo_Spkr, "sound/vo/e1m5_6/MilesTalkMid/Player8.ogg");
+	}	
+
+	void script_relay_start()
+	{
+		if(1)
+		{
+			sys.trigger($trigger_relay_588);
+
+			sys.wait(5);		
+
+			sys.trigger($SpeakerAdrift16);
+		}
+	}
+
+
+	void main()
+	{		
+		setup_outro();
+
+		sys.trigger($setinfluence_detention);
+
+		thread UpdateTurrets();
+		SetupSecurityCameras();
+		$TurretLaserTrig.disable();
+
+		
+		
+		
+		sys.wait(5);
+
+		//FindCalloway();
+		//Start_Outro();
+
+		/*
+
+		sitting = 1;
+		thread UpdateCameraAngles3();		
+		sys.trigger($calloblock_sit_camera);
+		*/
+	}
+}

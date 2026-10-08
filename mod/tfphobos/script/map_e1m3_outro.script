@@ -1,0 +1,552 @@
+namespace map_e1m3_outro
+{
+	float hideSubTime = 0;
+	
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m3_outro(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+	
+	void PAFlightCall1Sub()
+	{
+		ShowNPCSubtitles("PA", "Passengers of T-8150. Please report to the Landing Terminal for immediate boarding.", 7);
+	}
+
+	void Pafinal8150callSub()
+	{
+		ShowNPCSubtitles("PA", "This is the final call for flight T-8150.\nPlease proceed to the Landing Terminal immediately.", 7);
+	}
+
+	void FuckFuckFuckFuckSub()
+	{
+		ShowNPCSubtitles("Sam", "Fuck fuck fuck fuck...", 2);
+	}
+	
+	void BensonCall1()
+	{
+		ShowNPCSubtitles("Speical Agent Simmons", "This is Speical Agent Simmons calling Federal Agent Jim Benson.\nAnswer your radio. Get down here. We are not waiting for you.", 8);
+	}
+	
+	void BensonCall2()
+	{
+		ShowNPCSubtitles("Speical Agent Simmons", "Agent Jim Benson. We're ready for take off. If you somehow hear this.\nGo to the Bulwark. Use the fuel lines.", 7);
+	}
+
+	void OhComeOnThisIsTooMuch()
+	{
+		ShowNPCSubtitles("Sam", "Oh come on! This is too much.", 3);
+	}
+	
+	void DontWaitForBensonSub()
+	{
+		ShowNPCSubtitles("Sam", "Don't wait for Benson! Wait for me!", 3);
+	}
+	
+	void ShitThatsMeSub()
+	{
+		ShowNPCSubtitles("Sam", "Shit! That's me!\nBetter get a move on.", 4);
+	}
+	
+	void WhyTheAlarmWasSetOffSub()
+	{
+		ShowNPCSubtitles("Sam", "Hmm. This must be why the alarm was set off.", 3);
+	}
+
+	void showTextCam(string text, entity e)
+	{
+		e.setGuiParm("gui_parm1", text);
+		e.setGuiParm("gui_parm2", 0);
+		sys.trigger(e);
+
+		sys.fadeTo('0 0 0', 0, 2);
+
+		sys.wait(7);
+
+		e.setGuiParm("gui_parm2", 1);
+		sys.trigger(e);
+
+		sys.fadeTo('0 0 0', 1, 1);
+
+		sys.wait(1);
+	}
+	
+	void showText(string text)
+	{
+		entity e = sys.getEntity("cameraGui1");
+		showTextCam(text, e);
+	}
+	
+	void CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}
+
+	void OpenDrawer() 
+	{
+		sys.trigger($outro_drawer_speaker);
+		$outro_drawer.move(180, 15);
+	}
+	
+	void SlideOutBox()
+	{
+		sys.trigger($outro_cardboard_speaker);
+		$outro_cardboard_box.move(180, 37);
+		sys.wait(.5);
+		$outro_item_open_box.setKey("click_item", 1);
+		Beat(1.5);
+		thread ShowNPCSubtitles("Sam", "Found it!", 2);
+		CharacterSays($player1, "sound/vo/e1m3/outro/player10.ogg");
+	}
+
+	void OpenBox()
+	{
+		thread CharacterSays($player1, "sound/shav/e1m3/opencardboardbox.ogg");
+		$outro_cardboard_box_flap1.rotateOnce('0 0 -210');
+		sys.wait(.2);
+		$outro_cardboard_box_flap2.rotateOnce('0 0 210');
+
+		sys.waitFor($outro_cardboard_box_flap2);
+		sys.wait(.25);
+		$outro_item_open_box.hide();
+		$outro_item_take_box.setKey("click_item", 1);
+	}
+	
+	void TakeBox()
+	{	
+		thread CharacterSays($player1, "sound/shav/e1m3/pickupbox.ogg");
+		$outro_box_box.hide();
+		$outro_item_place_box.setKey("click_item", 1);
+	}
+
+	void Lee12Subs()
+	{
+		PhobosShowSubtitle_e1m3_outro("Lee", "Something Samuel send me. I don't know what is it.\nBut it seems valuable.");
+
+		sys.wait(3.85);
+
+		PhobosShowSubtitle_e1m3_outro("Lee", "Or atleast what's ever inside could be valuable.\nIt could be our ticket out of here.");
+	}
+	
+	float outroActive = 0;
+	float canSkipOutro = 0;
+	float outroSkipped = 0;
+	float activeOutroCam = 0;
+
+	void EnableOutroSkipTimer()
+	{
+		sys.wait(1.5);
+		if (outroActive == 1 && outroSkipped == 0)
+		{
+			canSkipOutro = 1;
+			PhobosShowSubtitle_e1m3_outro("", "[ Press SPACE or X to skip ]");
+			sys.wait(5.0);
+			if (outroActive == 1 && outroSkipped == 0)
+			{
+				sys.hideSubtitles();
+			}
+		}
+	}
+
+	void SkipOutroSequence()
+	{
+		if (canSkipOutro == 0 || outroActive == 0 || outroSkipped == 1)
+		{
+			return;
+		}
+
+		outroSkipped = 1;
+		canSkipOutro = 0;
+		outroActive = 0;
+
+		// Terminate outro threads
+		sys.killthread("map_e1m3_outro::PlaceBox");
+		sys.killthread("map_e1m3_outro::EnableOutroSkipTimer");
+		sys.killthread("map_e1m3_outro::showText");
+		sys.killthread("map_e1m3_outro::showTextCam");
+		sys.killthread("map_e1m3_outro::ShowNPCSubtitles");
+
+		// Hide any lingering subtitles
+		sys.hideSubtitles();
+
+		// Stop outro sounds
+		$SpeakerGetTheBox.stopSound(SND_CHANNEL_ANY, 0);
+		$SpeakerYouAndEveryone.stopSound(SND_CHANNEL_ANY, 0);
+		$player1.stopSound(SND_CHANNEL_ANY, 0);
+
+		// Safely toggle active outro camera if needed
+		if (activeOutroCam == 1)
+		{
+			sys.trigger($outroCamera);
+		}
+		else if (activeOutroCam == 2)
+		{
+			sys.trigger($outro_camera_ending);
+		}
+		else if (activeOutroCam == 3)
+		{
+			sys.trigger($outro_camera_credits);
+		}
+		activeOutroCam = 0;
+
+		// Fade out screen cleanly
+		sys.fadeTo('0 0 0', 1, 0.2);
+		sys.wait(0.25);
+
+		// Trigger the episode ending target
+		sys.trigger($EndEpisodeOne);
+		sys.print("Phobos Mod: Episode 1 Outro skipped!\n");
+	}
+
+	void PlaceBox()
+	{
+		outroActive = 1;
+		outroSkipped = 0;
+		canSkipOutro = 0;
+		activeOutroCam = 0;
+		thread EnableOutroSkipTimer();
+
+		thread CharacterSays($player1, "sound/shav/e1m3/placebox.ogg");
+		$outro_box_table.show();
+		Beat(0.5);
+		
+		PhobosShowSubtitle_e1m3_outro("Sam", "What is it?");
+		CharacterSays($player1, "sound/vo/e1m3/outro/player11.ogg");
+		Beat(0.8);
+		
+		thread Lee12Subs();
+		CharacterSays($outro_item_answer_phone, "sound/vo/e1m3/outro/lee12.ogg");
+		Beat(2);		
+		
+		thread ShowNPCSubtitles("Lee", "So. How do we get in? And how do we get out?", 5);
+		thread CharacterSays($outro_item_answer_phone, "sound/vo/e1m3/outro/lee13.ogg");
+		
+		thread CharacterSays($player1, "sound/shav/e1m1/backnote.ogg");		
+		
+		sys.wait(6.338);
+				
+		activeOutroCam = 1;
+		sys.trigger($outroCamera);
+		
+		sys.wait(2);
+
+		sys.trigger($SpeakerGetTheBox);
+
+		sys.wait(3);
+
+		thread showText("To be continued...");
+		
+		sys.wait(12.5);
+		
+		PhobosShowSubtitle_e1m3_outro("Lee", "Do you remember the box I gave you?");
+		CharacterSays($player1, "sound/vo/e1m3/outro/lee14.ogg");
+		
+		Beat(1.5);
+		
+		PhobosShowSubtitle_e1m3_outro("Sam", "I do.");
+		CharacterSays($player1, "sound/vo/e1m3/outro/player12.ogg");
+		
+		Beat(1.5);
+		
+		thread ShowNPCSubtitles("Lee", "I need you to find it.", 2);
+		CharacterSays($player1, "sound/vo/e1m3/outro/lee15.ogg");	
+		
+		$outro_phone_gui.hide();
+
+		sys.wait(3);
+
+		sys.fadeTo('0 0 0', 0, 1);
+		
+		sys.trigger($speaker_outro_creaking);
+		sys.trigger($speaker_outro_snowywind);
+		sys.trigger($speaker_outro_rain);
+
+		sys.trigger($outro_service);
+		sys.trigger($box_nightstand);
+		sys.trigger($outro_box_table);
+		activeOutroCam = 2;
+		sys.trigger($outro_camera_ending);
+
+		sys.trigger($SpeakerYouAndEveryone);
+
+		$outro_camera_ending_mover.moveTo($outro_camera_ending_null);
+
+		sys.wait(46);
+
+		sys.fadeTo('0 0 0', 1, 8);
+
+		sys.wait(12);
+
+		sys.trigger($outro_credits_gui);
+		activeOutroCam = 3;
+		sys.trigger($outro_camera_credits);
+
+		sys.fadeTo('0 0 0', 0, .125);
+
+		sys.wait(212);
+		sys.fadeTo('0 0 0', 1, 4);
+		sys.wait(12);
+		sys.trigger($EndEpisodeOne);
+	}
+	
+	void WorldMapReactionReaction()
+	{
+		PhobosShowSubtitle_e1m3_outro("Lee", "We always wanted to got to europe together once we were old enough.");		
+		sys.wait(4.2);
+		PhobosShowSubtitle_e1m3_outro("Lee", "Eventually you would travel much longer.\nBut not for adventure.");		
+		sys.wait(5.9);
+		ShowNPCSubtitles("Lee", "And I didn't.", 4);
+	}
+	
+	void WorldMapReaction()
+	{
+		thread WorldMapReactionReaction();
+		CharacterSays($player1, "sound/vo/e1m3/outro/mapreaction.ogg");
+		
+		//Lee calls
+		sys.wait(4);
+		$outro_item_answer_phone.setKey("click_item", 1);
+		$outro_phone_gui.startSoundShader("sound/shav/e1m3/phone_bleep1.ogg", SND_CHANNEL_ANY);
+		$outro_phone_gui.setGuiParm("gui_parm1", 1);		
+		sys.trigger($outro_phone_gui);
+		sys.wait(.5);
+		sys.trigger($outro_phone_ringer);
+	}
+	
+	void Lee4Sub()
+	{
+		PhobosShowSubtitle_e1m3_outro("Lee", "Camping. Of all things.\nApparently getting out of the valley is problematic.");
+		
+		sys.wait(5);
+		
+		PhobosShowSubtitle_e1m3_outro("Lee", "I don't know. I tried nudging dad along those lines.\nBut it's getting more and more difficult to leave federal soil.");
+		
+		sys.wait(7);
+		
+		PhobosShowSubtitle_e1m3_outro("Lee", "Something about keeping the peace.\nThe usual drill. It's all bullshit.");
+	}
+	
+	void Lee5Sub()
+	{	
+		PhobosShowSubtitle_e1m3_outro("Lee", "You know. It's not all that bad. It's not foreign or exotic.\nIt's not even a different climate.");
+		
+		sys.wait(6);
+		
+		PhobosShowSubtitle_e1m3_outro("Lee", "But it's different. Somewhere else.\nI needed that. You know. After everything.");
+	}
+	
+	void Lee6Sub()
+	{
+		PhobosShowSubtitle_e1m3_outro("Lee", "On that note. I've been thinking.\nCamping is great and all. Well, camping is fine and all.");
+		
+		sys.wait(7);
+		
+		PhobosShowSubtitle_e1m3_outro("Lee", "But eventually I'll be going home. And live next to you. Again.\nWhich is a pain of course.");
+	}
+	
+	void Lee9Sub()
+	{
+		PhobosShowSubtitle_e1m3_outro("Lee", "Sam. I'm not talking about make believe.\nTrips to the woods or a stupid old barn.");
+		
+		sys.wait(5);
+		
+		PhobosShowSubtitle_e1m3_outro("Lee", "I want to be out there. The real world.\nNot this walled garden.");
+		
+		sys.wait(4);
+		
+		PhobosShowSubtitle_e1m3_outro("Lee", "I can't keep going through the same routine.\nSeeing the same things. Talking to the same people.");
+		
+		sys.wait(6);
+		
+		PhobosShowSubtitle_e1m3_outro("Lee", "I can't fooling myself to believe that things haven't changed.\nMy brother is gone. My mom is gone.");
+
+		sys.wait(6.55);
+
+		PhobosShowSubtitle_e1m3_outro("Lee", "The place we live in is a fucking hedge maze.");
+		
+		sys.wait(5.1);
+		
+		PhobosShowSubtitle_e1m3_outro("Lee", "Before we came here, my family used to live close to the seaside. Near the beaches.\nYou could smell the freedom.");
+		
+		sys.wait(10);
+		
+		PhobosShowSubtitle_e1m3_outro("Lee", "Everything sucks but you!\nSam. I need you.");
+	}
+	
+	void Lee10Sub()
+	{
+		PhobosShowSubtitle_e1m3_outro("Lee", "There are a lot of details to cover. I know.\nBut we can do it Sam. Together.");
+		
+		sys.wait(7);
+		
+		PhobosShowSubtitle_e1m3_outro("Lee", "I don't want to look back 5 years from now and regret that I never took the chance.\nLook under your bed.");
+	}
+	
+	void AnswerCall()
+	{
+		$outro_phone_gui.startSoundShader("sound/shav/e1m3/phone_bleep1.ogg", SND_CHANNEL_ANY);
+		$outro_phone_gui.setGuiParm("gui_parm1", 2);
+		sys.trigger($outro_phone_gui);
+		sys.wait(.25);
+		$outro_phone_gui.startSoundShader("sound/shav/e1m3/pickupphone.ogg", SND_CHANNEL_ANY);
+		
+		sys.trigger($outro_phone_ringer);
+		Beat(1.5);
+		
+		PhobosShowSubtitle_e1m3_outro("Lee", "Hey. Sam. You still up?\nUgh. I Should have called earlier, I know. Sorry!");
+		CharacterSays($outro_item_answer_phone, "sound/vo/e1m3/outro/lee2.ogg");
+		Beat(1.25);
+		PhobosShowSubtitle_e1m3_outro("Sam", "Yeah. Don't sweat it.\nWhere are you?");
+		CharacterSays($player1, "sound/vo/e1m3/outro/player1.ogg");
+		Beat(.75);		
+		PhobosShowSubtitle_e1m3_outro("Lee", "For some unknown reason my dad thought it would be a good idea to do a surprise vacation.");
+		CharacterSays($outro_item_answer_phone, "sound/vo/e1m3/outro/lee3.ogg");
+		Beat(1.15);
+		PhobosShowSubtitle_e1m3_outro("Sam", "What? Paris? Europe? The back yard?");
+		CharacterSays($player1, "sound/vo/e1m3/outro/player2.ogg");
+		Beat(1);
+		thread Lee4Sub();
+		CharacterSays($outro_item_answer_phone, "sound/vo/e1m3/outro/lee4.ogg");
+		Beat(1);
+		PhobosShowSubtitle_e1m3_outro("Sam", "So how is camping?");
+		CharacterSays($player1, "sound/vo/e1m3/outro/player3.ogg");
+		Beat(0.5);
+		thread Lee5Sub();
+		CharacterSays($outro_item_answer_phone, "sound/vo/e1m3/outro/lee5.ogg");
+		Beat(1.5);
+		PhobosShowSubtitle_e1m3_outro("Sam", "I get that.");
+		CharacterSays($player1, "sound/vo/e1m3/outro/player4.ogg");
+		Beat(1);
+		thread Lee6Sub();
+		CharacterSays($outro_item_answer_phone, "sound/vo/e1m3/outro/lee6.ogg");
+		Beat(0.5);
+		PhobosShowSubtitle_e1m3_outro("Sam", "Of course.");
+		CharacterSays($player1, "sound/vo/e1m3/outro/player5.ogg");
+		Beat(1);
+		PhobosShowSubtitle_e1m3_outro("Lee", "So. I was wondering. Why don't we live together?\nSomewhere else. Somewhere entirely different.");
+		CharacterSays($outro_item_answer_phone, "sound/vo/e1m3/outro/lee7.ogg");
+		Beat(1);
+		PhobosShowSubtitle_e1m3_outro("Sam", "What do you mean some where else? How are we going to manage that?\nNo money, no transportation, no visa, no luck.");
+		CharacterSays($player1, "sound/vo/e1m3/outro/player6.ogg");
+		Beat(0.5);
+		PhobosShowSubtitle_e1m3_outro("Lee", "That's not what I asked. Idiot.");
+		CharacterSays($outro_item_answer_phone, "sound/vo/e1m3/outro/lee8.ogg");
+		Beat(1);
+		PhobosShowSubtitle_e1m3_outro("Sam", "Have you forgotten about our place? And you are just a stones throw away.\nRegrettably for my window.");
+		CharacterSays($player1, "sound/vo/e1m3/outro/player7.ogg");
+		Beat(1);
+		thread Lee9Sub();
+		CharacterSays($outro_item_answer_phone, "sound/vo/e1m3/outro/lee9.ogg");
+		Beat(0.5);
+		PhobosShowSubtitle_e1m3_outro("Sam", "Okay okay I get it. But. Your dad. My parents.\nHow would we even get out?");
+		CharacterSays($player1, "sound/vo/e1m3/outro/player8.ogg");
+		Beat(1);
+		thread Lee10Sub();
+		CharacterSays($outro_item_answer_phone, "sound/vo/e1m3/outro/lee10.ogg");
+		Beat(0.5);
+		PhobosShowSubtitle_e1m3_outro("Sam", "What?");
+		CharacterSays($player1, "sound/vo/e1m3/outro/player9.ogg");
+		Beat(1);
+		thread ShowNPCSubtitles("Lee", "Look under your bed!", 2);
+		CharacterSays($outro_item_answer_phone, "sound/vo/e1m3/outro/lee11.ogg");
+		$outro_item_slide_box.setKey("click_item", 1);
+	}
+
+	vector noLight = '0 0 0';
+	vector lampTexColor = '0.9 0.4 0.28';
+	vector lampLightColor = '0.32 0.21 0.13';
+	vector lampLightColor2 = '0.22 0.16 0.07';
+	vector lampGlareColor = '0.419608 0.180392 0.129412';
+	vector lampEffectColor = '0.45 0.2 0.14';
+
+	void ToggleLight()
+	{
+		$LightClicker.startSoundShader("switch_02", SND_CHANNEL_ANY);
+		
+		thread crossFadeEnt ($LampLight, noLight, lampLightColor, .0625);
+		thread crossFadeEnt ($LampGlare, noLight, lampGlareColor, .0625);
+		thread crossFadeEnt ($LampTex, noLight, lampTexColor, .0625);
+		thread crossFadeEnt ($LampEffect, noLight, lampEffectColor, .0625);
+
+		$outro_main_lightclicker.setKey("click_item", 1);
+	}
+	
+	void ToggleMainLight()
+	{
+		$outro_main_lightclicker.startSoundShader("switch_02", SND_CHANNEL_ANY);
+		
+		$outro_light_switch_on.hide();
+		$outro_light_switch_off.show();
+		
+		thread crossFadeEnt ($outro_mainlight_light1, noLight, lampLightColor, .0625);
+		thread crossFadeEnt ($outro_mainlight_glare1, noLight, lampGlareColor, .0625);
+		thread crossFadeEnt ($outro_mainlight_text1, noLight, lampTexColor, .0625);
+		
+		thread crossFadeEnt ($outro_mainlight_light2, noLight, lampLightColor, .0625);
+		thread crossFadeEnt ($outro_mainlight_glare2, noLight, lampGlareColor, .0625);
+		thread crossFadeEnt ($outro_mainlight_text2, noLight, lampTexColor, .0625);
+		
+		thread crossFadeEnt ($outro_mainlight_ambient, noLight, lampLightColor2, .0625);	
+
+		$outro_click_worldmap.setKey("click_item", 1);
+		$outro_drawer_open.setKey("click_item", 1);
+	}
+
+	void main2()
+	{		
+		/*PlaceBox();
+		$outro_alarmclock.rotateOnce('0 -35 0');
+		$outro_signthing.rotateOnce('0 25 0');
+		$outro_phone_model.rotateOnce('0 -15 0');*/
+
+		/*sys.trigger($box_nightstand);
+		sys.trigger($outro_box_table);
+		sys.trigger($outro_camera_ending);*/
+	}
+
+	void LeePhone()
+	{
+		while(1)
+		{
+			sys.wait(5);
+			$func_static_3.startSoundShader("sound/shav/e1m3/phone_bleep1.ogg", SND_CHANNEL_ANY);
+			$func_static_3.setGuiParm("gui_parm1", 1);		
+			sys.trigger($func_static_3);
+			
+			sys.wait(5);				
+			$func_static_3.startSoundShader("sound/shav/e1m3/phone_bleep1.ogg", SND_CHANNEL_ANY);
+			$func_static_3.setGuiParm("gui_parm1", 2);
+			sys.trigger($func_static_3);
+			sys.wait(.25);
+			$func_static_3.startSoundShader("sound/shav/e1m3/pickupphone.ogg", SND_CHANNEL_ANY);
+
+			sys.wait(5);		
+			$func_static_3.startSoundShader("sound/shav/e1m3/phone_bleep2.ogg", SND_CHANNEL_ANY);
+			$func_static_3.setGuiParm("gui_parm1", 0);
+			sys.trigger($func_static_3);
+		}
+	}
+}

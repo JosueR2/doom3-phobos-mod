@@ -1,0 +1,2238 @@
+namespace map_e1m4_3
+{
+	float objective_drainstartpipe_state = 0;
+	//0 = started
+	//1 = completed
+	
+	float objective_drainsecondpipe_state = 0;
+	//0 = not started
+	//1 = started
+	//2 = completed	
+	
+	void StartObjectiveTwo()
+	{
+		objective_drainsecondpipe_state = 1;
+	}
+	
+	//1 = bottom
+	//2 = middle
+	//3 = top
+	//4 = in transition
+	float corebridge_position = 0;
+
+	float usingMatches = 1;
+	float clockRunning = 0;	
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m4_3(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+	
+	void Outro_CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+	
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}	
+	
+	float bombTaken = 0;
+		
+	void SetBomb()
+	{
+		if( bombTaken == 1 )
+		{
+			$func_static_83268.hide();
+			$bomb.show();
+			bombTaken = 2;
+		}
+	}
+	
+	void TakeBomb()
+	{
+		bombTaken = 1;
+		$bomb_template.hide();
+	}
+
+	void SetBombTime( float one, float two, float three, float four, float five)
+	{
+		$bomb.setGuiParm("gui_parm11", one);
+		$bomb.setGuiParm("gui_parm12", two);
+		$bomb.setGuiParm("gui_parm13", three);
+		$bomb.setGuiParm("gui_parm14", four);
+		$bomb.setGuiParm("gui_parm15", five);
+		sys.trigger($bomb);
+	}
+
+	void FadeOutBombBack()
+	{
+		float max = 2;
+		float timeToSpend = 20;
+		float timeDelay = 0.0625;
+		float interval = max / (timeToSpend / timeDelay);
+
+		//sys.println(interval);
+
+		float i = 0;
+		while(i < max)
+		{
+			$bomb_blurback.setShaderParm(3, i);
+			i += interval;
+			sys.wait(timeDelay);
+		}		
+	}
+					
+	void SomeTest()
+	{
+		$player1.startSoundShader("e1m4_3_thebomb", SND_CHANNEL_ANY);
+
+		$func_mover_1.move(90, 32);
+		$func_mover_2.rotateOnce(' -25 0 0');
+		sys.trigger($func_cameraview_1);
+
+		sys.trigger($func_static_3);
+
+		thread FadeOutBombBack();
+
+		float max = 3;
+
+		float one = 0;
+		float two = 0;
+		float three = 0;
+		float four = 0;
+		float five = 0;
+
+		float secondCounter = 0;
+		float minuteCounter = 108;
+		
+		while( max >= 0 )
+		{						
+			float minutes = (max / 60);
+			minutes = int(minutes);
+			
+			float seconds = (max % 60);
+			seconds = int(seconds);
+		
+			one = (minutes / 100);
+			one = int(one);
+			
+			two = ((minutes - (one * 100)) / 10);
+			two = int(two);
+			
+			three = ((minutes - (one * 100)) % 10);
+			three = int(three);
+			
+			four = (seconds / 10 );
+			four = int(four);
+			
+			five = (seconds % 10);
+			five = int(five);
+
+			SetBombTime( one, two, three, four, five);
+
+			max--;
+			
+			if(max >= 0)
+			{
+				sys.wait(27.5);
+			}
+		}
+
+		sys.fadeTo('0 0 0', 1, 0.0625);
+	}
+
+	void MoveSearchlight()
+	{
+		$outro_searchlight_mover.rotateOnce('45 0 0');
+		sys.waitFor($outro_searchlight_mover);		
+
+		while(1)
+		{
+			sys.waitFor($outro_searchlight_mover);
+			sys.wait(3);
+
+			$outro_searchlight_mover.rotateOnce('0 -90 0');
+			sys.waitFor($outro_searchlight_mover);
+			sys.wait(3);
+			$outro_searchlight_mover.rotateOnce('0 90 0');			
+		}
+	}
+	
+	void ValleyLampFunInstance(float num)
+	{
+		entity lamp = sys.getEntity("ValleyOutLamp0" + num);
+		entity light = sys.getEntity("ValleyOutLamp0" + num + "_light");
+
+		crossFadeEnt (lamp, '0.7 0.6 0.2', '0 0 0', .0625);
+		crossFadeEnt (light, '0.4 0.4 0.1', '0 0 0', .0625);
+		sys.wait(0.125);
+		crossFadeEnt (lamp, '0 0 0', '0.7 0.6 0.2', .0625);
+		crossFadeEnt (light, '0 0 0', '0.4 0.4 0.1', .0625);
+	}
+
+	void ValleyLampFun()
+	{
+		thread ValleyLampFunInstance(2);
+		sys.wait(.1);
+		thread ValleyLampFunInstance(3);
+		sys.wait(.0625);
+		thread ValleyLampFunInstance(1);
+		sys.wait(.05);
+		thread ValleyLampFunInstance(4);
+		sys.wait(.1);
+	}
+
+	void ValleyExplosion()
+	{
+		sys.fadeTo('1 1 1', .8, .125);		
+		thread crossFadeEnt ($outro_explosion_flare, '0 0 0', '1 1 1', .0625);
+		thread crossFadeEnt( $outro_explosion_brightlight, '0 0 0', '1 1 1', 0.0625);
+		thread crossFadeEnt( $whitegrad, '0 0 0', '1 1 1', 0.0625);
+		thread crossFadeEnt( $whitegrad2, '0 0 0', '.4 .3 .3', 0.0625);
+		thread crossFadeEnt( $outro_grad_rays, '0 0 0', '1 1 1', 0.0625);
+		thread crossFadeEnt( $outro_grad_rays2, '0 0 0', '1 1 1', 0.0625);
+		thread crossFadeEnt( $outro_grad_rays3, '0 0 0', '1 1 1', 0.0625);
+		thread crossFadeEnt( $outro_grad_rays4, '0 0 0', '1 1 1', 0.0625);
+
+		sys.wait(.25);			
+
+		sys.trigger($SpeakerThatsNotRight);		
+
+		sys.wait(.25);
+
+		sys.fadeTo('1 1 1', 0, 1);
+		thread crossFadeEnt( $outro_grad_rays, '1 1 1', '0 0 0', 1);
+		thread crossFadeEnt( $outro_grad_rays2, '1 1 1', '0 0 0', 1);
+		thread crossFadeEnt( $outro_grad_rays3, '1 1 1', '0 0 0', 1);
+		thread crossFadeEnt( $outro_grad_rays4, '1 1 1', '0 0 0', 1);
+		thread crossFadeEnt( $whitegrad, '1 1 1', '0 0 0', 6);		
+		thread crossFadeEnt( $whitegrad2, '.4 .3 .3', '0 0 0', 1.5);
+		sys.wait(0.5);
+		sys.trigger($outro_explosion_fire_1);		
+		thread crossFadeEnt ($outro_explosion_flare, '1 1 1', '0 0 0', 1);
+		thread crossFadeEnt ($outro_explosion_brightlight, '1 1 1', '0 0 0', 1.5);		
+
+		sys.trigger($ValleyPoliceSpeaker);
+		sys.wait(.5);
+		sys.trigger($ValleyQuake);
+		$player1.startSoundShader("e1m4_3_shaking", SND_CHANNEL_ANY);
+
+		sys.wait(.75);				
+
+		sys.trigger($outro_speaker_caralarm2);
+
+		sys.wait(.125);
+
+		sys.trigger($outro_speaker_caralarm1);
+
+		sys.wait(.5);
+
+		ValleyLampFun();
+
+		sys.trigger($outro_speaker_caralarm3);
+
+		sys.wait(.125);
+				
+		sys.wait(.5);
+		sys.trigger($outro_explosion_fire_6);
+		sys.trigger($outro_explosion_fire_5);
+		sys.trigger($outro_explosion_fire_4);
+		sys.trigger($outro_explosion_fire_3);
+		sys.trigger($outro_explosion_fire_2);
+		sys.trigger($outro_explosion_fire_1);		
+		
+		sys.wait(.75);
+
+		sys.trigger($SpeakerValleyExplosion);
+		
+		sys.wait(1.5);
+		sys.trigger($outro_explosion_smoke_1);
+		sys.wait(1);
+		sys.trigger($outro_explosion_smoke_2);
+		
+		//dog barking
+		sys.trigger($outro_speaker_dog_barking);
+		sys.wait(0.75);
+		sys.trigger($outro_speaker_dog_barking_2);
+		sys.trigger($ValleySpeakerMoreDogs);
+		
+		//Turn on house lights
+		crossFadeEnt ($outro_house_light_1, '0.074510 0.047059 0.000000', '1 0.698039 0', .0625);
+		sys.wait(1);
+		crossFadeEnt ($outro_house_light_2, '0.074510 0.047059 0.000000', '1 0.698039 0', .0625);
+		sys.wait(.5);
+		crossFadeEnt ($outro_house_light_3, '0.074510 0.047059 0.000000', '1 0.698039 0', .0625);
+		sys.wait(.25);		
+
+		crossFadeEnt ($outro_house_light_4, '0.074510 0.047059 0.000000', '1 0.698039 0', .0625);
+		sys.wait(1);
+		crossFadeEnt ($outro_house_light_5, '0.074510 0.047059 0.000000', '1 0.698039 0', .0625);
+		sys.wait(1);
+		crossFadeEnt ($outro_house_light_6, '0.074510 0.047059 0.000000', '1 0.698039 0', .0625);
+		sys.wait(.75);
+		crossFadeEnt ($outro_house_light_7, '0.074510 0.047059 0.000000', '1 0.698039 0', .0625);
+		sys.wait(.25);
+		
+		$ValleyPoliceLight_Mover.move(0, 5952*2);		
+
+		crossFadeEnt ($outro_house_light_9, '0.074510 0.047059 0.000000', '1 0.698039 0', .0625);	
+		sys.wait(.25);
+		crossFadeEnt ($outro_house_light_8, '0.074510 0.047059 0.000000', '1 0.698039 0', .0625);		
+
+		sys.trigger($SpeakerValleyDefense);		
+
+		sys.wait(14);
+
+		sys.fadeTo('0 0 0', 1, .25);
+
+		sys.wait(1);
+
+		sys.trigger($ValleyCam);
+
+		sys.fadeTo('0 0 0', 0, .125);
+		
+		sys.wait(3);
+		
+		sys.trigger($outro_fce_running_1);
+		sys.trigger($outro_fce_running_3);
+	}	
+
+	void ValleyBoomScene()
+	{
+		sys.trigger($SpeakerCrickets);
+
+		sys.fadeTo('0 0 0', 0, 0.125);
+		$ValleyCam_Mover.moveTo($ValleyTargetNull);
+		sys.trigger($ValleyCam);
+		//sys.trigger($info_player_teleport_2);
+
+		sys.trigger($SpeakerBoomValley);		
+
+		//trigger influence
+		sys.trigger($outro_target_setinfluence_1);
+
+		sys.wait(6);
+		
+		ValleyExplosion();
+	}
+	
+	void LeeBombTalkSub()
+	{
+		sys.wait(57);		
+		ShowNPCSubtitles("Lee", "I remember the late summer evenings we spent together.", 5);		
+		ShowNPCSubtitles("Lee", "Looking at the stars. Feeling the warm breeze against my skin.\nYour hand in mine. I thought it would last forever.", 10.5);	
+		sys.wait(4.15); 		
+		ShowNPCSubtitles("Lee", "But after mom died I always knew my life in this world would be short.", 7);
+	}
+
+	void BombCountdown()
+	{
+		sys.trigger($light_60902);
+		sys.trigger($light_65287);
+
+		sys.trigger($bomb_sparks);
+
+		float soundFadeTime = 20;
+		$light_60819.fadeSound(SND_CHANNEL_ANY, -100, soundFadeTime);
+		$speaker_85.fadeSound(SND_CHANNEL_ANY, -100, soundFadeTime);
+		$speaker_162.fadeSound(SND_CHANNEL_ANY, -100, soundFadeTime);
+		$speaker_9.fadeSound(SND_CHANNEL_ANY, -100, soundFadeTime);
+		$power_station_speaker_loop_1.fadeSound(SND_CHANNEL_ANY, -100, soundFadeTime);
+		$speaker_155.fadeSound(SND_CHANNEL_ANY, -100, soundFadeTime);
+		$speaker_152.fadeSound(SND_CHANNEL_ANY, -100, soundFadeTime);
+		$speaker_150.fadeSound(SND_CHANNEL_ANY, -100, soundFadeTime);
+		$speaker_144.fadeSound(SND_CHANNEL_ANY, -100, soundFadeTime);
+		$speaker_102.fadeSound(SND_CHANNEL_ANY, -100, soundFadeTime);
+
+		// Start the song and measure how long it takes
+		thread LeeBombTalkSub();
+		float completeTime = $player1.startSoundShader("e1m4_3_thebomb", SND_CHANNEL_ANY);
+
+		// Start moving and rotating the camera
+		$bomb_cam_mover.move(270, 16);
+		$bomb_cam_rotator.rotateOnce(' 25 0 0');
+		sys.trigger($bomb_cam_1);
+		sys.trigger($info_player_teleport_2);	
+
+		// Set up the bomb
+		$bomb.setGuiParm ("gui_parm61", 1);
+		$bomb.setKey("gui_noninteractive", 1);
+		sys.trigger($bomb);
+		
+		// Start fading out the background
+		thread FadeOutBombBack();
+
+		// Max is how long the timer should be - in milliseconds
+		float max = 2000;		
+
+		float one = 0;
+		float two = 0;
+		float three = 0;
+		float four = 0;
+		float five = 0;
+
+		// We subtract 6 seconds from the overall time because the last DING of the song happens at that time
+		float timeFactor = ((completeTime - 6) / 2);
+
+		// Store the start in lastFrame. We will wait one frame before starting so we know how long has passed.
+		float lastFrame = sys.getTime();
+
+		while( max >= 0 )
+		{
+			sys.waitFrame();
+			float timeDiff = sys.getTime() - lastFrame;
+
+			float seconds = (max / 1000);
+			float milliseconds = max % 1000;			
+
+			// DecaSeconds
+			one = seconds / 10;
+			one = int(one);
+
+			// Seconds
+			two = seconds % 10;
+			two = int(two);
+			
+			// Tenths
+			three = milliseconds / 100;
+			three = int(three);
+			
+			// Hundredths
+			four = (milliseconds % 100) / 10;
+			four = int(four);
+
+			// Milliseconds
+			five = milliseconds % 10;
+			five = int(five);
+
+			SetBombTime( one, two, three, four, five);
+			
+			max -= (timeDiff * 1000) / timeFactor;
+
+			lastFrame = sys.getTime();
+		}
+
+		sys.fadeTo('0 0 0', 1, 0.0625);
+
+		sys.wait(6);
+		
+		thread MoveSearchlight();
+		ValleyBoomScene();
+	}
+	
+	vector darkBlue = '0.05 0.1 0.3';
+	vector lightBlue = '0.05 0.2 0.6';
+
+	void fuel_rods()		
+	{
+		thread crossFadeEnt ($fog_light, '0.26 0.55 1', '0.26 0.19 1', 1);
+		thread crossFadeEnt ($fog_light2, '0.26 0.55 1', '0.26 0.19 1', 1);
+		thread crossFadeEnt ($sin_light, '0 0.62 1', '0 0.22 1', 1);
+		thread crossFadeEnt ($sin_light2, '0 0.62 1', '0 0.22 1', 1);
+		thread crossFadeEnt ($fuel_light_1, lightBlue, darkBlue, 1);		
+		thread crossFadeEnt ($fuel_light_2, lightBlue, darkBlue, 1);		
+		thread crossFadeEnt ($fuel_rod, '0.1 0.78 1', '0.1 0.27 1', 1);
+		thread crossFadeEnt ($fuel_rodflare, '0.18 0.67 1', '0.8 0.88 1', 1);		
+		sys.wait(2.5);
+		sys.trigger($fuel_rods_darkblue);
+	}
+		
+	void fuel_rods2()		
+	{
+		thread crossFadeEnt ($fog_light, '0.26 0.19 1', '0.26 0.55 1', 1);
+		thread crossFadeEnt ($fog_light2, '0.26 0.19 1', '0.26 0.55 1', 1);
+		thread crossFadeEnt ($sin_light, '0 0.22 1', '0 0.62 1', 1);
+		thread crossFadeEnt ($sin_light2, '0 0.22 1', '0 0.62 1', 1);
+		thread crossFadeEnt ($fuel_light_1, darkBlue, lightBlue, 1);
+		thread crossFadeEnt ($fuel_light_2, darkBlue, lightBlue, 1);
+		thread crossFadeEnt ($fuel_rod, '0.1 0.27 1', '0.1 0.78 1', 1);
+		thread crossFadeEnt ($fuel_rodflare, '0.8 0.88 1', '0.18 0.67 1', 1);
+		sys.wait(2.5);
+		sys.trigger($fuel_rods_lightblue);
+	}	
+
+	float milesConvoStarted = 0;
+	float imTalkingToMiles = 0;
+	float settingsVODone = 0;
+
+	void PickupBomb()
+	{
+		bombTaken = 1;
+	
+		thread Outro_CharacterSays($player1, "e1m3_1_pickupbox");
+	
+		$bomb_template.hide();
+		sys.wait(0.1);
+				
+		if(milesConvoStarted == 1)
+		{
+			imTalkingToMiles = 1;
+
+			sys.wait(1.5);
+
+			sys.trigger($func_radiochatter_2);
+			thread ShowNPCSubtitles("Sam", "Samantha. I found a bomb! Maybe I can blow my way in?!", 3);
+			Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player13_b");
+			Beat(.5);
+			thread ShowNPCSubtitles("Miles", "Boom.", 2);
+			Outro_CharacterSays($player1, "e1m4_3_MilesCall_Miles13");
+			Beat(.5);
+			thread ShowNPCSubtitles("Sam", "Boom.", 2);
+			Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player14");
+
+			$place_bomb_item.setKey("click_item", 1);
+			$broken_wall_item.setKey("click_item", 0);
+
+			imTalkingToMiles = 0;
+		}		
+	}
+
+	void ReviewSettings()
+	{
+		if(imTalkingToMiles == 0 && settingsVODone == 0)
+		{
+			settingsVODone = 1;
+			thread ShowNPCSubtitles("Sam", "Review settings before use...gotcha.", 3);
+			$player1.startSoundShader("e1m4_3_ReviewSettings", SND_CHANNEL_ANY);
+		}
+	}
+	
+	void techlight_wave()
+	{
+		while(1)	
+		{
+			$techlight_mover.move(-1, 5248);
+			sys.waitFor($techlight_mover);
+			$techlight_mover.restorePosition();
+		}
+	}	
+	
+	void PlaceBomb()
+	{
+		$bomb.show();
+	}
+	
+	void BrokenWallReaction()
+	{
+		if(imTalkingToMiles == 0)
+		{
+			$broken_wall_item.setKey("click_item", 0);
+	
+			thread ShowNPCSubtitles("Sam", "Hmm.", 2);
+			$player1.startSoundShader("player_vo_hmm", SND_CHANNEL_ANY);
+			
+			sys.wait(1.5);
+			
+			$broken_wall_item.setKey("click_item", 1);
+		}		
+	}
+
+	float ring1Status = 0;
+	float ring2Status = 0;
+	float ring3Status = 0;
+
+	void RunRing(entity ring, float direction, float isStarting)
+	{
+		float i,v,t,blendtime,velmult,final;
+		vector rotvector;
+		½
+		blendtime = 10;
+		velmult = .3;
+
+		if( isStarting == 0)
+		{
+			blendtime /= 2;
+			velmult *= 2;			
+		}		
+
+		t = blendtime * GAME_FPS;
+		final = (t-1) * velmult;
+
+		for ( i = 0; i < t; i++ )
+		{
+			if(isStarting == 1)
+			{
+				v = (i * velmult);
+			}
+			else
+			{
+				v = final - (i * velmult);				
+			}
+			
+			rotvector_x=0;
+			rotvector_y=0; 
+			rotvector_z=v * direction;
+			
+			ring.rotate ( rotvector );
+			
+			sys.wait( GAME_FRAMETIME );
+		}		
+	}
+
+	void RunRing1(float isStarting)
+	{
+		ring1Status = 1;
+		RunRing($dejcrook01, 1, isStarting);
+		ring1Status = 2;
+	}
+
+	void RunRing2(float isStarting)
+	{
+		ring2Status = 1;
+		RunRing($dejcrook02, -1, isStarting);
+		ring2Status = 2;
+	}
+
+	void RunRing3(float isStarting)
+	{
+		ring3Status = 1;
+		RunRing($dejcrook03, 1, isStarting);
+		ring3Status = 2;
+
+		sys.wait(3);
+
+		ring3Status = 3;		
+	}
+
+	void StartScannerRings()
+	{
+		thread RunRing1(1);
+		//sys.wait(.5);
+		thread RunRing2(1);
+		//sys.wait(.5);
+		thread RunRing3(1);
+	}
+
+	void StopScannerRings()
+	{
+		thread RunRing1(0);
+		//sys.wait(.5);
+		thread RunRing2(0);
+		//sys.wait(.5);
+		RunRing3(0);
+	}
+
+	void TurnOffScreen(entity screen, entity flare)
+	{
+		screen.setColor(0, 0, 0);
+		flare.setColor(0, 0, 0 );
+		screen.setGuiParm ("gui_parm91", 1);
+		screen.startSoundShader("guisounds_close", SND_CHANNEL_ANY);
+		sys.trigger(screen);
+	}
+	
+	void TurnOnScreen(entity screen, entity flare)
+	{		
+		screen.setColor(1, 1, 1);
+		flare.setColor(0.05, 0.08, 0.14);
+		screen.setGuiParm ("gui_parm91", 0);
+		screen.startSoundShader("guisounds_open", SND_CHANNEL_ANY);
+		sys.trigger(screen);
+	}
+
+	float PrintDejCrooks()
+	{
+		vector dc = $dejcrook01.getWorldOrigin();
+		vector anchor = $dejcrook01_anchor.getWorldOrigin();
+		vector spinner = $dejcrook01_spinner.getWorldOrigin();
+
+		vector v1 = sys.vecNormalize(spinner - dc);
+		vector v2 = sys.vecNormalize(anchor - dc);
+
+		float dot = sys.DotProduct(v1, v2);
+
+		return dot;
+	}
+	
+	void OpenDejCrooksPanel()
+	{
+		$dejcrook_lever_hinge.rotateOnce('-99 0 0');
+		$dejcrook_lever_hinge.startSoundShader("e1m5_3_large_switch", SND_CHANNEL_ANY);
+
+		sys.waitFor($dejcrook_lever_hinge);
+		sys.wait(.5);
+
+		$dejcrook_panel_hinge.rotateOnce('-160 0 0');
+		$dejcrook_panel_hinge.startSoundShader("e1m4_3_hinge_creak", SND_CHANNEL_ANY);
+
+		sys.waitFor($dejcrook_panel_hinge);
+		sys.wait(.5);
+
+		sys.wait(1);
+
+		TurnOnScreen($dejcrooks_panel_gui, $dejcrooks_panel_gui_flare);
+
+		sys.wait(.5);
+
+		sys.trigger($dejcrooks_panel_setinteractive);
+	}
+
+	void ClickCacheButton(entity button)
+	{
+		float direction = button.getFloatKey("direction");
+		button.move(direction, 1);
+		button.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+		sys.waitFor(button);
+
+		sys.wait(.125);
+		button.startSoundShader("e1m1_intercomclick2", SND_CHANNEL_ANY);
+		button.move(direction + 180, 1);
+	}
+
+	void StopDejcrooks()
+	{
+		ClickCacheButton($func_mover_102);
+
+		float dot = PrintDejCrooks();
+		
+		if(dot > 0 && dot < 1)
+		{
+			sys.wait(.5);			
+		}
+	
+		$whirly_fan_spkr.fadeSound (SND_CHANNEL_ANY, -30, 3);
+		StopScannerRings();		
+		$func_static_101239.setKey ("click_item", "1");
+	}
+
+	float dejcrooks_state = 0;
+	
+	void DejCrooksCW()
+	{		
+		$dejcrooks_panel_gui.setGuiParm("gui_parm1", 1);
+		sys.trigger($dejcrooks_panel_gui);
+		dejcrooks_state = 2;
+	}
+
+	void DejCrooksCCW()
+	{		
+		$dejcrooks_panel_gui.setGuiParm("gui_parm1", 1);
+		sys.trigger($dejcrooks_panel_gui);
+		dejcrooks_state = 1;
+	}
+
+	void DejCrooksStop()
+	{
+		$dejcrooks_panel_gui.setGuiParm("gui_parm1", 0);
+		sys.trigger($dejcrooks_panel_gui);
+		dejcrooks_state = 0;
+	}
+
+	void DejCrooks_Sound_Loop() 
+	{
+		$dejcrook_panel.startSoundShader ("al3_crane_loop", SND_CHANNEL_VOICE2 );
+	}
+
+	void DejCrooks_Sound_Stop() 
+	{
+		$dejcrook_panel.startSoundShader ("al3_crane_end", SND_CHANNEL_VOICE2 );
+	}
+
+	void DejCrooks_Move( entity wheel, float dir, float amount, float stopOnCommand )
+	{
+		float cmd;
+
+		if ( amount < 0.01 )
+		{		
+			return;
+		}
+		
+		DejCrooks_Sound_Loop();
+	
+		//part.move( dir, amount );		
+		//float rotTime = amount / 50;
+		//wheel.time(.34);
+
+		float revolutions = amount / 50.27;
+				
+		//wheel.rotateOnce('0 0 360' * revolutions * dir);		
+
+		if ( !stopOnCommand )
+		{
+			sys.waitFor( wheel );
+		}
+		else
+		{
+			cmd = dejcrooks_state;
+			while( dejcrooks_state == cmd )
+			{
+				wheel.rotateOnce('0 0 360' * revolutions * dir);
+				sys.waitFor( wheel );
+				sys.waitFrame();				
+			}
+			/*
+			if ( !wheel.isMoving() )
+				{
+					break;
+				}				
+				*/
+			//wheel.stopRotating();			
+		}	
+		DejCrooks_Sound_Stop();
+	}
+
+	void DejCrooksLoop()
+	{
+		float amount = 1;
+		while( 1 )
+		{
+			dejcrooks_state = 0;
+			while( dejcrooks_state == 0 )
+			{							
+				sys.waitFrame();
+			}
+
+			if ( dejcrooks_state == 2 )
+			{
+				thread DejCrooks_Move( $dejcrook01, -1, amount, true );
+				thread DejCrooks_Move( $dejcrook02, 1, amount, true );
+				DejCrooks_Move( $dejcrook03, -1, amount, true );
+			}
+			else if ( dejcrooks_state == 1 )
+			{				
+				thread DejCrooks_Move( $dejcrook01, 1, amount, true );
+				thread DejCrooks_Move( $dejcrook02, -1, amount, true );
+				DejCrooks_Move( $dejcrook03, 1, amount, true );
+			}
+		}
+	}
+
+	void DejCrooks()
+	{		
+		$dejcrook01.rotateOnce('0 0 -11.25');
+		$dejcrook02.rotateOnce('0 0 22.5');
+
+		sys.waitFor($dejcrook01);
+
+		thread DejCrooksLoop();
+		TurnOffScreen($dejcrooks_panel_gui, $dejcrooks_panel_gui_flare);
+
+		StartScannerRings();
+	}
+		
+	void CallMiles()
+	{
+		sys.trigger($scene_target_setinfluence_1);
+
+		Beat(.25);
+		thread ShowNPCSubtitles("Miles", "Hmm?", 2);
+		Outro_CharacterSays($Comm_Holder, "e1m4_3_MilesCall_Miles1");
+		Beat(.5);
+		thread ShowNPCSubtitles("Sam", "You mentioned a pipeline leading to the Bulwark!?\nI think I found it a couple of steps back. Blown out. Impassable.", 6.25);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player1");
+		Beat(.75);
+		thread ShowNPCSubtitles("Miles", "You've got to be fucking kidding me...Where are you?", 4.15);
+		Outro_CharacterSays($Comm_Holder, "e1m4_3_MilesCall_Miles2");
+		Beat(.4);
+		thread ShowNPCSubtitles("Sam", "In some sort of communication room. Well obviously\nclose to the...you know, I...I'm not sure at this point.", 7);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player2");
+		Beat(.5);
+		thread ShowNPCSubtitles("Miles", "Mmm...can you give me the CMID? It's a unique ID that designates any Comm. Room.\nStarts with a CM dash.", 6.15);
+		Outro_CharacterSays($Comm_Holder, "e1m4_3_MilesCall_Miles3");
+		Beat(.6);
+		thread ShowNPCSubtitles("Sam", "Mmm. Sure. Let's see.\nCM dash. CM dash.", 6);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player3");
+		
+		$comm_room_number.show();
+	}
+	
+	void e1m4_3_MilesCall_Player6Sub()
+	{
+		ShowNPCSubtitles("Miles", "Okay.", 1);
+		ShowNPCSubtitles("Sam", "Hmm.", 1);
+		ShowNPCSubtitles("Miles", "No.", 1);
+		ShowNPCSubtitles("Sam", "No.", 1);
+		ShowNPCSubtitles("Miles", "No.", 1);
+		ShowNPCSubtitles("Sam", "No.", 1);
+		ShowNPCSubtitles("Miles", "Nope.", 1);
+		ShowNPCSubtitles("Sam", "Damn.", 1);
+		ShowNPCSubtitles("Miles", "Refinery...Interesting.", 2);
+		ShowNPCSubtitles("Sam", "Yes!", 1);
+	}
+	
+	void e1m4_3_MilesCall_Miles6Sub()
+	{
+		ShowNPCSubtitles("Miles", "You know...that old thing is also connected to the Bulwark.", 3.8);
+		ShowNPCSubtitles("Miles", "It should be pretty close to where you are now.", 1.9);
+		ShowNPCSubtitles("Miles", "I'm not sure it's directly accessible from the Fuel Station,\nwhich is your location.", 3.4);
+		ShowNPCSubtitles("Miles", "but there's got to be a way in! Somehow.", 3.5);
+	}
+	
+	void e1m4_3_MilesCall_Miles7Sub()
+	{
+		ShowNPCSubtitles("Miles", "Yeah.", 1);	
+		ShowNPCSubtitles("Miles", "Wait! You could use the Comm device as a relay.\nIt will only work for short ranges.", 4.1);
+		ShowNPCSubtitles("Miles", "But at least we can talk while you look around.", 2);
+	}
+	
+	void ContinueMilesCall1()
+	{
+		Beat(.25);
+		
+		thread ShowNPCSubtitles("Sam", "Found it! It's CM. Dash. AA. Dash. 23.", 4.7);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player4");
+		Beat(.25);
+		thread ShowNPCSubtitles("Miles", "Hmm?", 2);
+		Outro_CharacterSays($Comm_Holder, "e1m4_3_MilesCall_Miles4");
+		Beat(1.5);
+		thread e1m4_3_MilesCall_Player6Sub();
+		$player1.startSoundShader("e1m4_3_MilesCall_Player6", SND_CHANNEL_ANY);
+		Outro_CharacterSays($Comm_Holder, "e1m4_3_MilesCall_Miles5");		
+		Beat(.75);
+		thread e1m4_3_MilesCall_Miles6Sub();
+		Outro_CharacterSays($Comm_Holder, "e1m4_3_MilesCall_Miles6");
+		Beat(.5);		
+		thread ShowNPCSubtitles("Sam", "Okay. I'll see what I can find. Thanks Miley.", 2.25);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player5");
+		Beat(.25);
+		thread e1m4_3_MilesCall_Miles7Sub();
+		Outro_CharacterSays($Comm_Holder, "e1m4_3_MilesCall_Miles7");
+		
+		$item_pickup_bomb.setKey("click_item", 1);
+		$item_bomb_instructions.setKey("click_item", 1);
+
+		sys.trigger($trigger_post_miles_call);
+
+		$miles_conf_door.lock(0);
+	}
+	
+	void e1m4_3_MilesCall_Player8Sub()
+	{
+		ShowNPCSubtitles("Sam", "Yeah. Earth. You know.\nThis is the first time I've thought about it.", 7);
+		ShowNPCSubtitles("Sam", "We really are on Mars, aren't we? Well, I am.\nIt doesn't feel like I belong here...", 8);
+		ShowNPCSubtitles("Sam", "I wonder if I still have a place back on Earth.\nI guess that's why I need to find your friend...", 6.15);
+		ShowNPCSubtitles("Sam", "...so you can find that other friend.\nMore than a friend?", 5.25);
+	}
+	
+	void e1m4_3_MilesCall_Miles8Sub()
+	{
+		ShowNPCSubtitles("Miles", "Well. Everything, I guess. I had a normal upbringing...more or less.\nWe had a regular house in an uneventful neighborhood.", 9);
+		ShowNPCSubtitles("Miles", "My parents were strict, but loving.\nWe actually used to live outside federal soil.", 4.3);
+		ShowNPCSubtitles("Miles", "But jobs were hard to come by so we eventually decided to migrate.", 3.8);
+		ShowNPCSubtitles("Miles", "Life in the FCE controlled areas was much easier.", 3.25);
+		ShowNPCSubtitles("Miles", "The universal basic income gave us a steady base and dad soon found a job...\nAnd then another.", 7.1);
+		ShowNPCSubtitles("Miles", "He pulled double shifts for years to give us the best possible outlook.\nRight up until he...", 8);
+		ShowNPCSubtitles("Miles", "Later on I joined the academy and now I'm here.", 5);
+	}
+	
+	void e1m4_3_MilesCall_Miles12Sub()
+	{
+		ShowNPCSubtitles("Miles", "You ask him about your identity, grab a cold one and relax behind the fortified walls of safety.\n...Obviously. ", 6);
+		ShowNPCSubtitles("Miles", "All I ask of you is...contact me and tell me he's safe.\nEven if it means going beyond those walls. Please.", 6.25);
+	}
+	
+	void ContinueMilesCall2()
+	{
+		imTalkingToMiles = 1;
+		sys.trigger($func_radiochatter_1);
+		Beat(.25);
+		thread ShowNPCSubtitles("Sam", "Samantha. I was wondering. About you.\nWhat do you remember from back home?", 6.2);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player7");
+		Beat(1.75);
+		thread e1m4_3_MilesCall_Miles8Sub();
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Miles8");
+		Beat(.75);
+		thread ShowNPCSubtitles("Sam", "Do you miss it? Life on earth?", 2);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player7_a");
+		Beat(.75);
+		thread ShowNPCSubtitles("Miles", "Do I miss it? Hmm, well. I miss mom. I miss the late summer evenings.\nI miss...you know how it is.", 9.15);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Miles8_2");
+		Beat(.75);
+		thread e1m4_3_MilesCall_Player8Sub();
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player8");
+		Beat(.25);
+		thread ShowNPCSubtitles("Miles", "What? Like sitting in a tree?", 2.1);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Miles9");
+		thread ShowNPCSubtitles("Sam", "K-I-S-S-I-N-G...", 2);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player9");
+		Beat(.25);
+		thread ShowNPCSubtitles("Miles", "Just get there you imbecile.", 2);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Miles10");
+		Beat(1);
+		thread ShowNPCSubtitles("Sam", "I would kill to see a tree right now.", 2);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player10");
+		Beat(.5);
+		thread ShowNPCSubtitles("Miles", "Well...you may just have to.", 2);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Miles11");
+		Beat(.75);
+		thread ShowNPCSubtitles("Sam", "Yeah...So when I find him, what do I do?", 4.15);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player11");
+		Beat(.5);
+		thread e1m4_3_MilesCall_Miles12Sub();
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Miles12");
+		Beat(.75);
+		thread ShowNPCSubtitles("Sam", "I will.", 2);
+		Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player12");
+		
+		milesConvoStarted = 1;
+		
+		if(bombTaken == 1)
+		{
+			sys.wait(2);
+
+			sys.trigger($func_radiochatter_3);
+			Beat(.25);
+			thread ShowNPCSubtitles("Sam", "So I guess I'm going to the refinery.\nThe Marines left a bomb. Maybe I could blow my way in.", 6.15);
+			Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player13_a");
+			Beat(.5);
+			thread ShowNPCSubtitles("Miles", "Boom.", 2);
+			Outro_CharacterSays($player1, "e1m4_3_MilesCall_Miles13");
+			Beat(.5);
+			thread ShowNPCSubtitles("Sam", "Boom.", 2);
+			Outro_CharacterSays($player1, "e1m4_3_MilesCall_Player14");
+
+			$place_bomb_item.setKey("click_item", 1);
+			$broken_wall_item.setKey("click_item", 0);
+		}
+
+		imTalkingToMiles = 0;
+	}
+	
+	void InsertSnapin()
+	{
+		$miles_conf_door.lock(2);
+
+		$player1.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+		
+		sys.trigger($comm_beep);
+
+		$comm_snapin.show();
+		$comm_blinker_tex.hide();
+		$comm_blinking_light.hide();
+		sys.wait(.1);
+		$commscreen_online.hide();
+		sys.wait(.1);
+		$commscreen.setGuiParm("gui_parm41", 1);		
+		sys.trigger($commscreen);
+		$commscreen.show();
+
+		sys.wait(2.5);
+		CallMiles();
+	}
+	
+	void BombReaction()
+	{
+		thread ShowNPCSubtitles("Sam", "Shit! What happened here? Looks like a bomb went off.", 3.25);
+		sys.wait($player1.startSoundShader("e1m4_3_BombWentOff", SND_CHANNEL_ANY));
+
+		$env_ragdoll_marine6_2.setKey("click_item", 1);
+
+		sys.trigger($item_objective_6);
+		sys.trigger($trigger_relay_717);
+	}
+	
+	void BombSignReaction()	
+	{
+		thread ShowNPCSubtitles("Sam", "Guess I'm not going that way.", 2);
+		$player1.startSoundShader("e1m4_3_NotGoingThatWay", SND_CHANNEL_ANY);
+	}
+	
+	void BombDeadMarineReaction()
+	{
+		thread ShowNPCSubtitles("Sam", "Dead. By accident...or?", 2.5);
+		$player1.startSoundShader("e1m4_3_ByAccident", SND_CHANNEL_ANY);
+	}
+	
+	//Outro stuff	
+	vector offColor = '0 0 0';
+	vector onColor = '0.1 0.38 0.47';
+	vector white = '1 1 1';
+	
+	void ToggleLightSwitch()
+	{	
+		usingMatches = 0;
+
+		$player1.startSoundShader("e1m4_3_MatchOut", SND_CHANNEL_ANY);
+		thread crossFadeEnt ($BarnStartDestination_FireBackLight, '0.39 0.28 0.24', '0 0 0', 0.1);
+		thread crossFadeEnt ($BarnStartDestination_FireLight, '0.71 0.4 0.22', '0 0 0', 0.1);
+
+		$func_mover_intro_switch.rotateOnce('-90 0 0');
+		$func_mover_intro_switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);	
+		
+		$switch_light_1.hide();
+		$switch_light_1_on.show();
+		
+		crossFadeEnt ($switch_light_light_1, '1 0 0', '0 1 0', .01);
+		
+		thread crossFadeEnt ($intro_blue_light_1, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_1, white, offColor, .0625);
+		$intro_blue_light_flare_1.show();
+		
+		thread crossFadeEnt ($intro_blue_light_2, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_2_ambient, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_2, offColor, white, .0625);
+		$intro_blue_light_flare_2.show();
+		
+		thread crossFadeEnt ($intro_blue_light_3, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_4, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_3, offColor, white, .0625);
+		$intro_blue_light_flare_3.show();
+		
+		thread crossFadeEnt ($intro_blue_light_5, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_6, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_6_ambient, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_4, offColor, white, .0625);
+		$intro_blue_light_flare_4.show();
+		
+		thread crossFadeEnt ($intro_blue_light_7, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_8, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_8_ambient, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_5, offColor, white, .0625);
+		$intro_blue_light_flare_5.show();
+		
+		$item_secret_hatch.setKey("click_item", 1);
+	}
+	
+	void PickUpMatches()
+	{
+		thread Outro_CharacterSays($player1, "e1m3_1_pickupbox");
+		
+		$outro_matches.hide();
+
+		$outro_picture_alter_item.show();
+		$outro_chair_alter_item.show();
+		$outro_books_item_2.show();
+	}
+	
+	void OpenHidingSpot()
+	{
+		$outro_secret_hatch.rotateOnce('-95 0 0');
+		$outro_secret_hatch.startSoundShader("e1m3_1_hatchopen", SND_CHANNEL_ANY);
+		
+		sys.wait(1);
+		
+		$outro_note_from_lee_clicker.setKey("click_item", 1);
+	}
+	
+	void showTextCam(string text, entity e)
+	{
+		e.setGuiParm("gui_parm1", text);
+		e.setGuiParm("gui_parm2", 0);
+		sys.trigger(e);
+
+		sys.fadeTo('0 0 0', 0, 2);
+
+		sys.wait(7);
+
+		e.setGuiParm("gui_parm2", 1);
+		sys.trigger(e);
+
+		sys.fadeTo('0 0 0', 1, 1);
+
+		sys.wait(1);
+	}
+	
+	void showText(string text)
+	{
+		entity e = sys.getEntity("cameraGui1");
+		showTextCam(text, e);
+	}	
+	
+	void OpenRoomDoorSlightly()
+	{
+		sys.trigger($outro_portal_1);
+
+		$player1.startSoundShader("e1m4_door_creek_1", SND_CHANNEL_ANY);
+		$outro_door_out_mover.rotateOnce('0 15 0');
+		
+		sys.waitFor($outro_door_out_mover);		
+		
+		sys.wait(.125);
+		
+		$outro_door_out_click.setKey("click_item", 1);		
+	}
+	
+	void OpenRoomDoor()
+	{
+		$outro_door_out_handle.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+		$outro_door_out_handle.rotateOnce('0 0 -30');
+		
+		$outro_door_out_mover.rotateOnce('0 75 0');
+		$outro_door_out_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+
+		sys.wait(.75);
+		$player1.startSoundShader("e1m4_3_ALargerWorld", SND_CHANNEL_ANY);
+
+		sys.wait(.5);
+
+		$outro_door_out_handle.rotateOnce('0 0 30');
+
+		sys.waitFor($outro_door_out_mover);	
+	}
+
+	void CloseCloset()
+	{
+		sys.waitFor($outro_closet_2_right);
+		$outro_closet_2_left.move(180, -32);
+		$outro_closet_2_right.move(0, -35);
+		sys.waitFor($outro_closet_2_right);
+		sys.trigger($outro_portal_2);
+	}
+	
+	void OpenBathroomDoor()
+	{
+		thread CloseCloset();
+
+		sys.trigger($outro_portal_3);
+		$outro_door_bathroom_handle.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+		$outro_door_bathroom_handle.rotateOnce('0 0 -30');
+		
+		$outro_door_bathroom_mover.rotateOnce('0 -85 0');
+		$outro_door_bathroom_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+		
+		sys.wait(.5);
+
+		thread ShowNPCSubtitles("Sam", "Hello?", 2);
+		Outro_CharacterSays($player1, "player_vo_general_Hello");
+
+		$outro_door_bathroom_handle.rotateOnce('0 0 30');
+		
+		sys.waitFor($outro_door_bathroom_mover);
+	}
+
+	void ShowerOff()
+	{
+		sys.trigger($outro_portal_4);
+		
+		//Hide moving crates
+		$outro_moving_crates.hide();
+		$outro_moving_crates_text.hide();
+		$outro_box_room_decals_drab.show();
+		$outro_moving_crates_playerclip.hide();		
+		
+		//show chair, beer and wine stuff
+		$drunk_chair_playerclip.show();
+		$drunk_chair_part_1.show();
+		$drunk_chair_part_2.show();
+		$chair_wine_bottles.show();
+		$chair_beer_1.show();
+		$chair_beer_2.show();
+		$chair_beer_3.show();
+		$chair_beer_4.show();
+		$chair_beer_5.show();
+		$chair_beer_6.show();
+		$chair_beer_7.show();
+		$chair_beer_8.show();
+
+		// Remove tunnel wall
+		$outro_tunneldoor_wall.hide();
+		
+		//Turn off shower
+		$ShowerKnob.rotateOnce('45 0 0');
+		sys.wait(.5);					
+		$ShowerBeams.move(DOWN, 128);	
+		$ShowerSplash.move(DOWN, 128);
+		sys.wait(.75);
+		sys.trigger($outro_speaker_130);	
+		sys.wait(.25);
+		
+		sys.wait(.5);
+		sys.waitFor($ShowerBeams);
+		$ShowerBeams.hide();
+	}
+
+	void Start4RoomsMusic()
+	{
+		$SpeakerThatsNotRight.fadeSound(SND_CHANNEL_ANY, -100, 20);
+		
+		sys.trigger($Speaker4Rooms);
+	}	
+	
+	void OpenCloset_1()
+	{
+		sys.trigger($outro_portal_2);
+		$outro_closet_1_item.hide();
+	
+		$outro_closet_1_left.move(180, 30);
+		sys.trigger($SliderLeftSpeaker);
+
+		sys.wait(.125);
+
+		$outro_closet_1_right.move(0, 32);
+		sys.trigger($SliderRightSpeaker);
+	}
+	
+	void OpenCloset_2()
+	{
+		$outro_func_static_99545.hide();
+	
+		$outro_closet_2_left.move(180, 32);
+		sys.trigger($SliderLeftSpeaker_2);
+
+		sys.wait(.125);
+
+		$outro_closet_2_right.move(0, 35);
+		sys.trigger($SliderRightSpeaker_2);
+		
+		sys.wait(.5);
+		
+		//Start showering sounds
+		sys.trigger($outro_speaker_130);
+	}	
+	
+	float OutroChairPosition = 1;
+	float OutroPicturePosition = 1;
+	float OutroBooksPosition = 1;
+	
+	float OutroItemSettingsSuccess()
+	{
+		if(OutroChairPosition == 3 && OutroPicturePosition == 3 && OutroBooksPosition == 3)
+		{
+			$player1.startSoundShader("shav_general_fnote", SND_CHANNEL_ANY);
+		
+			$outro_books_item_1.hide();
+			$outro_books_item_2.hide();
+			$outro_books_item_correct.hide();
+			$outro_chair_alter_item.hide();
+			$outro_picture_alter_item.hide();
+
+			$outro_door_out_mover.accelTime(.125);
+			$outro_door_out_mover.time(.5);
+			$outro_door_out_mover.decelTime(.125);			
+
+			$outro_door_out_mover.rotateOnce('0 -90 0');
+			$outro_door_out_mover.startSoundShader("e1m3_1_placebox", SND_CHANNEL_ANY);
+			sys.waitFor($outro_door_out_mover);
+			sys.trigger($outro_portal_1);
+			
+			$outro_closet_1_item.setKey("click_item", "1");
+
+			return 1;
+		}
+
+		return 0;
+	}
+
+	void ShowRelevantBook()
+	{
+		if(OutroBooksPosition == 2)
+		{
+			$outro_books_item_1.setKey("click_item", "1");
+		}
+		else if(OutroBooksPosition == 3)
+		{			
+			$outro_books_item_correct.setKey("click_item", "1");
+		}
+		else if(OutroBooksPosition == 1)
+		{
+			$outro_books_item_2.setKey("click_item", "1");
+		}	
+	}
+
+	void HideMirrorClickers()
+	{
+		$outro_books_item_1.setKey("click_item", "0");
+		$outro_books_item_2.setKey("click_item", "0");
+		$outro_books_item_correct.setKey("click_item", "0");
+		$outro_chair_alter_item.setKey("click_item", "0");
+		$outro_picture_alter_item.setKey("click_item", "0");
+	}
+
+	void ShowMirrorClickers()
+	{
+		ShowRelevantBook();
+		$outro_chair_alter_item.setKey("click_item", "1");
+		$outro_picture_alter_item.setKey("click_item", "1");
+	}
+	
+	float firstTimeChair = 1;
+	void SetChair()
+	{
+		HideMirrorClickers();
+		
+		$outro_chair_alter.startSoundShader("e1m3_1_slidebox", SND_CHANNEL_ANY);
+		
+		if(OutroChairPosition == 1)
+		{
+			$player1.startSoundShader("blueworld_toggle1", SND_CHANNEL_ANY);
+			if(firstTimeChair != 1)
+			{
+				$outro_chair_alter.rotateOnce('0 -20 0');
+			}
+			else
+			{
+				$outro_chair_alter.rotateOnce('0 10 0');
+			}
+			
+			OutroChairPosition = 2;
+		}
+		else if(OutroChairPosition == 2)
+		{
+			$player1.startSoundShader("blueworld_toggle2", SND_CHANNEL_ANY);
+		
+			$outro_chair_alter.rotateOnce('0 -35 0');
+			OutroChairPosition = 3;
+		}
+		else if(OutroChairPosition == 3)
+		{
+			$player1.startSoundShader("blueworld_toggle3", SND_CHANNEL_ANY);
+			$outro_chair_alter.rotateOnce('0 55 0');
+			
+			firstTimeChair = 0;
+			OutroChairPosition = 1;
+		}
+
+		OutroItemSettingsSuccess();
+		
+		sys.waitFor($outro_chair_alter);		
+		
+		ShowMirrorClickers();
+	}
+	
+	void SetBooks()
+	{		
+		HideMirrorClickers();
+
+		if(OutroBooksPosition == 1)
+		{
+			$player1.startSoundShader("blueworld_toggle1", SND_CHANNEL_ANY);
+			$outro_books_2.hide();
+			$outro_books_1.show();			
+			
+			OutroBooksPosition = 2;			
+
+		}
+		else if(OutroBooksPosition == 2)
+		{
+			$player1.startSoundShader("blueworld_toggle2", SND_CHANNEL_ANY);
+		
+			$outro_books_1.hide();
+			$outro_books_correct.show();			
+
+			OutroBooksPosition = 3;		
+		}
+		else if(OutroBooksPosition == 3)
+		{
+			$player1.startSoundShader("blueworld_toggle3", SND_CHANNEL_ANY);
+			$outro_books_correct.hide();
+			$outro_books_2.show();			
+
+			OutroBooksPosition = 1;		
+		}
+
+		if(OutroItemSettingsSuccess() == 1)
+		{
+			return;
+		}
+
+		sys.wait(0.75);
+
+		ShowMirrorClickers();
+	}
+	
+	float firstTimePicture = 1;
+	void SetPicture()
+	{
+		HideMirrorClickers();
+
+		if(OutroPicturePosition == 1)
+		{
+			$player1.startSoundShader("blueworld_toggle3", SND_CHANNEL_ANY);			
+			if(firstTimePicture != 1)
+			{
+				$outro_picture_alter.rotateOnce('-20 0 0');
+			}
+			else
+			{
+				$outro_picture_alter.rotateOnce('15 0 0');
+			}
+						
+			OutroPicturePosition = 2;
+		}
+		else if(OutroPicturePosition == 2)
+		{	
+			$player1.startSoundShader("blueworld_toggle2", SND_CHANNEL_ANY);
+			$outro_picture_alter.rotateOnce('-30 0 0');
+			
+			OutroPicturePosition = 3;
+		}
+		else if(OutroPicturePosition == 3)
+		{
+			$player1.startSoundShader("blueworld_toggle1", SND_CHANNEL_ANY);
+			$outro_picture_alter.rotateOnce('50 0 0');
+			
+			firstTimePicture = 0;
+			OutroPicturePosition = 1;			
+		}		
+		
+		OutroItemSettingsSuccess();
+
+		sys.waitFor($outro_picture_alter);
+
+		ShowMirrorClickers();
+	}
+	
+	vector noLight = '0 0 0';
+	vector lampTexColor = '0.9 0.4 0.28';
+	vector lampLightColor = '0.32 0.21 0.13';
+	vector lampGlareColor = '0.419608 0.180392 0.129412';
+	vector lampEffectColor = '0.45 0.2 0.14';
+	float lightCounter = 0;
+
+	void ToggleLight()
+	{
+		if(lightCounter < 5)
+		{			
+			$LightClicker.startSoundShader("switch_02", SND_CHANNEL_ANY);
+
+			if(lightCounter % 2 == 0)
+			{				
+				thread crossFadeEnt ($LampLight, noLight, lampLightColor, .0625);
+				thread crossFadeEnt ($LampGlare, noLight, lampGlareColor, .0625);
+				thread crossFadeEnt ($LampTex, noLight, lampTexColor, .0625);
+				thread crossFadeEnt ($LampEffect, noLight, lampEffectColor, .0625);
+			}
+			else
+			{				
+				thread crossFadeEnt ($LampLight, lampLightColor, noLight, .0625);
+				thread crossFadeEnt ($LampGlare, lampGlareColor, noLight, .0625);
+				thread crossFadeEnt ($LampTex, lampTexColor, noLight, .0625);
+				thread crossFadeEnt ($LampEffect, lampEffectColor, noLight, .0625);
+			}			
+
+			lightCounter++;
+
+			if(lightCounter > 4)
+			{
+				sys.trigger($LightClicker);
+				$player1.startSoundShader("e1m4_3_Rooms", SND_CHANNEL_ANY);
+				sys.trigger($SpeakerValleyDefense);
+				sys.trigger($SpeakerCrickets);
+				sys.trigger($BlueWorldPortalSky);
+				sys.trigger($BlueWorldSkyPortal);
+
+				sys.wait(1);
+				
+				OpenRoomDoorSlightly();
+			}
+		}
+	}
+
+	void CallLee()
+	{
+		$outro_phone_gui.startSoundShader("e1m3_phone_bleep1", SND_CHANNEL_ANY);
+		$outro_phone_gui.setGuiParm("gui_parm1", 1);		
+		sys.trigger($outro_phone_gui);
+
+		sys.wait(1);
+
+		$outro_phone_gui.startSoundShader("e1m3_phone_dialtone", SND_CHANNEL_ANY);
+
+		sys.wait(4);
+		
+		thread ShowNPCSubtitles("Sam", "Come on...Pick up pick up pick up.", 3);
+		Outro_CharacterSays($player1, "e1m4_3_Outro_Player5");
+
+		sys.wait(5.4);
+
+		$outro_phone_gui.startSoundShader("e1m3_phone_bleep2", SND_CHANNEL_ANY);
+
+		$outro_phone_gui.setGuiParm("gui_parm1", 0);
+		sys.trigger($outro_phone_gui);
+
+		sys.wait(1);
+
+		sys.trigger($LightClicker);
+	}
+	
+	void AllMonstersDead()
+	{
+		$End_PowerOn_Clicker.show();		
+	}
+
+	void ResetPower()
+	{
+		$power_reset_switch.move(-1, 8);
+		sys.trigger($power_switch_sp);
+
+		sys.trigger($speaker_7);
+		sys.trigger($speaker_8);
+		sys.trigger($speaker_156);
+		sys.trigger($speaker_150);
+		$speaker_151.fadeSound(SND_CHANNEL_ANY, -20, 5);
+		$speaker_165.fadeSound(SND_CHANNEL_ANY, -20, 5);			
+
+		sys.trigger($comm_beep);
+		$comm_blinker_tex.show();
+		$Comm_Holder.show();
+		$commscreen_online.show();
+		$comm_blinking_light.show();
+		$cm_id_pc_screen_1_online.show();
+		$cm_id_pc_screen_2_online.show();
+		
+		$commscreen_no_power.hide();
+		$cm_id_pc_screen_1_offline.hide();
+		$cm_id_pc_screen_2_offline.hide();
+
+		sys.wait(1.5);
+
+		sys.trigger($power_station_speaker_start_1);
+		sys.wait(2.75);
+		sys.trigger($power_up_sp);
+		sys.trigger($power_station_speaker_loop_1);	
+	
+		sys.wait(0.75);
+
+		sys.trigger($EndBlueLightsColor);
+		sys.trigger($EndCommLightsColor1);
+		sys.trigger($EndCommLightsColor2);		
+	}
+
+	float fourRooms = 0;
+	float fourRooms1Target = 1;
+	float fourRooms2Target = 1;
+	float fourRooms3Target = 1;
+	float fourRooms4Target = 1;
+
+	void FourRoomsRotateDoor(string doorChar, vector rot, float newState)
+	{
+		entity door = sys.getEntity("outro_boxroom_" + doorChar + "_door_hinge");
+
+		float doorState = door.getFloatKey("doorState");
+
+		if(doorState == 2)
+		{
+			sys.waitFor(door);
+			sys.wait(.1);
+			doorState = door.getFloatKey("doorState");
+		}
+
+		if(doorState == newState)
+		{			
+			return;
+		}
+
+		door.setKey("doorState", 2);
+
+		door.rotateOnce(rot);
+		sys.waitFor(door);
+
+		door.setKey("doorState", newState);
+	}
+	
+	void FourRoomsOpenDoor(string door)
+	{		
+		FourRoomsRotateDoor(door, '0 -85 0', 1);
+	}
+
+	void FourRoomsCloseDoor(string door)
+	{
+		FourRoomsRotateDoor(door, '0 85 0', 0);
+	}
+
+	float FourRoomsIncrement(string room, float step, float target)
+	{		
+		if(fourRooms % 4 == step)
+		{
+			entity wall = sys.getEntity("outro_boxroom_" + room + "_wall_" + target);			
+			entity relay = sys.getEntity("outro_boxroom_" + room + "_wall_" + target + "_relay");
+			wall.show();
+			sys.trigger(relay);
+
+			string dtOpen = "a";
+			string dtClose = "b";
+
+			if(room == "a")
+			{				
+				dtOpen = "a";
+				dtClose = "b";
+			}
+			else if(room == "b")
+			{				
+				dtOpen = "b";
+				dtClose = "c";
+			}
+			else if(room == "c")
+			{				
+				dtOpen = "c";
+				dtClose = "d";
+			}
+			else
+			{				
+				dtOpen = "d";
+				dtClose = "a";
+			}
+
+			thread FourRoomsCloseDoor(dtClose);
+			thread FourRoomsOpenDoor(dtOpen);
+
+			fourRooms++;
+			target++;
+		}
+
+		return target;
+	}
+
+	void FourRoomsEnd()
+	{
+		clockRunning = 0;
+		sys.waitFor($outro_clock_smallhand);
+		sys.waitFor($outro_clock_largehand);
+
+		$Speaker4Rooms.fadeSound(SND_CHANNEL_ANY, -100, 10);
+
+		sys.wait(.25);
+
+		sys.trigger($Speaker4RoomsRev);
+		
+		sys.wait(.5);
+
+		$outro_clock_largehand.rotate('1200 0 0');
+		$outro_clock_smallhand.rotate('40 0 0');		
+
+		$outro_boxroom_c_backwall.show();
+		$outro_boxroom_c_backwall_light.show();		
+		$light_62924.show();				
+	}
+
+	void FourRoomsBloodWall()
+	{
+		while(1)
+		{
+			float r = $player1.distanceTo($fourrooms_bloodwall);
+
+			float maxDist = 256;
+
+			r /= 256;
+			
+			if(r > 1)
+				r = 1;
+			
+			r = 1 - r;
+			r/=2;
+			r+= 0.5f;
+		
+			$fourrooms_bloodwall.setColor(r, .5, .5);
+
+			sys.waitFrame();
+		}
+	}
+	
+	void MatchLoop()
+	{
+		while(usingMatches == 1)
+		{
+			sys.wait(11.5);
+
+			if(usingMatches == 0 || usingMatches == 2)
+				return;
+
+			// Match goes out
+			$player1.startSoundShader("e1m4_3_MatchOut", SND_CHANNEL_ANY);
+			thread crossFadeEnt ($BarnStartDestination_FireBackLight, '0.39 0.28 0.24', '0 0 0', 0.1);
+			thread crossFadeEnt ($BarnStartDestination_FireLight, '0.71 0.4 0.22', '0 0 0', 0.1);
+			sys.wait(.1);
+
+			sys.wait(2);
+
+			if(usingMatches == 0)
+				return;
+
+			$player1.startSoundShader("e1m4_3_StrikeMatch", SND_CHANNEL_ANY);
+
+			sys.wait(2);
+
+			thread crossFadeEnt ($BarnStartDestination_FireBackLight, '0 0 0', '0.69 0.48 0.44', 0.6);
+			thread crossFadeEnt ($BarnStartDestination_FireLight, '0 0 0', '1 0.6 0.42', 0.6);
+
+			sys.wait(1);
+
+			thread crossFadeEnt ($BarnStartDestination_FireBackLight, '0.69 0.48 0.44', '0.39 0.28 0.24', 0.4);
+			thread crossFadeEnt ($BarnStartDestination_FireLight, '1 0.6 0.42', '0.71 0.4 0.22', 0.4);
+		}
+	}
+
+	void BarnEntrance()
+	{
+		$FourRoomsSpeakerBreathing.fadeSound(SND_CHANNEL_ANY, -100, 2);
+
+		usingMatches = 2;
+	}
+
+	void FourRoomsEnd2()
+	{
+		$boxkey_askey.show();
+		$boxkey_askey.move(270, 4);
+		$boxkey_askey.startSoundShader("shav_general_insert", SND_CHANNEL_ANY);
+		sys.waitFor($boxkey_askey);
+		sys.wait(.5);
+
+		sys.wait($outro_boxroom_c_backwall.startSoundShader("shav_general_keycard", SND_CHANNEL_ANY));
+
+		$player1.startSoundShader("shav_general_accepted", SND_CHANNEL_ANY);
+		$player1.setOrigin($FourRoomsEndDestination.getOrigin());
+
+		sys.wait(2);
+
+		$Speaker4RoomsRev.fadeSound(SND_CHANNEL_ANY, -100, 20);
+		sys.trigger($FourRoomsSpeakerBreathing);
+
+		sys.wait(4);
+
+		$player1.startSoundShader("e1m4_3_StrikeMatch", SND_CHANNEL_ANY);	
+
+		vector plOrigin = $player1.getOrigin();
+		vector fireBackLightOrigin = $FourRoomsEndDestination_FireBackLight.getOrigin();
+		plOrigin_z = fireBackLightOrigin_z;
+		$FourRoomsEndDestination_FireBackLight.setOrigin(plOrigin);
+		$FourRoomsEndDestination_FireBackLight.bind($player1);
+
+		vector fireLightOrigin = $FourRoomsEndDestination_FireLight.getOrigin();
+		plOrigin_z = fireLightOrigin_z;
+		$FourRoomsEndDestination_FireLight.setOrigin(plOrigin);
+		$FourRoomsEndDestination_FireLight.bind($player1);
+
+		sys.wait(2);
+
+		thread crossFadeEnt ($FourRoomsEndDestination_FireBackLight, '0 0 0', '0.69 0.48 0.44', 0.6);
+		thread crossFadeEnt ($FourRoomsEndDestination_FireLight, '0 0 0', '1 0.6 0.42', 0.6);
+
+		sys.wait(1);
+
+		thread crossFadeEnt ($FourRoomsEndDestination_FireBackLight, '0.69 0.48 0.44', '0.39 0.28 0.24', 0.4);
+		thread crossFadeEnt ($FourRoomsEndDestination_FireLight, '1 0.6 0.42', '0.71 0.4 0.22', 0.4);
+
+		sys.wait(5);
+
+		$player1.startSoundShader("e1m4_3_MatchOut", SND_CHANNEL_ANY);
+		thread crossFadeEnt ($FourRoomsEndDestination_FireBackLight, '0.39 0.28 0.24', '0 0 0', 0.1);
+		thread crossFadeEnt ($FourRoomsEndDestination_FireLight, '0.71 0.4 0.22', '0 0 0', 0.1);
+		sys.wait(.1);
+		
+		$player1.setOrigin($BarnStartDestination.getOrigin());
+
+		sys.wait(4);
+
+		$player1.startSoundShader("e1m4_3_StrikeMatch", SND_CHANNEL_ANY);	
+
+		plOrigin = $player1.getOrigin();
+		fireBackLightOrigin = $BarnStartDestination_FireBackLight.getOrigin();
+		plOrigin_z = fireBackLightOrigin_z;
+		$BarnStartDestination_FireBackLight.setOrigin(plOrigin);
+		$BarnStartDestination_FireBackLight.bind($player1);
+
+		fireLightOrigin = $BarnStartDestination_FireLight.getOrigin();
+		plOrigin_z = fireLightOrigin_z;
+		$BarnStartDestination_FireLight.setOrigin(plOrigin);
+		$BarnStartDestination_FireLight.bind($player1);
+
+		sys.wait(2);
+
+		thread crossFadeEnt ($BarnStartDestination_FireBackLight, '0 0 0', '0.69 0.48 0.44', 0.6);
+		thread crossFadeEnt ($BarnStartDestination_FireLight, '0 0 0', '1 0.6 0.42', 0.6);
+
+		sys.wait(1);
+
+		thread crossFadeEnt ($BarnStartDestination_FireBackLight, '0.69 0.48 0.44', '0.39 0.28 0.24', 0.4);
+		thread crossFadeEnt ($BarnStartDestination_FireLight, '1 0.6 0.42', '0.71 0.4 0.22', 0.4);
+
+		sys.trigger($SpeakerWeFailed);
+
+		MatchLoop();
+	}
+	
+	void RunClock()
+	{
+		// Setup positions
+		$outro_clock_largehand.rotateOnce('-42 0 0');
+		$outro_clock_smallhand.rotateOnce('-120 0 0');
+
+		sys.waitFor($outro_clock_largehand);
+		sys.waitFor($outro_clock_smallhand);
+		sys.wait(.5);
+		
+		while(clockRunning)
+		{
+			$outro_clock_largehand.rotateOnce('-6 0 0');
+			$outro_clock_smallhand.rotateOnce('-1 0 0');
+			sys.waitFor($outro_clock_largehand);
+			sys.waitFor($outro_clock_smallhand);
+			sys.wait(.25);
+
+			if(!clockRunning)
+				return;
+			
+			$outro_clock_largehand.rotateOnce('6 0 0');
+			$outro_clock_smallhand.rotateOnce('1 0 0');
+			sys.waitFor($outro_clock_largehand);
+			sys.waitFor($outro_clock_smallhand);
+
+			sys.wait(0.5);
+		}
+	}
+	
+	void FourRooms1()
+	{
+		if(fourRooms1Target > 5 && clockRunning == 0)
+		{
+			clockRunning = 1;
+			sys.trigger($outro_boxroom_c_relay);
+			thread RunClock();
+		}
+		else
+		{
+			fourRooms1Target = FourRoomsIncrement("c", 2, fourRooms1Target);
+			if(fourRooms1Target == 5)
+			{
+				$outro_boxroom_d_door.hide();
+				$outro_boxroom_d_door_handle_1.hide();
+				$outro_boxroom_d_door_handle_2.hide();
+			}
+		}
+	}
+	
+	void FourRooms2()
+	{
+		fourRooms2Target = FourRoomsIncrement("d", 3, fourRooms2Target);
+		if(fourRooms2Target == 5)
+		{
+			$outro_boxroom_a_door.hide();
+			$outro_boxroom_a_door_handle_1.hide();
+			$outro_boxroom_a_door_handle_2.hide();
+		}
+	}
+	
+	void FourRooms3()
+	{
+		if(fourRooms3Target == 6)
+			return;
+
+		fourRooms3Target = FourRoomsIncrement("a", 0, fourRooms3Target);		
+		if(fourRooms3Target == 5)
+		{
+			$outro_boxroom_b_door.hide();
+			$outro_boxroom_b_door_handle_1.hide();
+			$outro_boxroom_b_door_handle_2.hide();
+		}
+	}
+	
+	void FourRooms4()
+	{
+		fourRooms4Target = FourRoomsIncrement("b", 1, fourRooms4Target);		
+		if(fourRooms4Target == 5)
+		{
+			$outro_boxroom_c_door.hide();
+			$outro_boxroom_c_door_handle_1.hide();
+			$outro_boxroom_c_door_handle_2.hide();
+		}
+	}
+
+	//Outro stuff end
+	void RunFilter(entity filter)
+	{
+		while(1)
+		{
+			filter.move(90, 112);
+			sys.waitFor(filter);
+			sys.wait(1.5);
+			filter.move(270, 112);
+			sys.wait(2.5);
+		}
+	}
+
+	void RunFuelFilters()
+	{
+		thread RunFilter($fuel_filter_2);
+		sys.wait(.5);
+		thread RunFilter($fuel_filter_1);
+		sys.wait(.125);
+		thread RunFilter($fuel_filter_3);
+	}
+
+	void OpenFailFilter()
+	{
+		$dumbfilter_rotator.rotateOnce('270 0 0');
+		$dumbfilter.move(270, 96);
+	}
+	
+	void UpdateCameraAngle()
+	{
+		while(1)
+		{			
+			vector angles = $player1.getViewAngles();
+			angles_y += 90;
+			$outro_bed_camera.setAngles(angles);
+			sys.wait(GAME_FRAMETIME);
+		}
+	}
+
+	void MotelLightning(float fadeInTime, float fadeOutTime, float staying, float intensity)
+	{
+		thread crossFadeEnt ($outro_motel_lightning, '0 0 0', '0.47 0.54 0.71' * intensity, fadeInTime);
+		thread crossFadeEnt ($outro_motel_ambient, '0.04 0.05 0.06', '0.16 0.21 0.23' * intensity, fadeInTime);
+		thread crossFadeEnt ($outro_motel_ambient2, '0.09 0.07 0.06', '0.16 0.12 0.11' * intensity, fadeInTime);
+		thread crossFadeEnt ($outro_motel_cloudrain, '0.03 0.03 0.04', '0.27 0.27 0.3 * intensity', fadeInTime);		
+		thread crossFadeEnt ($outro_motel_treelight1, '0.10 0.10 0.14', '0.33 0.38 0.47' * intensity, fadeInTime);
+		thread crossFadeEnt ($outro_motel_treelight2, '0.10 0.10 0.14', '0.33 0.38 0.47' * intensity, fadeInTime);
+		thread crossFadeEnt ($outro_motel_treelight3, '0.10 0.10 0.14', '0.33 0.38 0.47' * intensity, fadeInTime);
+ 
+		sys.wait(staying);
+
+		thread crossFadeEnt ($outro_motel_lightning, '0.47 0.54 0.71' * intensity, '0 0 0', fadeOutTime);
+		thread crossFadeEnt ($outro_motel_ambient, '0.16 0.21 0.23' * intensity, '0.04 0.05 0.06', fadeOutTime);
+		thread crossFadeEnt ($outro_motel_ambient2, '0.16 0.12 0.11' * intensity, '0.09 0.07 0.06', fadeOutTime);
+		thread crossFadeEnt ($outro_motel_cloudrain, '0.27 0.27 0.3' * intensity, '0.03 0.03 0.04', fadeOutTime);
+		thread crossFadeEnt ($outro_motel_treelight1, '0.33 0.38 0.47' * intensity, '0.10 0.10 0.14', fadeInTime);
+		thread crossFadeEnt ($outro_motel_treelight2, '0.33 0.38 0.47' * intensity, '0.10 0.10 0.14', fadeInTime);
+		thread crossFadeEnt ($outro_motel_treelight3, '0.33 0.38 0.47' * intensity, '0.10 0.10 0.14', fadeInTime);
+	}
+
+	void MeetingWithJNoteClick()
+	{	
+		sys.wait(1);
+		
+        $outro_garage_mover_1.move(255, 128);
+		sys.trigger($outro_garage_cam_1);
+		
+		sys.wait(.25);
+		
+		sys.fadeTo('0 0 0', 0, 2.5);
+
+		sys.wait(4);
+	
+		$player1.startSoundShader("e1m4_3_CarFoley", SND_CHANNEL_ANY);
+		sys.trigger($outro_garage_npc);
+				
+		$outro_garage_mover_2.move(270, 32);
+		sys.trigger($outro_garage_cam_2);			
+		
+		sys.wait(.1);
+		$outro_garage_door_rotator.rotateOnce('0 85 0');
+
+		Beat(2.75);
+		sys.waitFor($outro_garage_door_rotator);
+
+		$outro_garage_door_rotator.rotateOnce('0 -85 0');
+
+		sys.wait(.5);
+
+		$outro_garage_mover_4.move(270, 32);
+		sys.trigger($outro_garage_cam_4);		
+		
+		sys.wait(7.6);
+
+		$DrowningCam_mover.moveTo($DrowningCam_Destination);
+		sys.trigger($DrowningCam);
+
+		sys.wait(5.2);
+
+		sys.fadeTo('0 0 0', 1, 0.0625);
+
+		sys.wait(3);
+
+		sys.trigger($outro_camera_freetext);		
+
+		$outro_garage_music_1.fadeSound(SND_CHANNEL_ANY, -100, 15);
+
+		sys.wait(1);
+		showText("To be continued...");		
+
+		sys.wait(2);	
+
+		sys.trigger($SpeakerFallingUnderWater);
+
+		sys.wait(5);
+
+		sys.trigger($outro_garage_cam_3);
+		sys.fadeTo('0 0 0', 0, 2.5);
+
+		sys.wait(3);
+
+		$outro_garage_cam_3_rotbase.rotateOnce('0 0 55');		
+
+		sys.wait(10);
+
+		$outro_garage_mover_3.move(270, 32);
+
+		sys.wait(19);
+		
+		sys.trigger($outro_camera_credits_gui);
+		sys.trigger($outro_camera_credits);		
+		
+		sys.fadeTo('0 0 0', 0, .125);
+
+		sys.wait(212);
+		sys.fadeTo('0 0 0', 1, 4);
+		sys.wait(15);
+		
+		sys.trigger($EndEpisodeTwo);
+	}
+
+	float GetRandom(float min, float variance)
+	{
+		return sys.random(variance) + min;
+	}
+
+	void MotelLightningSession(float times)
+	{
+		float i = 0;
+		while(i < times - 1)
+		{			
+			sys.wait(GetRandom(0.05, 0.15));
+			MotelLightning(GetRandom(0.01, .0625), GetRandom(0.01, .0625), GetRandom(0.01, .125), GetRandom(.1, 1));
+			 
+			i++;
+		}
+
+		sys.wait(GetRandom(0.05, 0.3));
+
+		MotelLightning(GetRandom(0.1, .0625), GetRandom(0.3, .35), GetRandom(.2, .3), GetRandom(.5, .7));
+	}
+
+	void UpdateMotel()
+	{		
+		while(1)
+		{
+			MotelLightningSession(GetRandom(1, 5));
+			sys.wait(GetRandom(.2, 4));
+		}
+	}
+	
+	void e1m4_3_Outro_Player2Sub()
+	{
+		ShowNPCSubtitles("Sam", "Point taken.", 2);
+		sys.wait(1);
+		ShowNPCSubtitles("Sam", "I guess as darkness falls and you begin to let go, time stretches toward infinity.\nLeaving you behind in an eternal state.", 9);
+		ShowNPCSubtitles("Sam", "The last thoughts you had. Your final regrets.\nAnd it would go on forever.", 7);
+		ShowNPCSubtitles("Sam", "But your memories would warp and the people you loved would fade away.\nOnly to haunt you as fleeting voices in your mind.", 8);
+	}
+	
+	void e1m4_3_Outro_Lee6Sub()
+	{
+		ShowNPCSubtitles("Lee", "It's like drowning. Your body becomes cold and numb as the water engulfs you.\nBut you don't stay afloat. You sink. Like a stone. ", 12);
+		ShowNPCSubtitles("Lee", "You get further and further away from the surface.\nDown into the darkness.", 4.1);
+		ShowNPCSubtitles("Lee", "As you go deeper and deeper the pain will leave your body and your thoughts become clear.", 6.1);
+		ShowNPCSubtitles("Lee", "The only thing left is your own voice in the back of your mind, desperately trying to escape. ", 6);
+		ShowNPCSubtitles("Lee", "Until even that is gone and for a while you almost don't exist and then...", 7);
+	}
+
+	void MotelScene()
+	{
+		sys.fadeTo('0 0 0', 1, 0);
+		$SpeakerWeFailed.fadeSound(SND_CHANNEL_ANY, -100, 10);		
+		$speaker_intro_generator.fadeSound(SND_CHANNEL_ANY, -100, 10);
+
+		sys.trigger($outro_motel_speaker_thunder1);
+		sys.trigger($outro_motel_speaker_thunder2);
+
+		sys.wait(3);
+
+		thread UpdateCameraAngle();
+		thread UpdateMotel();
+		
+		sys.trigger($outro_garage_music_1);
+
+		sys.trigger($info_player_teleport_1);
+		sys.trigger($outro_bed_camera);
+
+		sys.wait(.25);
+
+		sys.fadeTo('0 0 0', 0, 0.125);
+
+		sys.wait(5);
+
+		$outro_motel_speakerlee.startSoundShader("e1m4_3_bed", SND_CHANNEL_ANY);
+		sys.wait(3.5);
+
+		thread ShowNPCSubtitles("Lee", "Sam. What do you think happens when we die?", 4);
+		Outro_CharacterSays($outro_motel_speakerlee, "e1m4_3_Outro_Lee3");
+		Beat(.7);
+		thread ShowNPCSubtitles("Sam", "Is it a good or a bad death?", 2);
+		Outro_CharacterSays($player1, "e1m4_3_Outro_Player1");
+		Beat(.6);		
+		thread ShowNPCSubtitles("Lee", "Are there good deaths?", 2);
+		Outro_CharacterSays($outro_motel_speakerlee, "e1m4_3_Outro_Lee4");
+		Beat(1.35);		
+		thread e1m4_3_Outro_Player2Sub();
+		Outro_CharacterSays($player1, "e1m4_3_Outro_Player2");
+		Beat(.25);
+		thread ShowNPCSubtitles("Lee", "So when does it end?", 2);
+		Outro_CharacterSays($outro_motel_speakerlee, "e1m4_3_Outro_Lee5");
+		Beat(1);
+		thread ShowNPCSubtitles("Sam", "I don't know. Maybe it doesn't.\nWhat do you think happens?", 4.15);
+		Outro_CharacterSays($player1, "e1m4_3_Outro_Player3");
+		Beat(.75);
+		$outro_motel_speakerlee.startSoundShader("e1m4_3_bed2", SND_CHANNEL_ANY);
+		Beat(1.25);
+		thread e1m4_3_Outro_Lee6Sub();
+		Outro_CharacterSays($outro_motel_speakerlee, "e1m4_3_Outro_Lee6");
+		Beat(1);
+		thread ShowNPCSubtitles("Sam", "And then what?", 2.15);
+		Outro_CharacterSays($player1, "e1m4_3_Outro_Player4");
+		Beat(1.75);		
+		thread ShowNPCSubtitles("Lee", "Nothing. It's all gone.", 2);
+		Outro_CharacterSays($outro_motel_speakerlee, "e1m4_3_Outro_Lee7");
+		Beat(1);
+		sys.fadeTo('0 0 0', 1, 0.125);
+		
+		MeetingWithJNoteClick();
+	}
+	
+	//===========================================
+	// START CHECKPOINTS
+	//===========================================
+	
+	void postbombedpipe_checkpoint()
+	{
+		sys.quickSave("Live together, Die alone - Checkpoint 4");
+	}
+	
+	void postarchvile_checkpoint()
+	{
+		sys.quickSave("Live together, Die alone - Checkpoint 5");
+	}
+	
+	//===========================================
+	// END CHECKPOINTS
+	//===========================================
+
+	void main()
+	{
+		$bomb.hide();
+		
+		thread DejCrooks();		
+		
+		$dejcrook01a.rotateOnce('0 0 45');
+		$dejcrook02a.rotateOnce('0 0 -45');
+		$dejcrook03a.rotateOnce('0 0 45');
+
+		fuel_rods();
+		thread techlight_wave();
+		sys.trigger($trigger_relay_697);
+
+		//rotate outro stuff
+		$outro_chair_2.rotateOnce('0 25 0');
+		$outro_phone_mover.rotateOnce('0 -14 0');
+		$outro_picture_control.rotateOnce('15 0 0');
+				
+		//rotate ladder a bit
+		$outro_betterladder.rotateOnce('0 0 -15');
+		
+		//FourRoomsOpenDoor("a");
+		FourRoomsOpenDoor("b");
+		FourRoomsOpenDoor("c");
+		FourRoomsOpenDoor("d");
+	}	
+}

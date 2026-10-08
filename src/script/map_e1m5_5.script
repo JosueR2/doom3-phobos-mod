@@ -1,0 +1,3509 @@
+namespace map_e1m5_5
+{
+	float stop_talking_man = 0;
+
+	float CharacterSaysNoWait(entity characterEntity, string line)
+	{
+		return characterEntity.startSoundShader(line, SND_CHANNEL_ANY);
+	}
+
+	// BEGIN MALL LIGHTS
+
+	float mall_light_num;
+	float mall_light_neon_num;
+
+	void RestoreMallLights(string name, float num, float immediate)
+	{
+		float i = 0;
+		while(i < num)
+		{			
+			entity light = sys.getEntity("mall_light_group" + name + "_" + i);
+			vector color = light.getColor();
+			vector ogcolor = light.getVectorKey("ogcolor");
+			
+			if(immediate > 0)
+			{
+				light.setColor(ogcolor_x, ogcolor_y, ogcolor_z);
+				sys.wait(0.015);
+			}
+			else
+			{
+				thread crossFadeEnt (light, color, ogcolor, 1.25);
+			}
+			i++;
+		}
+	}
+
+	void BreakBoxGlass()
+	{
+		sys.trigger($break_box_museum_glass_relay);
+		
+		sys.wait(0.35);
+
+		$box_key_pickup_item_museum.setKey("click_item", "1");
+	}
+	
+	void PowerOn_SoundscapeChange()
+	{
+		//ambient soundscape change
+		sys.trigger($speaker_53);
+		sys.trigger($speaker_54);
+		sys.trigger($speaker_48);
+		$speaker_75.fadeSound (SND_CHANNEL_ANY, -20, 3.5);
+		$speaker_71.fadeSound (SND_CHANNEL_ANY, -20, 3.5);
+		$speaker_77.fadeSound (SND_CHANNEL_ANY, -20, 3.5);
+		$speaker_83.fadeSound (SND_CHANNEL_ANY, -10, 3.5);
+		
+		$speaker_85.fadeSound (SND_CHANNEL_ANY, 0, 3.5);
+		$speaker_81.fadeSound (SND_CHANNEL_ANY, 0, 3.5);
+		$speaker_87.fadeSound (SND_CHANNEL_ANY, 0, 5);
+		$speaker_89.fadeSound (SND_CHANNEL_ANY, 0, 6.5);
+		$speaker_100.fadeSound (SND_CHANNEL_ANY, 0, 3.5);
+		$speaker_114.fadeSound (SND_CHANNEL_ANY, 0, 3.5);
+		$speaker_115.fadeSound (SND_CHANNEL_ANY, 0, 3.5);
+		sys.trigger($speaker_118);
+		sys.trigger($speaker_125);
+		sys.trigger($speaker_130);
+		sys.trigger($speaker_123);
+		sys.trigger($speaker_128);
+	}
+	
+	void OpenAtriumShutters()
+	{
+		$atrium_shutter1.move(DOWN, 112);
+		sys.trigger($shutterclack_relay1);
+		sys.wait(.35);
+		$atrium_shutter2.move(DOWN, 112);
+		sys.trigger($shutterclack_relay2);
+		sys.wait(.35);
+		$atrium_shutter3.move(DOWN, 112);
+		sys.trigger($shutterclack_relay3);
+		sys.wait(.35);
+		$atrium_shutter4.move(DOWN, 112);
+		sys.trigger($shutterclack_relay4);
+		
+		thread PowerOn_SoundscapeChange();
+		
+		sys.wait(.35);
+		$atrium_shutter5.move(DOWN, 112);
+		sys.trigger($shutterclack_relay5);
+		sys.wait(.35);
+		$atrium_shutter6.move(DOWN, 112);
+		sys.trigger($shutterclack_relay6);
+		sys.wait(.35);
+		$atrium_exit_elevatorgui.setSkin( "skins/doorlight_shaderparmon" );
+		$atrium_exit_elevatorgui2.show();
+	}
+
+	void MallLightsBackOn()
+	{
+		RestoreMallLights("", mall_light_num, 0);
+		RestoreMallLights("_neon", mall_light_neon_num, 1);
+
+		sys.trigger($Mall_Lift_Switch);
+	}
+
+	void StoreMallLights(string name, float num)
+	{
+		float i = 0;
+		while(i < num)
+		{
+			entity light = sys.getEntity("mall_light_group" + name + "_" + i);
+			vector ogcolor = light.getColor();
+			light.setKey("ogcolor", ogcolor);
+			light.setColor(0, 0, 0);
+			i++;
+		}
+	}
+
+	void SetupMallLights()
+	{		
+		mall_light_num = 0;
+		while(mall_light_num < 128)
+		{
+			entity ent = sys.getEntity("mall_light_group_" + mall_light_num);
+			mall_light_num++;
+		}
+
+		StoreMallLights("", mall_light_num);
+
+		mall_light_neon_num = 0;
+		while(mall_light_neon_num < 256)
+		{
+			ent = sys.getEntity("mall_light_group_neon_" + mall_light_neon_num);
+			mall_light_neon_num++;
+		}
+
+		StoreMallLights("_neon", mall_light_neon_num);
+	}
+
+	void mall_lights_on()
+	{
+		sys.trigger($mall_power_reset_trigger);
+		sys.trigger($mall_klaxxon_relay);
+
+		$power_reset_switch.startSoundShader("e1m5_3_large_switch", SND_CHANNEL_ANY);
+		$power_reset_switch.move(-1, 8);
+		sys.wait(1);
+		sys.trigger($power_station_speaker_start_1);
+		sys.wait(2.75);		
+		sys.trigger($power_station_speaker_loop_1);
+	}	
+
+	void Flicker_Museum_Skybox()
+	{
+		while(1)
+		{
+			float wait_time = sys.random(1) + 0.1;
+			sys.wait(wait_time);
+
+			sys.trigger($museum_skybox_gui_0);
+			sys.trigger($museum_skybox_gui_1);
+			sys.trigger($museum_skybox_gui_2);
+			sys.trigger($museum_skybox_gui_3);
+			sys.trigger($museum_skybox_gui_4);
+
+			wait_time = sys.random(1) + 0.1;
+			sys.wait(wait_time);
+
+			sys.trigger($museum_skybox_gui_0);
+			sys.trigger($museum_skybox_gui_1);
+			sys.trigger($museum_skybox_gui_2);
+			sys.trigger($museum_skybox_gui_3);
+			sys.trigger($museum_skybox_gui_4);
+		}
+	}
+
+	void Toggle_Museum_Skyboxes()
+	{
+		while(1)
+		{
+			float wait_time = sys.random(1) + .25;
+			sys.wait(wait_time);
+
+			sys.trigger($info_portalsky_2);
+
+			wait_time = sys.random(2) + .25;
+			sys.wait(wait_time);
+
+			sys.trigger($info_portalsky_1);
+		}
+	}
+
+	void StartPhobosSkyBoxGlitching()
+	{		
+		thread Flicker_Museum_Skybox();
+		thread Toggle_Museum_Skyboxes();
+	}
+
+	// END MALL LIGHTS
+	
+	// BEGIN MUSEUM LIGHTS
+	
+	float museum_light_num;
+
+	void RestoreMuseumLights(string name, float num, float immediate)
+	{
+		float i = 0;
+		while(i < num)
+		{			
+			entity light = sys.getEntity("museum_light_group" + name + "_" + i);
+			vector color = light.getColor();
+			vector ogcolor = light.getVectorKey("ogcolor");
+			
+			if(immediate > 0)
+			{
+				light.setColor(ogcolor_x, ogcolor_y, ogcolor_z);
+				sys.wait(0.035);
+			}
+			else
+			{
+				thread crossFadeEnt (light, color, ogcolor, 1.25);
+			}
+			i++;
+		}
+	}
+	
+	void MuseumLightsBackOn()
+	{
+		RestoreMuseumLights("", museum_light_num, 1);
+		$speaker_95.fadeSound (SND_CHANNEL_ANY, 0, 3);
+	}
+
+	void StoreMuseumLights(string name, float num)
+	{
+		float i = 0;
+		while(i < num)
+		{
+			entity light = sys.getEntity("museum_light_group" + name + "_" + i);
+			vector ogcolor = light.getColor();
+			light.setKey("ogcolor", ogcolor);
+			light.setColor(0, 0, 0);
+			i++;
+		}
+	}
+
+	void SetupMuseumLights()
+	{		
+		museum_light_num = 0;
+		while(museum_light_num < 256)
+		{
+			entity ent = sys.getEntity("museum_light_group_" + museum_light_num);
+			museum_light_num++;
+		}
+
+		StoreMuseumLights("", museum_light_num);
+
+	}
+	
+	// END MUSEUM LIGHTS
+	
+	void OpenMuseumShutters(float shutterset)
+	{
+		entity shutter1 = sys.getEntity("museum_shutter_" + shutterset + "a");
+		entity shutter2 = sys.getEntity("museum_shutter_" + shutterset + "b");
+		entity shutter3 = sys.getEntity("museum_shutter_" + shutterset + "c");
+		entity shutter4 = sys.getEntity("museum_shutter_" + shutterset + "d");
+		entity speaker_close1 = sys.getEntity("museum_shutter_" + shutterset + "a_spkrclose");
+		entity speaker_close2 = sys.getEntity("museum_shutter_" + shutterset + "b_spkrclose");
+		entity speaker_close3 = sys.getEntity("museum_shutter_" + shutterset + "c_spkrclose");
+		entity speaker_close4 = sys.getEntity("museum_shutter_" + shutterset + "d_spkrclose");
+		entity speaker_clack1 = sys.getEntity("museum_shutter_" + shutterset + "a_spkrclack");
+		entity speaker_clack2 = sys.getEntity("museum_shutter_" + shutterset + "b_spkrclack");
+		entity speaker_clack3 = sys.getEntity("museum_shutter_" + shutterset + "c_spkrclack");
+		entity speaker_clack4 = sys.getEntity("museum_shutter_" + shutterset + "d_spkrclack");
+		
+			shutter1.move(DOWN, 24);
+			sys.trigger(speaker_close1);
+			sys.wait(.75);
+			sys.trigger(speaker_clack1);
+			shutter1.move(DOWN, 24);
+			shutter2.move(DOWN, 24);
+			sys.trigger(speaker_close2);
+			sys.wait(.75);
+			sys.trigger(speaker_clack2);
+			shutter1.move(DOWN, 24);
+			shutter2.move(DOWN, 24);
+			shutter3.move(DOWN, 24);
+			sys.trigger(speaker_close3);
+			sys.wait(.75);
+			sys.trigger(speaker_clack3);
+			shutter1.move(DOWN, 22);
+			shutter2.move(DOWN, 22);
+			shutter3.move(DOWN, 22);
+			shutter4.move(DOWN, 22);
+			sys.trigger(speaker_close4);
+			sys.wait(.75);
+			sys.trigger(speaker_clack4);
+	}
+
+	void OpenMuseumShutters1()
+	{
+		OpenMuseumShutters(1);
+	}
+
+	void OpenMuseumShutters2()
+	{
+		OpenMuseumShutters(2);
+	}
+	
+	void OpenMuseumShutters3()
+	{
+		OpenMuseumShutters(3);
+	}
+
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}
+
+	void CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}	
+
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m5_5(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+
+	void SubtitlesRunning2()
+	{
+		while(hideSubTime > sys.getTime() && !stop_talking_man)
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowSubtitles2(string name, string titles, float duration)
+	{
+		if(stop_talking_man)
+		{
+			return;
+		}
+
+		PhobosShowSubtitle_e1m5_5(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		SubtitlesRunning2();
+	}
+
+	void MuseumPart1Subs()
+	{
+		ShowSubtitles("Tour Guide", "Welcome to the official tour of the Federal Commonwealth of Earth,\non Mars and its surrounding moons.", 7.35 );
+		ShowSubtitles("Tour Guide", "On this tour you will be faced with the overwhelming success of the federacy.", 5.25);
+		ShowSubtitles("Tour Guide", "And our never ceasing quest for the progress of humanity.", 4.25);
+		ShowSubtitles("Tour Guide", "You will learn about our endeavors around The Solar System and beyond.", 5.1);
+		ShowSubtitles("Tour Guide", "The Paragon be praised and have a nice day.", 3);
+	}
+
+	void StartMuseumPart1()
+	{
+		sys.disableItemGroup("museum");
+		thread MuseumPart1Subs();
+		CharacterSays($player1, "sound/vo/e1m5_5/Museum/Intro.ogg");
+		sys.enableItemGroups();
+	}
+	
+	
+	void LiftUp()
+	{
+		$mall_bigelevator_clip.show();
+		$mall_bigelevator_clip.bind($crane_1);
+	
+		$crane_1.move(UP, 360);
+				
+		sys.waitFor($crane_1);
+		
+		$mall_bigelevator_clip.unbind();
+		$mall_bigelevator_clip.hide();
+		
+	}
+	
+	
+	void ToggleLift()
+	{
+		{
+			sys.trigger($target_setinfluence_6);
+
+			StartPhobosSkyBoxGlitching();
+
+			StartMuseumPart1();
+		}
+
+			$Mall_Lift_Switch.setKey("click_item", "0");			
+
+				
+			$Mall_Lift_Switch_Handle.rotateOnce('0 0 -90');
+			$Mall_Lift_Switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+
+			sys.wait(.75);
+
+			sys.trigger($mall_lift_trigger);
+		
+	}		
+
+	void Player1GondolaSub()
+	{
+		ShowSubtitles("Sam", "I was wondering...", 2);
+		ShowSubtitles("Sam", "The thing is. I may have come across this Benson person in my, well, previous life.", 6.25);
+		ShowSubtitles("Sam", "My memory is still fuzzy, but I seem to recall a James Benson.", 5.25);
+		ShowSubtitles("Sam", "And he was bad news.", 3);
+	}
+
+	void Player5GondolaSub()
+	{
+		ShowSubtitles("Sam", "I'm pretty sure he did.\nHe had stolen something of ours. Something very valuable.", 5.25);
+		ShowSubtitles("Sam", "When we stole it back, he did not take it well.\nAt all.", 4.25);
+	}
+
+	void Miles8GondolaSub()
+	{
+		ShowSubtitles("Miles", "Why are you doing this?\nIs this your attempt at some sort of revenge?", 5);
+		ShowSubtitles("Miles", "Who the fuck are you?", 2.5);
+	}
+
+	void Miles10GondolaSub()
+	{
+		ShowSubtitles("Miles", "That's what I used to call her.", 3);
+		ShowSubtitles("Miles", "Lee.", 2);
+		ShowSubtitles("Miles", "She didn't like it when people called her Kay.", 3);
+	}
+
+	void Miles11GondolaSub()
+	{
+		ShowSubtitles("Miles", "It's more than that.", 2);
+		ShowSubtitles("Miles", "Okay, let me guess.\nYou used to live next to her.", 3.75);
+		ShowSubtitles("Miles", "You used to signal her after your parents had gone to bed.\nWith a lamp. 3 times.", 6.5);
+	}
+
+	void Miles12GondolaSub()
+	{
+		ShowSubtitles("Miles", "But then her brother enrolled in the federal academy.", 3);
+		ShowSubtitles("Miles", "Her full name being Kaylee Calloway and her brother's name being Samuel,\n that makes him Samuel Calloway.", 5);
+		ShowSubtitles("Miles", "The very man you're looking for.", 3);
+	}
+
+	void Miles13GondolaSub()
+	{
+		ShowSubtitles("Miles", "And of course, then some time later when her mother died during tragic circumstances.", 4.75);
+		ShowSubtitles("Miles", "It set the two of you spiraling out into a crazy plan\nto escape your hometown and general area, the Emerald Valley...", 7);
+		ShowSubtitles("Miles", "Which of course failed.", 2);
+	}
+
+	void Miles14GondolaSub()
+	{
+		ShowSubtitles("Miles", "But then you tried selling that item of yours.", 3.25);
+		ShowSubtitles("Miles", "But it all failed spectacularly and ended up with\nJames Benson taking away the only person that ever got you.", 8);
+	}
+
+	void Miles15GondolaSub()
+	{
+		ShowSubtitles("Miles", "Because they are my memories, Sam.", 3);
+		ShowSubtitles("Miles", "My memories!", 3);
+	}
+
+	void Miles16GondolaSub()
+	{
+		ShowSubtitles("Miles", "I don't know. Look, if this is some sort of sick joke,\nplease just let me be.", 7);
+		ShowSubtitles("Miles", "Do your thing. I don't need this.", 4.5);
+		ShowSubtitles("Miles", "I'm sorry I lied, okay!?\nIt's in the past now.", 5);
+	}
+
+	void StartMilesTalkGondolaPartTwo()
+	{
+		thread Player1GondolaSub();
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player3.ogg");
+
+		Beat(.6);
+
+		thread ShowSubtitles("Miles", "Oh?", 2);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles3.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "Yeah. I think he abducted someone I knew; The girl.", 4.5);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player4.ogg");
+
+		Beat(1.2);
+
+		thread ShowSubtitles("Miles", "Wait a minute. He abducted her?", 3);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles4.ogg");
+
+		Beat(.75);
+
+		thread Player5GondolaSub();
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player5.ogg");
+
+		Beat(.6);
+
+		thread ShowSubtitles("Miles", "Wait. What was her name?", 3);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles5.ogg");
+
+		Beat(.7);
+
+		thread ShowSubtitles("Sam", "Her name was Lee.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player6.ogg");
+
+		Beat(1.5);
+
+		thread ShowSubtitles("Miles", "Lee, as in L - E - E?", 2.5);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles6.ogg");
+
+		Beat(.65);
+
+		thread ShowSubtitles("Sam", "L - E - E yeah.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player7.ogg");
+
+		Beat(.7);
+
+		thread ShowSubtitles("Miles", "Come on. That's not funny.", 2.5);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles7.ogg");
+
+		Beat(.35);
+
+		thread ShowSubtitles("Sam", "W...What do you mean?", 2);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player8.ogg");
+
+		Beat(.75);
+
+		thread Miles8GondolaSub();
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles8.ogg");
+
+		Beat(1.5);
+
+		thread ShowSubtitles("Sam", "I...I don't know!? I really don't.\nWhat are you getting at?", 5.5);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player9.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Miles", "Look. I know I lied to you and I'm sorry.\nI thought we were past that.", 5);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles9.ogg");
+
+		Beat(.45);
+
+		thread ShowSubtitles("Sam", "We are.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player10.ogg");
+
+		Beat(4.5);
+
+		thread Miles10GondolaSub();
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles10.ogg");
+
+		Beat(.8);
+
+		thread ShowSubtitles("Sam", "Are you saying it's the same person?\nOr a wild coincidence?", 3.5);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player11.ogg");
+
+		Beat(.6);
+
+		thread Miles11GondolaSub();
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles11.ogg");
+
+		Beat(.25);
+
+		thread ShowSubtitles("Sam", "Erm...", 2);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player12.ogg");
+
+		Beat(.2);
+
+		thread Miles12GondolaSub();
+		float dtime = CharacterSaysNoWait($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles12.ogg");
+
+		Beat(dtime - .25);
+
+		thread ShowSubtitles("Sam", "Wait...", 2);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player13.ogg");
+
+		Beat(.25);
+
+		thread Miles13GondolaSub();
+		dtime = CharacterSaysNoWait($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles13.ogg");
+
+		Beat(dtime - 0.25);
+
+		thread ShowSubtitles("Sam", "Look...", 2);
+		thread CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player14.ogg");
+
+		Beat(.25);
+
+		thread Miles14GondolaSub();
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles14.ogg");
+
+		Beat(1.5);
+
+		thread ShowSubtitles("Sam", "But...How do you know all this?", 2.5);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player15.ogg");
+
+		Beat(.3);
+
+		thread Miles15GondolaSub();
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles15.ogg");
+
+		Beat(.75);
+
+		thread ShowSubtitles("Sam", "How is that even possible?", 2);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player16.ogg");
+
+		Beat(.5);
+
+		thread Miles16GondolaSub();
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles16.ogg");
+
+		Beat(.75);
+
+		thread ShowSubtitles("Sam", "I'm not joking, Samantha.\nThis doesn't make sense to me either, but I remember what I remember.", 6);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player17.ogg");
+
+		Beat(1.5);
+
+		thread ShowSubtitles("Miles", "Yeah...I don't know what to say.", 4);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles17.ogg");
+	}
+
+	void top_apartment_shutters_open()
+	{
+		sys.trigger($top_apartments_shutter_1_portal);
+		sys.trigger($top_apartments_shutter_2_portal);
+		
+		$top_apartments_shutter_1.startSoundShader ( "mc1_scanner_3s_movement", SND_CHANNEL_VOICE );
+		$top_apartments_shutter_1.move(UP, 56);
+		$top_apartments_shutter_2.move(UP, 88);
+	}
+
+	void top_apartment_shutters_close()
+	{
+		$top_apartments_shutter_1.startSoundShader ( "mc1_scanner_3s_movement", SND_CHANNEL_VOICE );
+		$top_apartments_shutter_1.move(DOWN, 56);
+		$top_apartments_shutter_2.move(DOWN, 88);
+		sys.waitFor($top_apartments_shutter_2);
+		sys.trigger($top_apartments_shutter_1_portal);
+		sys.trigger($top_apartments_shutter_2_portal);
+	}
+
+	void AtriumShaft_SoundscapeChange()
+	{
+		$speaker_128.fadeSound (SND_CHANNEL_ANY, -15, 1);
+		$speaker_130.fadeSound (SND_CHANNEL_ANY, -15, 1);
+		$speaker_142.fadeSound (SND_CHANNEL_ANY, 0, 1);
+	}
+	
+	void gondola_sound(float fWait) 
+	{
+		$gondola_02.startSoundShader ( "p1_gondola_start_low", SND_CHANNEL_VOICE );
+		sys.wait (fWait);
+		$gondola_02.startSoundShader ( "p1_gondola_stop_low", SND_CHANNEL_VOICE );
+	}
+
+	void gondola_sound_fadein()
+	{	
+		$speaker_140.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_143.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_141.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_149.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_155.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_146.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_151.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_150.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_157.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_156.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_164.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_158.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_166.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_159.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_144.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_136.fadeSound (SND_CHANNEL_ANY, 0, 10);
+		$speaker_139.fadeSound (SND_CHANNEL_ANY, 0, 10);
+	}
+	
+	void gondola_sound_fadeout()
+	{	
+		$speaker_140.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_143.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_141.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_149.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_155.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_146.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_151.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_150.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_157.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_156.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_164.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_158.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_166.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_159.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_144.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_136.fadeSound (SND_CHANNEL_ANY, -5, 10);
+		$speaker_139.fadeSound (SND_CHANNEL_ANY, -5, 10);
+	}
+
+	void gondola_02_start()
+	{
+		gondola_sound_fadeout();
+
+		sys.trigger($SpeakerGondolaTalkieWalkie);
+
+		sys.trigger($gondola_02_doorclip);
+		$gondola_02_doorclip.bind($gondola_02_base);
+		$gondola_02_door_left.startSoundShader ( "p1_gondola_doors_low", SND_CHANNEL_VOICE );
+
+		$gondola_02_door_left.move ( 180, 28 );
+		$gondola_02_door_right.move ( 0, 28 );
+		sys.waitFor( $gondola_02_door_right );
+
+		sys.wait( .5 );
+
+		$gondola_02_door_left.startSoundShader ( "p1_gondola_doors_low", SND_CHANNEL_VOICE );
+
+		$gondola_02_door_left.move ( 270, 2 );
+		$gondola_02_door_right.move ( 270, 2 );
+		sys.waitFor( $gondola_02_door_right );
+		
+		$gondola_02_door_right.bind ($gondola_02);
+		$gondola_02_door_left.bind ($gondola_02);
+
+		$player1.disableWeapon();
+		
+		//soundscape change just outside gondola start room
+		thread AtriumShaft_SoundscapeChange();
+
+		sys.wait( .5 );
+
+		sys.trigger($gondola_arm_spkr);
+		$gondola_02_arm_mover.move ( -1, 16);
+		sys.waitFor( $gondola_02_arm_mover );
+
+		sys.wait( 1 );
+
+		float gTime = 50 * 2.75;
+		$gondola_02_base.time( gTime );
+		$gondola_02_base.accelTime( 3 );
+		$gondola_02_base.decelTime( 3 );
+
+		thread gondola_sound(gTime - 3);
+
+		$gondola_02_base.startSpline( $p1_sp1 );
+		$gondola_02_base.removeInitialSplineAngles();
+		sys.waitFor( $gondola_02_base );
+
+		$gondola_02_base.stopSpline();
+
+		sys.wait(1);
+
+		sys.wait($tunnel_elevator_mover.startSoundShader ( "al4_paddles_low", SND_CHANNEL_VOICE ));
+
+		sys.wait(.1);
+
+		sys.wait($tunnel_elevator_mover.startSoundShader ( "al4_spinner_2second_low", SND_CHANNEL_VOICE ));
+
+		sys.wait(.1);
+
+		sys.wait($tunnel_elevator_mover.startSoundShader ( "al4_paddles_low", SND_CHANNEL_VOICE ));
+
+		sys.wait(1);
+
+		$gondola_02_base.bind($tunnel_elevator_mover);
+
+		$tunnel_elevator_mover.move(-1, 640);
+
+		float revolutions = 640 / 50.265;
+
+		$func_mover_284.time(20);
+		$func_mover_277.time(20);
+
+		$func_mover_286.time(20);
+		$func_mover_282.time(20);
+
+		$func_mover_284.rotateOnce('0 0 -1' * revolutions * 360);
+		$func_mover_277.rotateOnce('0 0 -1' * revolutions * 360);
+		$func_mover_286.rotateOnce('0 0 1' * revolutions * 360);
+		$func_mover_282.rotateOnce('0 0 1' * revolutions * 360);
+
+		sys.waitFor($tunnel_elevator_mover);
+
+		sys.wait(1);
+
+		sys.wait($tunnel_elevator_mover.startSoundShader ( "al4_spinner_2second_low", SND_CHANNEL_VOICE ));
+
+		sys.wait(1);
+
+		$gondola_02_base.unbind();
+
+		gTime = 20 * 3;
+		$gondola_02_base.time( gTime );
+		$gondola_02_base.accelTime( 3 );
+		$gondola_02_base.decelTime( 3 );
+
+		thread gondola_sound(gTime - 3);
+
+		$gondola_02_base.startSpline( $p1_sp2 );
+		$gondola_02_base.removeInitialSplineAngles();
+		sys.waitFor( $gondola_02_base );
+
+		sys.wait( .5 );
+
+		$gondola_02_door_right.unbind();
+		$gondola_02_door_left.unbind();
+
+		$gondola_02_door_left.startSoundShader ( "p1_gondola_doors_low", SND_CHANNEL_VOICE );		// -Xian
+		$gondola_02_door_left.move ( 90, 2 );
+		$gondola_02_door_right.move ( 90, 2 );
+		sys.waitFor( $gondola_02_door_right );
+
+		sys.wait( .5 );
+		$gondola_02_door_left.startSoundShader ( "p1_gondola_doors_low", SND_CHANNEL_VOICE );		// -Xian
+
+		$gondola_02_door_left.move ( 0, 28 );
+		$gondola_02_door_right.move ( 180, 28 );
+		sys.waitFor( $gondola_02_door_right );
+		
+		sys.trigger($gondola_02_doorclip);
+
+		sys.wait( .5 );
+
+		gondola_sound_fadein();
+		//$player1.enableWeapon();
+	}
+
+	void SetupGondola()
+	{
+		//Move the Gondolas into position and open the doors
+		$gondola_02_door_left.move ( 90, 2 );
+		$gondola_02_door_right.move ( 90, 2 );
+		sys.waitFor($gondola_02_door_left);
+		$gondola_02_door_left.move ( 0, 28 );
+		$gondola_02_door_right.move ( 180, 28 );
+		sys.waitFor($gondola_02_door_left);
+		$gondola_02_door_right.move( -2, 16);
+		$gondola_02_door_left.move( -2, 16);
+		$gondola_02_arm_mover.move( -2, 16);
+	}
+
+	void select_monsterconfig1()
+	{
+		float monsterselect1;
+
+		while (1)
+		{
+			monsterselect1 = sys.random(15);
+		
+			if (monsterselect1 <= 5){
+				sys.trigger ($monster_batch1_1);
+				sys.wait(.5);
+			} else if (monsterselect1 >= 10){
+				sys.trigger ($monster_batch1_2);
+				sys.wait(.5);
+			} 
+				else {
+				sys.trigger ($monster_batch1_3);
+				sys.wait(.5);
+			}
+		}
+	}
+	
+	void kill_monster_selection1()
+	{
+		sys.killthread ("map_e1m5_5::select_monsterconfig1");
+	}
+	
+	void select_monsterconfig2()
+	{
+		float monsterselect2;
+
+		while (1)
+		{
+			monsterselect2 = sys.random(15);
+		
+				if (monsterselect2 <= 5){
+					sys.trigger ($monster_batch2_1);
+					sys.wait(.5);
+				} else if (monsterselect2 >= 10){
+					sys.trigger ($monster_batch2_2);
+					sys.wait(.5);
+				} 
+				  else {
+					sys.trigger ($monster_batch2_3);
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_monster_selection2()
+	{
+		sys.killthread ("map_e1m5_5::select_monsterconfig2");
+	}
+	
+	void select_monsterconfig3()
+	{
+		float monsterselect3;
+
+		while (1)
+		{
+			monsterselect3 = sys.random(15);
+		
+			if (monsterselect3 <= 5){
+				sys.trigger ($monster_batch3_1);
+				sys.wait(.5);
+			} else if (monsterselect3 >= 10){
+				sys.trigger ($monster_batch3_2);
+				sys.wait(.5);
+			} 
+				else {
+				sys.trigger ($monster_batch3_3);
+				sys.wait(.5);
+			}
+		}
+	}
+	
+	void kill_monster_selection3()
+	{
+		sys.killthread ("map_e1m5_5::select_monsterconfig3");
+	}
+	
+	void select_monsterconfig4()
+	{
+		float monsterselect4;
+
+		while (1)
+		{
+			monsterselect4 = sys.random(15);
+		
+			if (monsterselect4 <= 5){
+				sys.trigger ($monster_batch4_1);
+				sys.wait(.5);
+			} else if (monsterselect4 >= 10){
+				sys.trigger ($monster_batch4_2);
+				sys.wait(.5);
+			} 
+				else {
+				sys.trigger ($monster_batch4_3);
+				sys.wait(.5);
+			}
+		}
+	}
+	
+	void kill_monster_selection4()
+	{
+		sys.killthread ("map_e1m5_5::select_monsterconfig4");
+	}
+	
+	void select_monsterconfig5()
+	{
+		float monsterselect5;
+
+		while (1)
+		{
+			monsterselect5 = sys.random(15);
+		
+			if (monsterselect5 <= 5){
+				sys.trigger ($monster_batch5_1);
+				sys.wait(.5);
+			} else if (monsterselect5 >= 10){
+				sys.trigger ($monster_batch5_2);
+				sys.wait(.5);
+			} 
+				else {
+				sys.trigger ($monster_batch5_3);
+				sys.wait(.5);
+			}
+		}
+	}
+	
+	void kill_monster_selection5()
+	{
+		sys.killthread ("map_e1m5_5::select_monsterconfig5");
+	}
+	
+	void select_lostsouls()
+	{
+		float ls_select;
+
+		while (1)
+		{
+			ls_select = sys.random(15);
+		
+			if (ls_select <= 5){
+				sys.trigger ($lostsoul_batch1);
+				sys.wait(.5);
+			} else if (ls_select >= 10){
+				sys.trigger ($lostsoul_batch2);
+				sys.wait(.5);
+			} 
+				else {
+				sys.trigger ($lostsoul_batch3);
+				sys.wait(.5);
+			}
+		}
+	}
+	
+	void kill_lostsoul_selection()
+	{
+		sys.killthread ("map_e1m5_5::select_lostsouls");
+	}
+	
+	//===========================================
+	// START ARCH-VILE BOSS SCRIPTS
+	//===========================================
+	
+	void select_archvile_config1()
+	{
+		float arch_spawn_select1;
+
+		while (1)
+		{
+			arch_spawn_select1 = sys.random(15);
+		
+			if (arch_spawn_select1 <= 5){
+				sys.trigger ($arch_fight_config1);
+				sys.wait(.5);
+			} else if (arch_spawn_select1 >= 10){
+				sys.trigger ($arch_fight_config2);
+				sys.wait(.5);
+			} 
+				else {
+				sys.trigger ($arch_fight_config3);
+				sys.wait(.5);
+			}
+		}
+	}
+	
+	void kill_arch_selection1()
+	{
+		sys.killthread ("map_e1m5_5::select_archvile_config1");
+	}
+	
+	void archvile_config_a()
+	{
+		sys.trigger ($arch_trigcount_3c);
+		sys.trigger ($arch_trigcount_3c);
+		sys.trigger ($arch_trigcount_3c);
+		sys.trigger ($arch_trigcount_1d);
+		sys.trigger ($arch_trigcount_1d);
+		sys.trigger ($arch_trigcount_1d);
+		sys.trigger ($arch_trigcount_2a);
+		sys.trigger ($arch_trigcount_2a);
+		sys.trigger ($arch_trigcount_2a);
+		
+		sys.trigger ($arch_trigcount_3e);
+		sys.trigger ($arch_trigcount_3e);
+		sys.trigger ($arch_trigcount_1b);
+		sys.trigger ($arch_trigcount_1b);
+		sys.trigger ($arch_trigcount_2c);
+		sys.trigger ($arch_trigcount_2c);
+		
+		sys.trigger ($arch_trigcount_2d);
+		sys.trigger ($arch_trigcount_1e);
+		sys.trigger ($arch_trigcount_3b);
+		//sys.println("arch_fight_config1 selected");
+	}
+	
+	void archvile_config_b()
+	{
+		sys.trigger ($arch_trigcount_3e);
+		sys.trigger ($arch_trigcount_3e);
+		sys.trigger ($arch_trigcount_3e);
+		sys.trigger ($arch_trigcount_2c);
+		sys.trigger ($arch_trigcount_2c);
+		sys.trigger ($arch_trigcount_2c);
+		sys.trigger ($arch_trigcount_1a);
+		sys.trigger ($arch_trigcount_1a);
+		sys.trigger ($arch_trigcount_1a);
+		
+		sys.trigger ($arch_trigcount_2e);
+		sys.trigger ($arch_trigcount_2e);
+		sys.trigger ($arch_trigcount_1d);
+		sys.trigger ($arch_trigcount_1d);
+		sys.trigger ($arch_trigcount_3a);
+		sys.trigger ($arch_trigcount_3a);
+		
+		sys.trigger ($arch_trigcount_2a);
+		sys.trigger ($arch_trigcount_1e);
+		sys.trigger ($arch_trigcount_3b);
+		//sys.println("arch_fight_config2 selected");		
+	}
+	
+	void archvile_config_c()
+	{
+		sys.trigger ($arch_trigcount_3a);
+		sys.trigger ($arch_trigcount_3a);
+		sys.trigger ($arch_trigcount_3a);
+		sys.trigger ($arch_trigcount_1b);
+		sys.trigger ($arch_trigcount_1b);
+		sys.trigger ($arch_trigcount_1b);
+		sys.trigger ($arch_trigcount_2c);
+		sys.trigger ($arch_trigcount_2c);
+		sys.trigger ($arch_trigcount_2c);
+		
+		sys.trigger ($arch_trigcount_1a);
+		sys.trigger ($arch_trigcount_1a);
+		sys.trigger ($arch_trigcount_3c);
+		sys.trigger ($arch_trigcount_3c);
+		sys.trigger ($arch_trigcount_2d);
+		sys.trigger ($arch_trigcount_2d);
+		
+		sys.trigger ($arch_trigcount_1c);
+		sys.trigger ($arch_trigcount_2b);
+		sys.trigger ($arch_trigcount_3d);
+		//sys.println("arch_fight_config3 selected");	
+	}
+	
+	void select_archvile_teleportdest()
+	{
+		float arch_tele_dest;
+
+		while (1)
+		{
+			arch_tele_dest = sys.random(30);
+		
+			if (arch_tele_dest <= 5){
+				sys.trigger ($arch_dest1);
+				//sys.println("arch_teledest1 selected");
+				sys.wait(.5);
+			} else if (arch_tele_dest <= 10 && arch_tele_dest >= 6){
+				sys.trigger ($arch_dest2);
+				//sys.println("arch_teledest2 selected");
+				sys.wait(.5);
+			} else if (arch_tele_dest <= 15 && arch_tele_dest >= 11){
+				sys.trigger ($arch_dest3);
+				//sys.println("arch_teledest3 selected");
+				sys.wait(.5);
+			} else if (arch_tele_dest <= 20 && arch_tele_dest >= 16){
+				sys.trigger ($arch_dest4);
+				//sys.println("arch_teledest4 selected");
+				sys.wait(.5);
+			} else if (arch_tele_dest <= 25 && arch_tele_dest >= 21){
+				sys.trigger ($arch_dest5);
+				//sys.println("arch_teledest5 selected");
+				sys.wait(.5);
+			}
+				else {
+				sys.trigger ($arch_dest6);
+				//sys.println("arch_teledest6 selected");
+				sys.wait(.5);
+			}
+		}
+	}
+
+	
+	void kill_arch_telethread()
+	{
+		sys.killthread ("map_e1m5_5::select_archvile_teleportdest");
+	}
+	
+	void arch_seek_player()
+	{
+		vector arch_target = $player1.getOrigin();
+		$arch_blast_target_marker.setOrigin(arch_target);
+		$arch_blast_targeter.moveTo($arch_blast_target_marker);
+	}	
+	
+	void arch_seek_player2()
+	{
+		vector arch_target = $player1.getOrigin();
+		$arch_blast_target_marker.setOrigin(arch_target);
+		$arch_blast_targeter2.moveTo($arch_blast_target_marker);
+	}	
+
+	void summon_boneys(float num) {
+		entity  archspawn;
+		
+			sys.wait(.416);
+			archspawn = sys.getEntity( "archspawn_1_batch" + num );
+			sys.trigger(archspawn);
+			sys.wait(.075);
+			archspawn = sys.getEntity( "archspawn_2_batch" + num );
+			sys.trigger(archspawn);
+			archspawn = sys.getEntity( "archspawn_3_batch" + num );
+			sys.trigger(archspawn);
+			sys.wait(.125);
+			archspawn = sys.getEntity( "archspawn_4_batch" + num );
+			sys.trigger(archspawn);
+			sys.wait(.175);
+			archspawn = sys.getEntity( "archspawn_5_batch" + num );
+			sys.trigger(archspawn);
+			sys.wait(.175);
+			archspawn = sys.getEntity( "archspawn_6_batch" + num );
+			sys.trigger(archspawn);
+			archspawn = sys.getEntity( "archspawn_7_batch" + num );
+			sys.trigger(archspawn);
+			sys.wait(.2);
+			archspawn = sys.getEntity( "archspawn_8_batch" + num );
+			sys.trigger(archspawn);
+			sys.wait(.2);
+			archspawn = sys.getEntity( "archspawn_9_batch" + num );
+			sys.trigger(archspawn);
+			archspawn = sys.getEntity( "archspawn_10_batch" + num );
+			sys.trigger(archspawn);
+			sys.wait(.3);
+			archspawn = sys.getEntity( "archspawn_11_batch" + num );
+			sys.trigger(archspawn);
+			archspawn = sys.getEntity( "archspawn_12_batch" + num );
+			sys.trigger(archspawn);
+	}
+	
+	
+	void summon_imps(float num) {
+		entity  impspawn;
+		entity  impspawn_relay;
+		
+			sys.wait(.416);
+			impspawn = sys.getEntity( "impspawn_1_batch" + num );
+			sys.trigger(impspawn);
+			impspawn = sys.getEntity( "impspawn_2_batch" + num );
+			sys.trigger(impspawn);
+			impspawn_relay = sys.getEntity( "impspawn_hard" + num );
+			sys.trigger(impspawn_relay);
+			impspawn_relay = sys.getEntity( "impspawn_easy" + num );
+			sys.trigger(impspawn_relay);
+	}
+	
+	void summon_pinkies(float num) {
+		entity  pinkyspawn;
+		
+			sys.wait(.416);
+			pinkyspawn = sys.getEntity( "pinkyspawn_1_batch" + num );
+			sys.trigger(pinkyspawn);
+			pinkyspawn = sys.getEntity( "pinkyspawn_2_batch" + num );
+			sys.trigger(pinkyspawn);
+	}
+	
+
+	void summon_boneys1() 
+	{
+		summon_boneys(1); 
+	}
+	
+	void summon_boneys2() 
+	{
+		summon_boneys(2); 
+	}
+	
+	void summon_boneys3() 
+	{
+		summon_boneys(3); 
+	}
+	
+	void summon_boneys4() 
+	{
+		summon_boneys(4); 
+	}
+	
+	void summon_boneys5() 
+	{
+		summon_boneys(5); 
+	}
+	
+	void summon_boneys6() 
+	{
+		summon_boneys(6); 
+	}
+	
+	void summon_imps1() 
+	{
+		summon_imps(1); 
+	}
+	
+	void summon_imps2() 
+	{
+		summon_imps(2); 
+	}
+	
+	void summon_imps3() 
+	{
+		summon_imps(3); 
+	}
+	
+	void summon_imps4() 
+	{
+		summon_imps(4); 
+	}
+	
+	void summon_imps5() 
+	{
+		summon_imps(5); 
+	}
+	
+	void summon_imps6() 
+	{
+		summon_imps(6); 
+	}
+	
+	void summon_pinkies1() 
+	{
+		summon_pinkies(1); 
+	}
+	
+	void summon_pinkies2() 
+	{
+		summon_pinkies(2); 
+	}
+	
+	void summon_pinkies3() 
+	{
+		summon_pinkies(3); 
+	}
+	
+	void summon_pinkies4() 
+	{
+		summon_pinkies(4); 
+	}
+	
+	void summon_pinkies5() 
+	{
+		summon_pinkies(5); 
+	}
+	
+	void summon_pinkies6() 
+	{
+		summon_pinkies(6); 
+	}
+	
+	float archPosition1 = 0;
+	float archPosition2 = 0; 
+	float archPosition3 = 0; 	
+	float archPosition4 = 0; 
+	float archPosition5 = 0; 
+	float archPosition6 = 0; 
+	
+	void set_arch_pos1()
+	{
+		archPosition1 = 1;
+		archPosition2 = 0;
+		archPosition3 = 0;
+		archPosition4 = 0;
+		archPosition5 = 0;
+		archPosition6 = 0;
+		$arch_repel_trig1.enable();
+	}
+	
+	void set_arch_pos2()
+	{
+		archPosition1 = 0;
+		archPosition2 = 1;
+		archPosition3 = 0;
+		archPosition4 = 0;
+		archPosition5 = 0;
+		archPosition6 = 0;
+		$arch_repel_trig2.enable();
+	}
+	
+	void set_arch_pos3()
+	{
+		archPosition1 = 0;
+		archPosition2 = 0;
+		archPosition3 = 1;
+		archPosition4 = 0;
+		archPosition5 = 0;
+		archPosition6 = 0;
+		$arch_repel_trig3.enable();
+	}
+	
+	void set_arch_pos4()
+	{
+		archPosition1 = 0;
+		archPosition2 = 0;
+		archPosition3 = 0;
+		archPosition4 = 1;
+		archPosition5 = 0;
+		archPosition6 = 0;
+		$arch_repel_trig4.enable();
+	}
+	
+	void set_arch_pos5()
+	{
+		archPosition1 = 0;
+		archPosition2 = 0;
+		archPosition3 = 0;
+		archPosition4 = 0;
+		archPosition5 = 1;
+		archPosition6 = 0;
+		$arch_repel_trig5.enable();
+	}
+	
+	void set_arch_pos6()
+	{
+		archPosition1 = 0;
+		archPosition2 = 0;
+		archPosition3 = 0;
+		archPosition4 = 0;
+		archPosition5 = 0;
+		archPosition6 = 1;
+		$arch_repel_trig6.enable();
+	}
+	
+	void check_arch_pos1()
+	{
+		if(archPosition1 == 1)
+		{
+			sys.trigger($arch_tele_relay1);
+			sys.trigger($arch_boney_forcefield_1);
+			$arch_repel_trig1.disable();
+			summon_boneys1(); 
+		}
+		else if(archPosition2 == 1)
+		{
+			sys.trigger($arch_tele_relay2);
+			sys.trigger($arch_boney_forcefield_2);
+			$arch_repel_trig2.disable();
+			summon_boneys2(); 
+		}
+		else if(archPosition3 == 1)
+		{
+			sys.trigger($arch_tele_relay3);
+			sys.trigger($arch_boney_forcefield_3);
+			$arch_repel_trig3.disable();
+			summon_boneys3();
+		}
+		else if(archPosition4 == 1)
+		{
+			sys.trigger($arch_tele_relay4);
+			sys.trigger($arch_boney_forcefield_4);
+			$arch_repel_trig4.disable();
+			summon_boneys4();
+		}
+		else if(archPosition5 == 1)
+		{
+			sys.trigger($arch_tele_relay5);
+			sys.trigger($arch_boney_forcefield_5);
+			$arch_repel_trig5.disable();
+			summon_boneys5();
+		}
+		else if(archPosition6 == 1)
+		{
+			sys.trigger($arch_tele_relay6);
+			sys.trigger($arch_boney_forcefield_6);
+			$arch_repel_trig6.disable();
+			summon_boneys6();
+		}
+	}
+	
+	void check_arch_pos2()
+	{
+		if(archPosition1 == 1)
+		{
+			sys.trigger($arch_tele_relay1);
+			sys.trigger($arch_boney_forcefield_1);
+			$arch_repel_trig1.disable();
+			summon_imps1(); 
+		}
+		else if(archPosition2 == 1)
+		{
+			sys.trigger($arch_tele_relay2);
+			sys.trigger($arch_boney_forcefield_2);
+			$arch_repel_trig2.disable();
+			summon_imps2(); 
+		}
+		else if(archPosition3 == 1)
+		{
+			sys.trigger($arch_tele_relay3);
+			sys.trigger($arch_boney_forcefield_3);
+			$arch_repel_trig3.disable();
+			summon_imps3();
+		}
+		else if(archPosition4 == 1)
+		{
+			sys.trigger($arch_tele_relay4);
+			sys.trigger($arch_boney_forcefield_4);
+			$arch_repel_trig4.disable();
+			summon_imps4();
+		}
+		else if(archPosition5 == 1)
+		{
+			sys.trigger($arch_tele_relay5);
+			sys.trigger($arch_boney_forcefield_5);
+			$arch_repel_trig5.disable();
+			summon_imps5();
+		}
+		else if(archPosition6 == 1)
+		{
+			sys.trigger($arch_tele_relay6);
+			sys.trigger($arch_boney_forcefield_6);
+			$arch_repel_trig6.disable();
+			summon_imps6();
+		}
+	}
+	
+	void check_arch_pos3()
+	{
+		if(archPosition1 == 1)
+		{
+			sys.trigger($arch_tele_relay1);
+			sys.trigger($arch_boney_forcefield_1);
+			$arch_repel_trig1.disable();
+			summon_pinkies1(); 
+		}
+		else if(archPosition2 == 1)
+		{
+			sys.trigger($arch_tele_relay2);
+			sys.trigger($arch_boney_forcefield_2);
+			$arch_repel_trig2.disable();
+			summon_pinkies2(); 
+		}
+		else if(archPosition3 == 1)
+		{
+			sys.trigger($arch_tele_relay3);
+			sys.trigger($arch_boney_forcefield_3);
+			$arch_repel_trig3.disable();
+			summon_pinkies3();
+		}
+		else if(archPosition4 == 1)
+		{
+			sys.trigger($arch_tele_relay4);
+			sys.trigger($arch_boney_forcefield_4);
+			$arch_repel_trig4.disable();
+			summon_pinkies4();
+		}
+		else if(archPosition5 == 1)
+		{
+			sys.trigger($arch_tele_relay5);
+			sys.trigger($arch_boney_forcefield_5);
+			$arch_repel_trig5.disable();
+			summon_pinkies5();
+		}
+		else if(archPosition6 == 1)
+		{
+			sys.trigger($arch_tele_relay6);
+			sys.trigger($arch_boney_forcefield_6);
+			$arch_repel_trig6.disable();
+			summon_pinkies6();
+		}
+	}
+	
+	void reset_arch_pos()
+	{
+		float arch_tele_reset;
+		
+			arch_tele_reset = sys.random(25);
+		
+			if(archPosition1 == 1)
+			{
+
+				if (arch_tele_reset <= 5){
+					
+					sys.trigger ($target_ai_followalternatepath1_1_relay);
+					sys.trigger ($archdummy2_altpath_1);
+					
+				} else if (arch_tele_reset <= 10){
+					
+					sys.trigger ($target_ai_followalternatepath2_1_relay);
+					sys.trigger ($archdummy3_altpath_1);
+					
+				} else if (arch_tele_reset <= 15){
+					
+					sys.trigger ($target_ai_followalternatepath3_1_relay);
+					sys.trigger ($archdummy4_altpath_1);
+					
+				} else if (arch_tele_reset <= 20){
+					
+					sys.trigger ($target_ai_followalternatepath4_1_relay);
+					sys.trigger ($archdummy5_altpath_1);
+					
+				} 
+				else {
+					
+					sys.trigger ($target_ai_followalternatepath5_1_relay);
+					sys.trigger ($archdummy6_altpath_1);
+					
+				}
+			}
+		
+			else if(archPosition2 == 1)
+			{
+
+				if (arch_tele_reset <= 5){
+					
+					sys.trigger ($target_ai_followalternatepath12_1_relay);
+					sys.trigger ($archdummy1_altpath_1);
+					
+				} else if (arch_tele_reset <= 10){
+					
+					sys.trigger ($target_ai_followalternatepath2_1_relay);
+					sys.trigger ($archdummy3_altpath_1);
+					
+				} else if (arch_tele_reset <= 15){
+					
+					sys.trigger ($target_ai_followalternatepath3_1_relay);
+					sys.trigger ($archdummy4_altpath_1);
+					
+				} else if (arch_tele_reset <= 20){
+					
+					sys.trigger ($target_ai_followalternatepath4_1_relay);
+					sys.trigger ($archdummy5_altpath_1);
+					
+				} 
+				else {
+					
+					sys.trigger ($target_ai_followalternatepath5_1_relay);
+					sys.trigger ($archdummy6_altpath_1);
+					
+				}
+			}
+		
+			else if(archPosition3 == 1)
+			{
+
+				if (arch_tele_reset <= 5){
+					
+					sys.trigger ($target_ai_followalternatepath12_1_relay);
+					sys.trigger ($archdummy1_altpath_1);
+					
+				} else if (arch_tele_reset <= 10){
+					
+					sys.trigger ($target_ai_followalternatepath1_1_relay);
+					sys.trigger ($archdummy2_altpath_1);
+					
+				} else if (arch_tele_reset <= 15){
+					
+					sys.trigger ($target_ai_followalternatepath3_1_relay);
+					sys.trigger ($archdummy4_altpath_1);
+					
+				} else if (arch_tele_reset <= 20){
+					
+					sys.trigger ($target_ai_followalternatepath4_1_relay);
+					sys.trigger ($archdummy5_altpath_1);
+					
+				} 
+				else {
+					
+					sys.trigger ($target_ai_followalternatepath5_1_relay);
+					sys.trigger ($archdummy6_altpath_1);
+					
+				}
+			}
+		
+			else if(archPosition4 == 1)
+			{
+
+				if (arch_tele_reset <= 5){
+					
+					sys.trigger ($target_ai_followalternatepath12_1_relay);
+					sys.trigger ($archdummy1_altpath_1);
+					
+				} else if (arch_tele_reset <= 10){
+					
+					sys.trigger ($target_ai_followalternatepath1_1_relay);
+					sys.trigger ($archdummy2_altpath_1);
+					
+				} else if (arch_tele_reset <= 15){
+					
+					sys.trigger ($target_ai_followalternatepath2_1_relay);
+					sys.trigger ($archdummy3_altpath_1);
+					
+				} else if (arch_tele_reset <= 20){
+					
+					sys.trigger ($target_ai_followalternatepath4_1_relay);
+					sys.trigger ($archdummy5_altpath_1);
+					
+				} 
+				else {
+					
+					sys.trigger ($target_ai_followalternatepath5_1_relay);
+					sys.trigger ($archdummy6_altpath_1);
+					
+				}
+			}
+		
+			else if(archPosition5 == 1)
+			{
+
+				if (arch_tele_reset <= 5){
+					
+					sys.trigger ($target_ai_followalternatepath12_1_relay);
+					sys.trigger ($archdummy1_altpath_1);
+					
+				} else if (arch_tele_reset <= 10){
+					
+					sys.trigger ($target_ai_followalternatepath1_1_relay);
+					sys.trigger ($archdummy2_altpath_1);
+					
+				} else if (arch_tele_reset <= 15){
+					
+					sys.trigger ($target_ai_followalternatepath2_1_relay);
+					sys.trigger ($archdummy3_altpath_1);
+					
+				} else if (arch_tele_reset <= 20){
+					
+					sys.trigger ($target_ai_followalternatepath3_1_relay);
+					sys.trigger ($archdummy4_altpath_1);
+					
+				} 
+				else {
+					
+					sys.trigger ($target_ai_followalternatepath5_1_relay);
+					sys.trigger ($archdummy6_altpath_1);
+					
+				}
+			}
+		
+			else 
+				{
+				if (arch_tele_reset <= 5){
+					
+					sys.trigger ($target_ai_followalternatepath12_1_relay);
+					sys.trigger ($archdummy1_altpath_1);
+					
+				} else if (arch_tele_reset <= 10){
+					
+					sys.trigger ($target_ai_followalternatepath1_1_relay);
+					sys.trigger ($archdummy2_altpath_1);
+					
+				} else if (arch_tele_reset <= 15){
+					
+					sys.trigger ($target_ai_followalternatepath2_1_relay);
+					sys.trigger ($archdummy3_altpath_1);
+					
+				} else if (arch_tele_reset <= 20){
+					
+					sys.trigger ($target_ai_followalternatepath3_1_relay);
+					sys.trigger ($archdummy4_altpath_1);
+					
+				} 
+				else {
+					
+					sys.trigger ($target_ai_followalternatepath4_1_relay);
+					sys.trigger ($archdummy5_altpath_1);
+					
+				}
+			}
+	}
+		
+	void skull_spectrum_placement()
+	{
+		$baron_spectrum_mover.move(180, 1792);
+	}
+	
+	void arch_fireball_splines()
+	{
+		sys.wait(.25);
+		sys.trigger($little_skull_1);
+		sys.trigger($little_skull_1_prt);
+		sys.trigger($little_skull_1_light);
+		sys.trigger($little_skull_1_speclight);
+		sys.wait(.05);
+		$little_skull_1.bind($arch_fireball_mover1);
+		$little_skull_1_prt.bind($arch_fireball_mover1);
+		$little_skull_1_light.bind($arch_fireball_mover1);
+		$little_skull_1_speclight.bind($arch_fireball_mover1);
+		sys.trigger($little_skull_2);
+		sys.trigger($little_skull_2_prt);
+		sys.trigger($little_skull_2_light);
+		sys.trigger($little_skull_2_speclight);
+		sys.wait(.05);
+		$little_skull_2.bind($arch_fireball_mover2);
+		$little_skull_2_prt.bind($arch_fireball_mover2);
+		$little_skull_2_light.bind($arch_fireball_mover2);
+		$little_skull_2_speclight.bind($arch_fireball_mover2);
+		sys.trigger($arch_fireball1_spawnspkr);
+		sys.trigger($movespkr_relay1);
+		$arch_fireball_mover1.startSpline($archfireball_spline1);
+		$arch_fireball_mover1.removeInitialSplineAngles();
+		sys.wait(.05);
+		sys.trigger($arch_fireball2_spawnspkr);
+		sys.trigger($movespkr_relay2);
+		$arch_fireball_mover2.startSpline($archfireball_spline2);
+		//$arch_fireball_mover2.removeInitialSplineAngles();
+		//$arch_fireball_mover2.disableSplineAngles();
+		sys.wait(.15);
+		sys.trigger($little_skull_3);
+		sys.trigger($little_skull_3_prt);
+		sys.trigger($little_skull_3_light);
+		sys.trigger($little_skull_3_speclight);
+		sys.wait(.05);
+		$little_skull_3.bind($arch_fireball_mover3);
+		$little_skull_3_prt.bind($arch_fireball_mover3);
+		$little_skull_3_light.bind($arch_fireball_mover3);
+		$little_skull_3_speclight.bind($arch_fireball_mover3);
+		sys.wait(.05);
+		sys.trigger($arch_fireball3_spawnspkr);
+		sys.trigger($movespkr_relay3);
+		$arch_fireball_mover3.startSpline($archfireball_spline3);
+		$arch_fireball_mover3.removeInitialSplineAngles();
+		sys.waitFor($arch_fireball_mover3);
+		$arch_fireball_mover1.remove();
+		$arch_fireball_mover2.remove();
+		$arch_fireball_mover3.remove();
+	}
+	
+	void kill_arch_dummies()
+	{
+		$arch_repel_trig1.remove();
+		$arch_repel_trig2.remove();
+		$arch_repel_trig3.remove();
+		$arch_repel_trig4.remove();
+		$arch_repel_trig5.remove();
+		$arch_repel_trig6.remove();
+		$archspawn_killswitch.setKey("on", 1);
+		sys.trigger($inner_fireball1);
+		sys.trigger($inner_fireball2);
+		sys.trigger($inner_fireball3);
+		sys.trigger($fireball_light1);
+		sys.trigger($fireball_light2);
+		sys.trigger($arch_baron_relay);
+		$getarchpos_relay3.remove();
+		$monster_demon_archvile_orig_1.kill();
+		sys.wait(.15);
+		$monster_demon_archvile_orig_2.kill();
+		sys.wait(.25);
+		$monster_demon_archvile_orig_3.kill();
+		sys.wait(.35);
+		$monster_demon_archvile_orig_4.kill();
+		sys.wait(.45);
+		$monster_demon_archvile_orig_5.kill();
+		sys.wait(.55);
+		$monster_demon_archvile_orig_6.kill();
+		sys.wait(2);
+		sys.trigger($func_static_107870);
+	}
+	
+	void ghostskulls_axial_tilt()
+	{
+		while (1){
+			
+			sys.wait(3);
+			$ghostskull_orbit_tilt1.rotateOnce('-24 0 0');
+			$ghostskull_orbit_tilt2.rotateOnce('36 0 0');
+			$ghostskull_orbit_tilt3.rotateOnce('-50 0 0');
+			sys.wait(3);
+			$ghostskull_orbit_tilt1.rotateOnce('24 0 0');
+			$ghostskull_orbit_tilt2.rotateOnce('-36 0 0');
+			$ghostskull_orbit_tilt3.rotateOnce('50 0 0');
+		}
+	}
+
+	void stop_axial_tilt()
+	{
+		sys.killthread ("map_e1m5_5::ghostskulls_axial_tilt");
+	}
+	
+	//===========================================
+	// END ARCH-VILE BOSS SCRIPTS
+	//===========================================
+	
+	void shippingcrates1()
+	{
+		while(1)
+		{
+			$shippingcrate_mover_1up.move(UP, 1600);
+			$shippingcrate_mover_1down.move(DOWN, 1600);	
+			sys.wait(4);
+		    $shippingcrate_mover_1up.restorePosition();
+			$shippingcrate_mover_1down.restorePosition();
+		}
+	}
+	
+	//===========================================
+	// START CHECKPOINTS
+	//===========================================
+	
+	void post_intro_checkpoint()
+	{
+		sys.quickSave("I Was Wrong - Checkpoint 1");
+	}
+
+	void vent_checkpoint()
+	{
+		sys.quickSave("I Was Wrong - Checkpoint 2");
+	}
+	
+	void stairsbottom_checkpoint()
+	{
+		sys.quickSave("I Was Wrong - Checkpoint 3");
+	}
+	
+	void preboss_checkpoint()
+	{
+		sys.quickSave("I Was Wrong - Checkpoint 4");
+	}
+	
+	void midboss_checkpoint()
+	{
+		sys.quickSave("I Was Wrong - Checkpoint 5");
+	}
+	
+	void postboss_checkpoint()
+	{
+		sys.quickSave("I Was Wrong - Checkpoint 6");
+	}
+	
+	//===========================================
+	// END CHECKPOINTS
+	//===========================================
+	
+	void arch_fight_soundlevels()
+	{
+		$speaker_69.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_78.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_76.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_79.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_80.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_0.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_77.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_81.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_85.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_87.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_89.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_100.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_114.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_115.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		$speaker_142.fadeSound (SND_CHANNEL_ANY, -60, 1);
+		sys.trigger($speaker_118);
+		sys.trigger($speaker_125);
+		sys.trigger($speaker_130);
+		sys.trigger($speaker_123);
+		sys.trigger($speaker_128);
+	}
+	
+	void arch_ambientsounds_fade()
+	{
+		$speaker_74.fadeSound (SND_CHANNEL_ANY, -60, 2.5);
+
+		$speaker_69.fadeSound (SND_CHANNEL_ANY, 0, 2.5);
+		$speaker_78.fadeSound (SND_CHANNEL_ANY, 0, 2.5);
+		$speaker_76.fadeSound (SND_CHANNEL_ANY, 0, 2.5);
+	}
+	
+	void arch_ambientsounds_fade2()
+	{
+		$speaker_69.fadeSound (SND_CHANNEL_ANY, -60, 2.5);
+		$speaker_78.fadeSound (SND_CHANNEL_ANY, -60, 2.5);
+		$speaker_76.fadeSound (SND_CHANNEL_ANY, -60, 2.5);
+		
+		$speaker_79.fadeSound (SND_CHANNEL_ANY, 0, 2.5);
+		$speaker_80.fadeSound (SND_CHANNEL_ANY, 0, 2.5);
+		$speaker_0.fadeSound (SND_CHANNEL_ANY, 0, 2.5);
+	}
+	
+	void arch_postfight_fade()
+	{
+		$speaker_145.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_79.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_80.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_0.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_57.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_58.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_62.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_63.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_70.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_72.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_73.fadeSound (SND_CHANNEL_ANY, -60, 5);
+
+		$speaker_77.fadeSound (SND_CHANNEL_ANY, 0, 5);
+		sys.wait(3.5);
+		sys.trigger($End_PowerOn_Clicker);	
+	}
+	
+	void disable_spec_trig()
+	{
+		$trigger_once_287.disable();
+	}
+	
+	void enable_spec_trig()
+	{
+		$trigger_once_287.enable();
+	}	
+
+	void Player3Subs()
+	{
+		ShowSubtitles("Sam", "I don't recall working there.\nIn fact, I don't recall any of it.", 6.75);
+		ShowSubtitles("Sam", "It...It has no meaning to me.\nI don't recognize that person, that...version of me, at all.", 8);
+	}
+
+	void Player4Subs()
+	{
+		ShowSubtitles("Sam", "Just call me Sam.", 2);
+		ShowSubtitles("Sam", "I am going to find Calloway and I think you're right\nabout baggage; About having a clean slate.", 5);
+		ShowSubtitles("Sam", "Who I was is not as important as where I'm going.\nFinding Calloway would at least do some good for someone.", 9);
+	}
+
+	void Miles1Subs()
+	{
+		ShowSubtitles("Samantha", "Sam?...Ethan?...", 4.5);
+		ShowSubtitles("Samantha", "Look...I looked up your real name in our database.", 4);
+		ShowSubtitles("Samantha", "You are Ethan Rom, aged 32, born and raised in Vancouver, British Columbia, Canada.", 8);
+		ShowSubtitles("Samantha", "Where you left your parents to join the FCE at a young age.", 4);
+		ShowSubtitles("Samantha", "You have worked in the listening station on Mars.\nAnd you have last been seen entering the receptacle.", 6);
+		ShowSubtitles("Samantha", "That's all I have...now that I know your name.", 4);
+	}
+
+	void Miles2Subs()
+	{
+		ShowSubtitles("Samantha", "It seems so. That's...really weird.", 4);
+		ShowSubtitles("Samantha", "You know. The doctor's office where we first met\nis awfully close to the listening station.", 5.25);
+		ShowSubtitles("Samantha", "You know, the place you worked at.", 3);
+	}	
+
+	
+	void StartMilesTalkGondolaPartOne()
+	{
+		thread ShowSubtitles("Sam", "Miles?", 2);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player1.ogg");
+
+		Beat(.75);
+
+		thread ShowSubtitles("Samantha", "Hmm? Yeah?", 2);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles1.ogg");
+
+		Beat(.75);
+
+		thread ShowSubtitles("Sam", "I found a way to the detention center...might as well start there.", 4);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Player2.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Samantha", "Good luck! Tell me if you need anything.", 3);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkGondola/Miles2.ogg");
+	}
+	
+	//===========================================
+	// START MUSEUM SCRIPTS
+	//===========================================
+
+	void phobos_hologram_fadeinsounds()
+		{
+			$speaker_183.fadeSound (SND_CHANNEL_ANY, 0, 3);
+			$speaker_182.fadeSound (SND_CHANNEL_ANY, 0, 3);
+			$speaker_184.fadeSound (SND_CHANNEL_ANY, 0, 3);
+			$speaker_181.fadeSound (SND_CHANNEL_ANY, 0, 3);
+			$speaker_180.fadeSound (SND_CHANNEL_ANY, 0, 3);
+			$speaker_179.fadeSound (SND_CHANNEL_ANY, 0, 3);
+		}
+
+	void phobos_hologram_scanlines()
+		{
+			sys.trigger($phobosgram_scanline1a_top);
+			sys.trigger($phobosgram_scanline1b_top);
+			sys.trigger($phobosgram_scanline2a_top);
+			sys.trigger($phobosgram_scanline2b_top);
+			sys.trigger($phobosgram_scanline3a_top);
+			sys.trigger($phobosgram_scanline3b_top);
+			sys.trigger($phobosgram_scanline4a_top);
+			sys.trigger($phobosgram_scanline4b_top);
+			sys.trigger($phobosgram_scanline1a);
+			sys.trigger($phobosgram_scanline1b);
+			sys.trigger($phobosgram_scanline2a);
+			sys.trigger($phobosgram_scanline2b);
+			sys.trigger($phobosgram_scanline3a);
+			sys.trigger($phobosgram_scanline3b);
+			sys.trigger($phobosgram_scanline4a);
+			sys.trigger($phobosgram_scanline4b);
+			sys.trigger($phobosgram_scanline1_spkr);
+			sys.trigger($phobosgram_scanline2_spkr);
+			sys.trigger($phobosgram_scanline3_spkr);
+			sys.trigger($phobosgram_scanline4_spkr);
+			$phobosgram_scanline1_mover.move(270, 384);
+			$phobosgram_scanline2_mover.move(90, 384);
+			$phobosgram_scanline3_mover.move(180, 288);
+			$phobosgram_scanline4_mover.move(0, 288);
+			sys.waitFor($phobosgram_scanline1_mover);
+			$phobosgram_scanline1_mover.move(90, 384);
+			$phobosgram_scanline2_mover.move(270, 384);
+			$phobosgram_scanline3_mover.move(0, 288);
+			$phobosgram_scanline4_mover.move(180, 288);
+			sys.waitFor($phobosgram_scanline1_mover);
+			sys.trigger($phobosgram_scanline1a_top);
+			sys.trigger($phobosgram_scanline1b_top);
+			sys.trigger($phobosgram_scanline2a_top);
+			sys.trigger($phobosgram_scanline2b_top);
+			sys.trigger($phobosgram_scanline3a_top);
+			sys.trigger($phobosgram_scanline3b_top);
+			sys.trigger($phobosgram_scanline4a_top);
+			sys.trigger($phobosgram_scanline4b_top);
+			sys.trigger($phobosgram_scanline1a);
+			sys.trigger($phobosgram_scanline1b);
+			sys.trigger($phobosgram_scanline2a);
+			sys.trigger($phobosgram_scanline2b);
+			sys.trigger($phobosgram_scanline3a);
+			sys.trigger($phobosgram_scanline3b);
+			sys.trigger($phobosgram_scanline4a);
+			sys.trigger($phobosgram_scanline4b);
+			sys.trigger($phobosgram_scanline1_spkr);
+			sys.trigger($phobosgram_scanline2_spkr);
+			sys.trigger($phobosgram_scanline3_spkr);
+			sys.trigger($phobosgram_scanline4_spkr);
+		}
+
+	void hologram_button(string buttonName) 
+	{
+		entity button = sys.getEntity(buttonName);
+		vector button_in = button.getVectorKey("button_in");
+		vector button_out = button.getVectorKey("button_out");
+		
+		button.moveToPos(button_in);				
+		button.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+		sys.waitFor(button);
+
+		sys.wait(.125);
+		button.startSoundShader("e1m1_intercomclick2", SND_CHANNEL_ANY);
+		button.moveToPos(button_out);	
+	}	
+
+	void MuseumPart2Subs()
+	{
+		ShowSubtitles2("Tour Guide", "Mars and its moons used to be the host of a great civilization,\ninhabited by what is commonly referred to as 'The Ancients'.", 8.7);
+		ShowSubtitles2("Tour Guide", "Further studies into discovered tablets and texts\nreveal that they were called 'the Praeleanthor'.", 6.5);
+		ShowSubtitles2("Tour Guide", "Their civilization was heavily class-based and successful at that.", 4.6);
+		ShowSubtitles2("Tour Guide", "But according to researchers, at some point in their history.", 4.1);
+		ShowSubtitles2("Tour Guide", "A clash occurred with a resulting divide that fragmented their community.", 4.35);
+		ShowSubtitles2("Tour Guide", "The dissidents were eventually captured by the leaders of the old\nand banished into a different realm.", 5.8);
+		ShowSubtitles2("Tour Guide", "What is commonly referred to as the Dark Realm.\nOne of the two realms of the Praeleanthor.", 6);
+	}
+
+	void MuseumPart3Subs()
+	{
+		ShowSubtitles2("Tour Guide", "The Praeleanthor were a race of duplicity.", 3.35);
+		ShowSubtitles2("Tour Guide", "While they revered their leaders and idols,\nthey feared and loathed their enemies.", 6.45);
+		ShowSubtitles2("Tour Guide", "This attribute colored their entire existence\nas is evident in how they viewed the world and their discoveries.", 7.5);
+		ShowSubtitles2("Tour Guide", "The two realms of the Praeleanthor were no exception.", 4.15);
+		ShowSubtitles2("Tour Guide", "Their efforts into scientific discovery yielded promising results\nwhen they revealed the existence of two extra dimensions.", 8.3);
+		ShowSubtitles2("Tour Guide", "Something they quickly polarized into what is known as\nthe Light Realm and the Dark Realm.", 6.2);
+	}
+
+	void MuseumPart4Subs()
+	{
+		ShowSubtitles2("Tour Guide", "The Dark Realm of the Praeleanthor is referred to as the world\nwhere bad entities are exiled to live out their lifes.", 7.2);
+		ShowSubtitles2("Tour Guide", "Or even die an early death.", 2.4);
+		ShowSubtitles2("Tour Guide", "Recovered stone tablets show that a particularly malevolent entity\nwas once banished into the dark.", 7);
+		ShowSubtitles2("Tour Guide", "There are no mentions of his fate or records of his crimes.", 4.6);
+		ShowSubtitles2("Tour Guide", "Should we as the human species ever come across the portal to this realm.", 5);
+		ShowSubtitles2("Tour Guide", "We should highly consider the risks\nand consequences of further investigation.", 5.25);
+	}
+
+	void MuseumPart5Subs()
+	{
+		ShowSubtitles2("Tour Guide", "The Light Realm of the Praeleanthor\nwas considered to be a higher plane of existence.", 5.5);
+		ShowSubtitles2("Tour Guide", "That only the best and brightest of their people could enter.", 3.7);
+		ShowSubtitles2("Tour Guide", "It is conjectured that the majority of the Praeleanthor\nfled into this dimension as a consequence of a cataclysmic event.", 7.7);
+		ShowSubtitles2("Tour Guide", "Some sort of great filter that was destined to wipe out their civilization\nor at the very least set it back thousands of years.", 8.9);
+		ShowSubtitles2("Tour Guide", "Research into the connection between the two realms is scarce,\nbut we speculate that an intermediate passage must exist.", 9.4);
+	}
+
+	void MuseumPart6Subs()
+	{
+		ShowSubtitles2("Tour Guide", "This artifact was initially found deep within the crust of Mars.\nBeing a highly prioritized historical finding.", 9.35);
+		ShowSubtitles2("Tour Guide", "It was rushed to be scrutinized by the premiere scientists\nand archeologists that any human organization has to offer.", 8.74);
+		ShowSubtitles2("Tour Guide", "Interrupting this important work, the artifact was stolen from its place\nand disappeared for the better part of a decade.", 7.95);
+		ShowSubtitles2("Tour Guide", "After a thorough investigation, it was recovered on Earth\nand returned to its rightful owner; the glorious federacy.", 8.44);
+		ShowSubtitles2("Tour Guide", "Who stole it and why remains a mystery.", 3.5);
+	}
+
+	void MuseumPart7Subs()
+	{
+		ShowSubtitles2("Tour Guide", "Despite the tireless efforts of the best in their field,\nthe function and purpose of the artifact remains unknown.", 9.2);
+		ShowSubtitles2("Tour Guide", "Experiments and tests show that it draws from an unseen power source,\nmaintaining a pulsing glow and a constant temperature.", 9.08);
+		ShowSubtitles2("Tour Guide", "Attempts at cutting through the material and opening it up have failed.", 4.79 );
+		ShowSubtitles2("Tour Guide", "While the scientific investigation into this artifact has been put on hold.", 5.7);
+		ShowSubtitles2("Tour Guide", "Researchers note that it bears a striking resemblance\nto the texture and general properties of the receptacle found on Phobos.", 9.1);
+		ShowSubtitles2("Tour Guide", "It is presumed that this is no coincidence.", 3.4);
+	}
+
+	void MuseumPart8Subs()
+	{
+		ShowSubtitles2("Tour Guide", "Phobos is the latest venture of the FCE.", 3.5);
+		ShowSubtitles2("Tour Guide", "The artifacts found on the moon of Mars\nfar outpace those on Mars in terms of scientific value.", 8.2);
+		ShowSubtitles2("Tour Guide", "Not only did the Praeleanthor, surprisingly,\nalso have a presence on Phobos.", 5.6);
+		ShowSubtitles2("Tour Guide", "It is speculated that they even arrived\nin our solar system by utilizing so far unknown technology.", 8.5);
+		ShowSubtitles2("Tour Guide", "One of the main attractions is the Phobos Monolith.", 4);
+		ShowSubtitles2("Tour Guide", "It is thought that this may very well\nbe the anchor that tied itself to Mars, figuratively speaking.", 7.2);
+		ShowSubtitles2("Tour Guide", "More recent discoveries include the receptacle\nat the aptly named receptacle base. ", 6.3);
+		ShowSubtitles2("Tour Guide", "The federal involvement and engagement on Phobos\nremains a priority to further the lives of everyone.", 7.1);
+	}
+
+	void MuseumPart9Subs()
+	{
+		ShowSubtitles2("Tour Guide", "Receptacle base is the crown jewel of any extra-terrestrial endeavor.", 5.47);
+		ShowSubtitles2("Tour Guide", "Our highly advanced and modern facility contains and protects\nthe most incredible of our discoveries; the receptacle.", 8.33);
+		ShowSubtitles2("Tour Guide", "Initial interpretations of ancient tablets and texts\nreveal that this is a sort of gateway to another dimension.", 7.4);
+		ShowSubtitles2("Tour Guide", "Incredible as it sounds,\npreliminary tests have supported this hypothesis.", 5.43);
+		ShowSubtitles2("Tour Guide", "Subjects, both organic and not,\ndisappear without a trace when the receptacle is engaged.", 6.94);
+		ShowSubtitles2("Tour Guide", "A particular frequency of current will trigger the inner workings of the device.", 5.2);
+		ShowSubtitles2("Tour Guide", "Brave and adventurous volunteers have passed into this realm,\nbut so far none have returned.", 7);
+		ShowSubtitles2("Tour Guide", "More luck has been had with inorganic materials\nthat have resurfaced into one of our listening stations on Mars.", 7);
+	}
+
+	void MuseumPart10Subs()
+	{
+		ShowSubtitles2("Tour Guide", "The most prominent of our listening stations is located in Mars City.", 4.9);
+		ShowSubtitles2("Tour Guide", "While the area surrounding the listening station\nwas initially a mundane apartment for UAC workers on Mars.", 7.75);
+		ShowSubtitles2("Tour Guide", "It is now transformed into a vanguard of scientific research.\nBeing closely linked to the receptacle.", 7.9);
+		ShowSubtitles2("Tour Guide", "Experiments have shown a metaphysical connection\nwith our most prized artifact on Phobos.", 6.5);
+		ShowSubtitles2("Tour Guide", "We have still not managed to get a reliable transfer of objects\ngoing from the receptacle to the listening station.", 7.55);
+		ShowSubtitles2("Tour Guide", "But a host of objects have gone through.\nMost with notable mutations of either color, texture or form.", 9.5);
+		ShowSubtitles2("Tour Guide", "To the best of our current understanding,\nsome sort of teleportation is invoked.", 5.95);
+	}
+
+	void MuseumPart11Subs()
+	{
+		ShowSubtitles2("Tour Guide", "The link between the receptacle and the listening station is not direct.", 5.37);
+		ShowSubtitles2("Tour Guide", "It is assumed that it goes through a different dimension\nand its journey depends on factors unknown to us inside the realm.", 8.2);
+		ShowSubtitles2("Tour Guide", "If we could harness this technology,\nit would be a game changer for humanity.", 5.3);
+		ShowSubtitles2("Tour Guide", "The ability to perform teleportation of objects and people.", 3.7);
+		ShowSubtitles2("Tour Guide", "Would have immense effect on our future development\nas a race and a collective organism.", 5.25);
+		ShowSubtitles2("Tour Guide", "There is still a long way to go, but the results so far are very promising.", 5.75);
+	}
+
+	float museum_8_on = 0;
+	void OnMuseumPart8Start()
+	{
+		
+		
+		sys.trigger($phobos_hologram_yellow);
+		
+		phobos_hologram_scanlines();
+		
+		sys.wait(1.5);
+		sys.trigger($phobos_hologram_green);
+		sys.wait(.5);
+		
+		$phobos_monolith_beam.show();
+		sys.trigger($phobos_monolith_beam_light);
+
+		museum_8_on = 1;		
+	}
+
+	void OnMuseumPart8End()
+	{
+		sys.disableItemGroup("museum");
+
+		$phobos_monolith_beam.hide();
+		sys.trigger($phobos_monolith_beam_light);
+		
+		sys.trigger($phobos_hologram_blue);
+		sys.wait(1.3);
+
+		museum_8_on = 0;
+		sys.enableItemGroups();
+	}	
+
+	float museum_9_on = 0;
+	void OnMuseumPart9Start()
+	{		
+		
+		
+		sys.trigger($phobos_hologram_yellow);
+		
+		phobos_hologram_scanlines();
+		
+		sys.wait(1.5);
+		sys.trigger($phobos_hologram_teal);
+		sys.wait(.5);
+		
+		$phobos_receptacle_beam.show();
+		sys.trigger($phobos_receptacle_beam_light);
+
+		museum_9_on = 1;
+		
+
+	}
+
+	void OnMuseumPart9End()
+	{
+		sys.disableItemGroup("museum");
+
+		$phobos_receptacle_beam.hide();
+		sys.trigger($phobos_receptacle_beam_light);
+		
+		sys.trigger($phobos_hologram_blue);
+		sys.wait(1.3);
+
+		museum_9_on = 0;
+		sys.enableItemGroups();
+
+	}
+
+
+	void StopMuseumSpeak(float stop_from)
+	{
+		stop_talking_man = 1;
+
+		if(museum_8_on && stop_from != 8)
+		{
+			OnMuseumPart8End();
+		}
+
+		if(museum_9_on && stop_from != 9)
+		{
+			OnMuseumPart9End();
+		}
+
+		$museum_speak_2.stopSound(SND_CHANNEL_ANY,0);
+		$museum_speak_3.stopSound(SND_CHANNEL_ANY,0);
+		$museum_speak_4.stopSound(SND_CHANNEL_ANY,0);
+		$museum_speak_5.stopSound(SND_CHANNEL_ANY,0);
+		$museum_speak_6.stopSound(SND_CHANNEL_ANY,0);
+		$museum_speak_7.stopSound(SND_CHANNEL_ANY,0);
+		$museum_speak_8.stopSound(SND_CHANNEL_ANY,0);
+		$museum_speak_9.stopSound(SND_CHANNEL_ANY,0);
+		$museum_speak_10.stopSound(SND_CHANNEL_ANY,0);
+		$museum_speak_11.stopSound(SND_CHANNEL_ANY,0);
+	}
+
+
+	void StartMuseumPart2()
+	{
+		StopMuseumSpeak(2);
+
+		sys.disableItemGroup("museum");
+
+		stop_talking_man = 0;
+		hologram_button("museum_button_2_mover");
+
+		thread MuseumPart2Subs();
+		
+		sys.enableItemGroups();
+
+		CharacterSays($museum_speak_2, "sound/vo/e1m5_5/Museum/Ancients.ogg");
+	}
+
+	
+
+	void StartMuseumPart3()
+	{
+		StopMuseumSpeak(3);
+
+		sys.disableItemGroup("museum");
+		
+		hologram_button("museum_button_3_mover");
+
+		stop_talking_man = 0;
+		thread MuseumPart3Subs();
+		sys.enableItemGroups();
+		
+		CharacterSays($museum_speak_3, "sound/vo/e1m5_5/Museum/Praeleanthor.ogg");
+	}	
+
+	
+
+	void StartMuseumPart4()
+	{
+		StopMuseumSpeak(4);
+
+		sys.disableItemGroup("museum");
+		
+		hologram_button("museum_button_4_mover");
+
+		stop_talking_man = 0;
+		thread MuseumPart4Subs();
+		sys.enableItemGroups();
+		
+		CharacterSays($museum_speak_4, "sound/vo/e1m5_5/Museum/DarkRealm.ogg");
+	}
+
+	
+
+	void StartMuseumPart5()
+	{
+		StopMuseumSpeak(5);
+
+		sys.disableItemGroup("museum");
+		
+		hologram_button("museum_button_5_mover");
+
+		stop_talking_man = 0;
+		thread MuseumPart5Subs();		
+		sys.enableItemGroups();
+		
+		CharacterSays($museum_speak_5, "sound/vo/e1m5_5/Museum/LightRealm.ogg");
+	}
+
+	
+
+	void StartMuseumPart6()
+	{
+		StopMuseumSpeak(6);
+
+		sys.disableItemGroup("museum");
+		
+		hologram_button("museum_button_6_mover");
+
+		stop_talking_man = 0;
+		thread MuseumPart6Subs();
+		sys.enableItemGroups();
+		
+		CharacterSays($museum_speak_6, "sound/vo/e1m5_5/Museum/TheBox.ogg");
+	}
+
+	
+
+	void StartMuseumPart7()
+	{
+		StopMuseumSpeak(7);
+
+		sys.disableItemGroup("museum");
+		
+		hologram_button("museum_button_7_mover");
+
+		stop_talking_man = 0;
+		thread MuseumPart7Subs();
+		sys.enableItemGroups();
+		
+		CharacterSays($museum_speak_7, "sound/vo/e1m5_5/Museum/TheBox2.ogg");
+	}
+
+	
+
+	
+	void StartMuseumPart8()
+	{
+		sys.disableItemGroup("museum");
+
+		StopMuseumSpeak(8);
+
+		
+		hologram_button("museum_button_8_mover");
+
+		if(!museum_8_on)
+		{
+			OnMuseumPart8Start();
+		}
+
+		stop_talking_man = 0;
+		thread MuseumPart8Subs();
+
+		sys.enableItemGroups();
+		CharacterSays($museum_speak_8, "sound/vo/e1m5_5/Museum/Monolith.ogg");
+
+		OnMuseumPart8End();
+	}
+
+	
+	
+	
+	void StartMuseumPart9()
+	{
+		sys.disableItemGroup("museum");
+
+		StopMuseumSpeak(9);
+
+
+		hologram_button("museum_button_9_mover");
+
+		if(!museum_9_on)
+		{
+			OnMuseumPart9Start();
+		}
+
+		stop_talking_man = 0;
+		thread MuseumPart9Subs();
+		sys.enableItemGroups();
+		CharacterSays($museum_speak_9, "sound/vo/e1m5_5/Museum/ReceptacleBase.ogg");
+		
+		OnMuseumPart9End();
+	}
+
+	
+
+	void StartMuseumPart10()
+	{
+		StopMuseumSpeak(10);
+
+		sys.disableItemGroup("museum");
+		
+		hologram_button("museum_button_10_mover");
+
+		stop_talking_man = 0;
+		thread MuseumPart10Subs();
+		
+		sys.enableItemGroups();
+
+		CharacterSays($museum_speak_10, "sound/vo/e1m5_5/Museum/ListeningStation.ogg");
+	}
+
+	
+
+	void StartMuseumPart11()
+	{
+		StopMuseumSpeak(11);
+
+		sys.disableItemGroup("museum");
+		
+		hologram_button("museum_button_11_mover");
+
+		stop_talking_man = 0;
+		thread MuseumPart11Subs();
+		sys.enableItemGroups();
+
+		CharacterSays($museum_speak_11, "sound/vo/e1m5_5/Museum/TheLink.ogg");
+	}
+
+	//===========================================
+	// END MUSEUM SCRIPTS
+	//===========================================
+
+	void StartMilesTalkPostMuseum()
+	{
+		$func_door_188811.lock(2);
+		$func_static_107785.setColor(0.5,0,0);	
+		StopMuseumSpeak(-1);
+
+
+		thread Miles1Subs();
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkPostMuseum/Miles1.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "What do you mean, last seen?\nDid I disappear?", 3.5);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkPostMuseum/Player1.ogg");
+
+		Beat(.5);
+
+		thread Miles2Subs();
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkPostMuseum/Miles2.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "Listening station? I erm...\nThere were a lot of machines and a suspended or floating...cube...of sorts.", 11.5);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkPostMuseum/Player2.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Samantha", "Bingo.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkPostMuseum/Miles3.ogg");
+
+		Beat(.5);
+
+		thread Player3Subs();
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkPostMuseum/Player3.ogg");
+
+		Beat(.5);
+		
+		thread ShowSubtitles("Samantha", "So...what are you going to do now?\n...and...what should I call you? Sam or Ethan?", 10);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkPostMuseum/Miles4.ogg");
+
+		Beat(.5);
+
+		thread Player4Subs();
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkPostMuseum/Player4.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Samantha", "So Sam.\n Are we okay?", 6);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkPostMuseum/Miles5.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "Let's see.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_5/MilesTalkPostMuseum/Player5.ogg");
+	}
+
+	float redKeyFound = 0;
+
+	float ScanExitDoorDetention()
+	{		
+		sys.disableItemGroup("exitdoor_detention");
+
+		sys.trigger($exitdoor_keypanelscanner_detention);
+
+		sys.wait(1);
+
+		if(redKeyFound == 0)
+		{
+			sys.trigger($exitdoor_keypanelscanner_detention);
+			
+			$exitdoor_keypanel_detention.startSoundShader("shav_general_alarm5", SND_CHANNEL_ANY);
+			
+			sys.wait(2.5);
+			
+			sys.enableItemGroups();
+			
+		}
+		else
+		{
+			sys.trigger($redkey_relay);
+			
+			sys.wait(1);
+			
+			sys.trigger($exitdoor_keypanelscanner_detention);
+			
+			sys.trigger($exitdoor_keypanel_detention);
+			$exitdoor_keypanel_detention.startSoundShader("shav_general_accepted", SND_CHANNEL_ANY);
+
+			$func_static_107788.setColor(0,1,0);			
+		}
+	}
+	
+	void keyscan_red()
+	{
+		$redkey_insert.show();
+		$redkey_insert.move(0, 10);
+		sys.waitFor($redkey_insert);
+			
+		sys.trigger($keyinsert_spkr_red);
+		
+		sys.trigger($exitguis_detention_blue);
+		
+		sys.wait(.35);
+			
+		$redkey_insert.move(180, 8);
+		sys.waitFor($redkey_insert);
+		$redkey_insert.hide();
+		
+		sys.trigger($exitguis_detention_green);
+		
+		sys.trigger($ExitDoor);
+	}
+
+	void RedKeyInspected()
+	{
+		redKeyFound = 1;
+		$KeyCard_Red.hide();
+	}
+
+	void setup()
+	{
+		sys.trigger($func_static_77865);
+		sys.trigger($trigger_relay_1232);
+		thread select_monsterconfig1();
+		sys.wait(1);
+		thread select_monsterconfig2();
+		sys.wait(5);
+		thread select_monsterconfig3();
+		sys.wait(4);
+		thread select_monsterconfig4();
+		sys.wait(3);
+		thread select_monsterconfig5();
+		sys.wait(3.5);
+		thread select_lostsouls();
+		sys.wait(2.5);
+		thread select_archvile_config1();
+		sys.wait(4);
+		thread select_archvile_teleportdest();
+		SetupMallLights();
+		SetupMuseumLights();
+		SetupGondola();
+		top_apartment_shutters_open();
+		sys.trigger($trigger_relay_895);
+		
+		sys.wait(1);
+		thread shippingcrates1();
+		thread arch_fight_soundlevels();
+
+	}
+
+	void Intro_Chapter_Text()
+	{
+		sys.fadeTo('0 0 0', 1, .01);
+		sys.wait(.01);
+
+		sys.trigger($cam_chapter_text);
+		
+		sys.wait(2);
+		
+		//sys.trigger($speaker_chapter_text);
+
+		sys.fadeTo('0 0 0', 0, 2);
+
+		sys.wait(4);
+
+		sys.fadeTo('0 0 0', 1, 2);
+
+		sys.wait(3);
+	}
+
+	
+
+	void Back_To_Level()
+	{
+		Intro_Chapter_Text();
+
+		sys.trigger($info_player_teleport_level);
+		sys.trigger($cam_chapter_text);
+
+		//sys.fadeTo('0 0 0', 0, 2);
+
+		sys.wait(2);
+
+		sys.trigger($trigger_relay_gear);
+		sys.trigger($setinfluence_motel);
+		
+		sys.wait(1.5);
+		
+		post_intro_checkpoint();
+
+		sys.wait(4);
+
+		thread ShowSubtitles("Samantha", "I want the best for you.\nI hope you know that.", 4);
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Miles9.ogg");
+		
+		sys.trigger($trigger_relay_867);
+
+		sys.trigger($info_portalsky_1);
+		
+		$ghostskull_orbit_tilt1.rotateOnce('12 0 0');
+		$ghostskull_orbit_tilt2.rotateOnce('-18 0 0');
+		$ghostskull_orbit_tilt3.rotateOnce('25 0 0');
+		
+		sys.wait(2);
+		
+		$ghostskull_orbit1.rotate( '0 165 0' );
+		$ghostskull_orbit2.rotate( '0 -205 0' );
+		$ghostskull_orbit3.rotate( '0 195 0' );
+		thread ghostskulls_axial_tilt();
+		
+		$arch_repel_trig1.disable();
+		$arch_repel_trig2.disable();
+		$arch_repel_trig3.disable();
+		$arch_repel_trig4.disable();
+		$arch_repel_trig5.disable();
+		$arch_repel_trig6.disable();
+		
+		$speaker_95.fadeSound (SND_CHANNEL_ANY, -50, 3);
+		$speaker_183.fadeSound (SND_CHANNEL_ANY, -31, 3);
+		$speaker_182.fadeSound (SND_CHANNEL_ANY, -31, 3);
+		$speaker_184.fadeSound (SND_CHANNEL_ANY, -40, 3);
+		$speaker_181.fadeSound (SND_CHANNEL_ANY, -34, 3);
+		$speaker_180.fadeSound (SND_CHANNEL_ANY, -32, 3);
+		$speaker_179.fadeSound (SND_CHANNEL_ANY, -57, 3);
+	}
+
+	// Source: https://easings.net/#easeInOutCubic
+	// We use this because we don't get any of the accel/decel stuff
+	// because we do the updates manually
+	float EaseInOutCubic(float x)
+	{
+		if(x < 0.5)
+			return 4 * x * x * x;
+
+		return 1 - sys.pow(-2 * x + 2, 3) * 0.5;
+	}
+
+	float motel_camera_updating = 1;
+	void UpdateMotelFrontCamera(vector angles_from, vector angles_to, float fov_from, float fov_to)
+	{
+		motel_camera_updating = 1;
+		vector final_angles = angles_to;
+		vector initial_angles = angles_from;			
+
+		vector travel = final_angles - initial_angles;			
+
+		float total_time = 6.0;
+		float now = sys.getTime();
+		float then = now + total_time;
+				
+		float fov_travel = fov_to - fov_from;
+
+		float tsec = 1.0 / total_time;
+
+		while(motel_camera_updating)
+		{
+			now = sys.getTime();
+
+			if(now >= then)
+			{
+				$motel_front_door_cam_mover.setAngles(final_angles);
+				$motel_front_door_cam.setKey("fov", fov_to);	
+				
+				motel_camera_updating = 0;
+				
+				break;
+			}
+
+			float t = (total_time - (then - now)) * tsec;
+
+			t = EaseInOutCubic(t);
+
+			$motel_front_door_cam_mover.setAngles(initial_angles + travel * t);
+
+			$motel_front_door_cam.setKey("fov", fov_from + fov_travel * t);
+
+			sys.waitFrame();
+		}
+	}
+	
+
+	void LeeBarnSub1()
+	{
+		ShowSubtitles("Lee", "It's done. It's over.\nHe didn't take it well.", 5);
+		ShowSubtitles("Lee", "He left me by the roadside...showed his true colors I guess.", 5);
+		ShowSubtitles("Lee", "I just want to leave...\nI don't know what he'll do when he finds out.", 4);
+	}
+
+	void LeeBarnSub2()
+	{
+		ShowSubtitles("Lee", "Yes. I will leave in a couple of minutes. Just getting our stuff.", 4);
+		ShowSubtitles("Lee", "Ugh. Our neighbor came by. He was impossible to get rid of.", 4);
+	}
+
+	void LeeBarnSub3()
+	{
+		ShowSubtitles("Lee", "Eh. He did his best not to be a middle-aged shovel salesman.", 4);
+		ShowSubtitles("Lee", "He failed.", 3);
+		ShowSubtitles("Lee", "But he's ready to proceed. He will contact us tomorrow with more information.", 5);
+	}
+
+	void PlayerBarnSub6()
+	{
+		ShowSubtitles("Sam", "What? No. Must be Karl, right?", 3);
+		ShowSubtitles("Sam", "It can't be him...can it?", 4.5);
+		ShowSubtitles("Sam", "Don't open!", 2);
+	}
+
+	void PlaceBox()
+	{
+		$the_box.show();
+		$the_box.startSoundShader("e1m3_1_placebox", SND_CHANNEL_ANY);
+		$item_secret_hatch.setKey("item_action", "Close");
+		$item_secret_hatch.setKey("call", "map_e1m5_5::StartMotelStruggleBarnScene");
+		$item_secret_hatch.setKey("click_item", 1);
+	}
+
+	void StartMotelStruggleBarnScene()
+	{		
+		$outro_secret_hatch.rotateOnce('95 0 0');
+		$outro_secret_hatch.startSoundShader("e1m3_1_hatchclose", SND_CHANNEL_ANY);
+		
+		sys.wait(2);
+		
+		sys.showTextMessage("The box is in position! Call me!", 1);
+
+		sys.wait(2);
+
+		sys.fadeTo('0 0 0', 1, 0);
+		$Speaker_TheLastCall.fadeSound(SND_CHANNEL_ANY, -30, 10);
+
+		sys.wait(6);
+
+		$motel_phone.hide();
+		$motel_phone_gui.hide();
+		$motel_phone_corners.hide();
+
+		//$func_mover_9.unbind();
+		$portalview_barnmotel.show();
+		$portalview_barnmotel.bind($func_mover_9);
+		sys.trigger($portalsky_motel);
+		$func_mover_8.moveTo($target_null_2);
+		sys.trigger($func_cameraview_1);
+
+		sys.wait(1);
+		
+		sys.wait($player1.startSoundShader("sound/shav/e1m3/phonering.ogg", SND_CHANNEL_ANY));
+				
+		$func_mover_117.move(90, 256);
+		$func_mover_9.rotateOnce('0 -90 0');
+		$func_mover_10.rotateOnce('0 75 0');		
+		
+		sys.wait(.5);
+		$player1.startSoundShader("sound/shav/e1m3/pickupphone.ogg", SND_CHANNEL_ANY);
+
+		sys.fadeTo('0 0 0', 0, 0.25);
+
+		sys.wait(.25);
+
+		$player1.startSoundShader("sound/shav/e1m5_4/looming.ogg", SND_CHANNEL_ANY);
+
+		thread ShowSubtitles("Sam", "Hey. How did it go?\nIs it done?", 3);
+		CharacterSays($player1, "sound/vo/e1m5_4/Barn/Player1.ogg");
+		
+		Beat(.5);
+
+		thread LeeBarnSub1();
+		float lee1duration = CharacterSaysNoWait ($player1, "sound/vo/e1m5_4/Barn/Lee1.ogg");		
+
+		sys.wait(5.5);
+		lee1duration -= 5.5;
+				
+		$speaker_intro_generator.fadeSound(SND_CHANNEL_ANY, -100, 3);
+		$func_mover_9.rotateOnce('0 -90 0');
+		sys.trigger($info_player_teleport_lee);
+
+		$motel_phone.show();
+		$motel_phone_gui.show();
+		$motel_phone_corners.show();
+
+		sys.wait(4.5);
+		lee1duration -= 4.5;
+
+		$motel_phone_gui.setGuiParm("gui_parm1", 1);
+		sys.trigger($motel_phone_gui);
+		$motel_phone_light.show();
+
+		$speaker_intro_generator.fadeSound(SND_CHANNEL_ANY, 0, 3);
+
+		sys.trigger($leemotel_camera_1);
+
+		sys.wait(lee1duration);		
+
+		$motel_phone_gui.setGuiParm("gui_parm1", 2);
+		sys.trigger($motel_phone_gui);
+
+		$portalview_barnmotel.hide();
+
+		Beat(.25);
+
+		sys.trigger($sam_cam_1);
+
+		thread ShowSubtitles("Sam", "You can't get here fast enough!\nAre you at the motel?", 4);
+		CharacterSays($player1, "sound/vo/e1m5_4/Barn/Player2.ogg");
+
+		Beat(.5);
+
+		vector angles = $leemotel_camera_2.getAngles();
+		
+		$leemotel_bag.show();
+		$leemotel_bag_mover.move(DOWN, 16);
+		$player1.startSoundShader("sound/shav/e1m5_4/bagdown.ogg", SND_CHANNEL_ANY);
+		
+		$player1.setViewAngles(angles);
+		sys.trigger($sam_cam_1);
+
+		$speaker_intro_generator.fadeSound(SND_CHANNEL_ANY, -20, 3);
+	}
+
+	float knock_camera_updating = 1;
+	void UpdateStruggleKnockCamera(float fov_from, float fov_to, float total_time)
+	{
+		knock_camera_updating = 1;
+				
+		float now = sys.getTime();
+		float then = now + total_time;
+				
+		float fov_travel = fov_to - fov_from;
+
+		float tsec = 1.0 / total_time;
+
+		while(knock_camera_updating)
+		{
+			now = sys.getTime();
+
+			if(now >= then)
+			{				
+				$cam_knock_on_door.setKey("fov", fov_to);	
+				
+				knock_camera_updating = 0;
+				
+				break;
+			}
+
+			float t = (total_time - (then - now)) * tsec;
+
+			t = EaseInOutCubic(t);
+
+			$cam_knock_on_door.setKey("fov", fov_from + fov_travel * t);
+
+			sys.waitFrame();
+		}
+	}	
+
+	void bang_door_03()
+	{
+		float n = 0;
+		while(n < 5)
+		{
+			$motel_as_lee_door_banger.move(90, .25);
+			sys.waitFor($motel_as_lee_door_banger);
+			
+			$motel_as_lee_door_banger.move(90, -.25);
+			sys.waitFor($motel_as_lee_door_banger);
+			n++;
+		}
+	}
+
+	void bang_door_04()
+	{
+		float n = 0;
+		while(n < 2)
+		{
+			$motel_as_lee_door_banger.move(90, .25);
+			sys.waitFor($motel_as_lee_door_banger);
+			
+			$motel_as_lee_door_banger.move(90, -.25);
+			sys.waitFor($motel_as_lee_door_banger);
+			n++;
+		}
+	}
+
+	void LeeAnswersMotelQuestion()
+	{
+		sys.wait(.25);
+	
+		thread LeeBarnSub2();
+		float lee1duration = CharacterSaysNoWait($player1, "sound/vo/e1m5_4/Barn/Lee2.ogg");
+
+		sys.wait(4);
+		lee1duration -= 4;
+
+		sys.wait(lee1duration);
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "Oh? Did he have any news?", 3);
+		float p3delay = CharacterSaysNoWait($player1, "sound/vo/e1m5_4/Barn/Player3.ogg");
+		
+		sys.wait(p3delay * 0.75);
+
+		sys.trigger($SpeakerTVShow);
+
+		sys.wait(p3delay * 0.25);
+
+		Beat(.5);
+
+		thread LeeBarnSub3();
+		CharacterSays($player1, "sound/vo/e1m5_4/Barn/Lee3.ogg");				
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "That's great!", 2);
+		CharacterSays($player1, "sound/vo/e1m5_4/Barn/Player4.ogg");
+		
+		Beat(.25);
+		
+		CharacterSays($SpeakerKnockKnock, "sound/shav/e1m5_5/knock01.ogg");	
+
+		Beat(1.5);		
+
+		CharacterSays($SpeakerKnockKnock, "sound/shav/e1m5_5/knock02.ogg");	
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "Lee?", 2);
+		CharacterSays($player1, "sound/vo/e1m5_4/Barn/Player5.ogg");
+
+		Beat(1.25);
+
+		thread ShowSubtitles("Lee", "Someone's here.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_4/Barn/Lee4.ogg");		
+
+		Beat(.5);
+		
+		thread PlayerBarnSub6();
+		float p6d = CharacterSaysNoWait($player1, "sound/vo/e1m5_4/Barn/Player6.ogg");
+
+		sys.wait(7);
+		p6d -= 7;
+		thread bang_door_03();
+		CharacterSays($SpeakerKnockKnock, "sound/shav/e1m5_5/knock03.ogg");
+
+		sys.wait(p6d);
+
+		Beat(.5);
+
+		thread bang_door_03();
+		CharacterSays($SpeakerKnockKnock, "sound/shav/e1m5_5/knock03.ogg");
+
+		Beat(.75);
+
+		thread ShowSubtitles("Lee", "It's James...I...I don't.", 3);
+		CharacterSays($player1, "sound/vo/e1m5_4/Barn/Lee5.ogg");	
+
+		Beat(.5);
+
+		thread bang_door_03();
+		CharacterSays($SpeakerKnockKnock, "sound/shav/e1m5_5/knock03.ogg");
+
+		thread ShowSubtitles("Sam", "Leave! Crawl out the back!", 3);
+		CharacterSays($player1, "sound/vo/e1m5_4/Barn/Player7.ogg");	
+
+		Beat(.5);
+
+		sys.fadeTo('0 0 0', 1, 0);
+
+		thread ShowSubtitles("Lee", "I'm...I'm sorry.", 3);
+		CharacterSays($player1, "sound/vo/e1m5_4/Barn/Lee6.ogg");
+
+		sys.fadeTo('0 0 0', 0, .125);
+
+		thread UpdateStruggleKnockCamera(110, 45, 1.5);
+		$cam_knock_on_door_mover.move(270, 160);
+		sys.trigger($cam_knock_on_door);
+
+		thread bang_door_04();
+		float k4d = CharacterSaysNoWait($SpeakerKnockKnock, "sound/shav/e1m5_5/knock04.ogg");
+
+		sys.wait(1.25);
+		k4d -= 1.25;
+
+		sys.fadeTo('0 0 0', 1, 0);
+
+		sys.wait(k4d);
+		
+		$SpeakerTVShow.fadeSound(SND_CHANNEL_ANY, -100, 20);
+		thread CharacterSays($player1, "sound/shav/e1m5_4/limbo.ogg");
+
+		sys.wait(8);
+
+		sys.fadeTo('0 0 0', 0, .125);
+
+		//sys.trigger($motel_phone_gui);
+		$sam_cam_2_mover.move(UP, 32);
+		sys.trigger($sam_cam_2);
+
+		sys.trigger($info_player_teleport_barn_back);
+		vector angles = $after_ko_cam.getAngles();
+		$player1.setViewAngles(angles);
+		
+		float yd = CharacterSaysNoWait($player1, "sound/shav/e1m5_5/yelling.ogg");
+
+		sys.wait(yd - 1.3);
+
+		$motel_phone_gui.setGuiParm("gui_parm1", 0);
+		sys.trigger($motel_phone_gui);
+		$motel_phone_light.hide();
+
+		sys.wait(1.3);
+
+		sys.trigger($sam_cam_2);
+
+		$item_leave_barn_for_motel.setKey("click_item", 1);		
+		$mc_637248963990923996_func_static_99986.hide();
+	}
+
+	void LeeEnding4Subs()
+	{
+		ShowSubtitles("Lee", "So, the plan. You stash the box back at our place.", 5);
+		ShowSubtitles("Lee", "Once I've told him off I'll go back to the motel,\ngrab all of our stuff and meet you at the barn.", 5);
+	}
+
+	void LeeEnding5Subs()
+	{
+		ShowSubtitles("Lee", "I appreciate that, but if things go sour, the box is our bargaining chip.\nWe can do this. We need to do this!", 6.75);
+		ShowSubtitles("Lee", "This is the end of the beginning!\nI really have to go. Thanks for...", 5.25);
+		ShowSubtitles("Lee", "...well you know.", 3);
+	}
+
+	void Benson_House_Call_Scene()
+	{
+		$camera_vault_1_mover.move(180, 192);
+		sys.trigger($camera_vault_1);
+		
+		sys.fadeTo('0 0 0', 0, .25);
+
+		Beat(2.5);
+
+		thread LeeEnding4Subs();
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Lee4.ogg");
+
+		Beat(.5);
+		
+		//$camera_vault_2_mover.move(90, 128);
+		//sys.trigger($camera_vault_2);
+		sys.trigger($camera_vault_1);
+
+		thread ShowSubtitles("Sam", "Are you sure you don't need any help?\nI can swing by the motel first.", 4);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Player4.ogg");		
+
+		Beat(.5);
+
+		thread LeeEnding5Subs();
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Lee5.ogg");
+
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "You too, Lee.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_2/BensonHouse/EndingTalk/Player5.ogg");		
+	}
+
+	void OpenHidingSpot()
+	{
+		$outro_secret_hatch.rotateOnce('-95 0 0');
+		$outro_secret_hatch.startSoundShader("e1m3_1_hatchopen", SND_CHANNEL_ANY);
+		
+		sys.wait(1);
+		
+		$outro_note_from_lee_clicker.setKey("click_item", 1);
+	}
+
+	void LeaveBarn()
+	{
+		//sys.trigger($outside_motel_struggle_teleport);
+
+		$road_cam_01_rotator.accelTime(0);
+		$road_cam_01_rotator.decelTime(0);
+		$road_cam_01_rotator.time(0.01);
+		$road_cam_01_rotator.rotateOnce('0 0 -90');
+
+		sys.fadeTo('0 0 0', 1, 0);
+
+		sys.wait(4);
+
+		$road_cam_01_mover.accelTime(0);
+		$road_cam_01_mover.decelTime(1);
+		$road_cam_01_mover.time(55);
+		$road_cam_01_mover.move(90, 736 + 1024);
+
+		sys.trigger($road_cam_01);
+
+		sys.fadeTo('0 0 0', 0, 2);
+
+		$player1.startSoundShader("sound/shav/e1m5_4/sirens.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(25);
+
+		$sirens_mover.move(90, 1024 + 1024);
+		thread crossFadeEnt ($light_sirens_01, '0 0 0', '0.5 0.5 0.5', 2);
+		thread crossFadeEnt ($light_sirens_02, '0 0 0', '0.5 0.5 0.5', 2);
+
+		sys.waitFor($sirens_mover);
+
+		thread crossFadeEnt ($light_sirens_01, '0.5 0.5 0.5', '0 0 0', 0.01);
+		thread crossFadeEnt ($light_sirens_02, '0.5 0.5 0.5', '0 0 0', 0.01);
+
+		sys.wait(20);
+
+		$road_cam_01_rotator.accelTime(2);
+		$road_cam_01_rotator.decelTime(.25);
+		$road_cam_01_rotator.time(5);
+		$road_cam_01_rotator.rotateOnce('0 0 90');
+
+		sys.waitFor($road_cam_01_mover);
+		sys.waitFor($road_cam_01_rotator);
+
+		$roadblocker.show();
+		sys.trigger($outside_motel_struggle_teleport);
+		sys.trigger($road_cam_01);
+	}
+
+	void ToggleLightSwitch()
+	{			
+		vector offColor = '0 0 0';
+		vector onColor = '0.1 0.38 0.47';
+		vector white = '1 1 1';
+
+		$func_mover_intro_switch.rotateOnce('-90 0 0');
+		$func_mover_intro_switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);	
+		
+		$switch_light_1.hide();
+		$switch_light_1_on.show();
+		
+		crossFadeEnt ($switch_light_light_1, '1 0 0', '0 1 0', .01);
+		
+		thread crossFadeEnt ($intro_blue_light_1, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_1, white, offColor, .0625);
+		$intro_blue_light_flare_1.show();
+		
+		thread crossFadeEnt ($intro_blue_light_2, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_2_ambient, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_2, offColor, white, .0625);
+		$intro_blue_light_flare_2.show();
+		
+		thread crossFadeEnt ($intro_blue_light_3, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_4, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_3, offColor, white, .0625);
+		$intro_blue_light_flare_3.show();
+		
+		thread crossFadeEnt ($intro_blue_light_5, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_6, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_6_ambient, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_4, offColor, white, .0625);
+		$intro_blue_light_flare_4.show();
+		
+		thread crossFadeEnt ($intro_blue_light_7, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_8, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_8_ambient, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_5, offColor, white, .0625);
+		$intro_blue_light_flare_5.show();
+		
+		$item_secret_hatch.setKey("click_item", 1);
+	}		
+
+	void OpenMotelFrontDoor()
+	{
+		sys.trigger($SpeakerIWasWrong);
+
+		$motel_front_door_hinge.rotateOnce('0 -70 0');
+		$motel_front_door_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+		
+		thread ShowSubtitles("Sam", "Hello?", 2);
+		CharacterSays($player1, "sound/vo/player/general/Hello.ogg");
+
+		float height_offset = $player1.getEyeHeight();
+		vector origin = $player1.getWorldOrigin() + '0 0 1' * height_offset;
+		vector angles = $player1.getViewAngles();
+		
+		$motel_front_door_cam_mover.setWorldOrigin(origin);
+		$motel_front_door_cam_mover.setAngles(angles);
+		
+		$motel_front_door_cam.setKey("fov", 90);
+		sys.trigger($motel_front_door_cam);
+
+		sys.wait(4);		
+
+		sys.wait(0.5);
+
+		// TODO: Get actual fov
+		thread UpdateMotelFrontCamera($player1.getViewAngles(), $motel_front_door_cam_angles.getAngles(), 90, 45);
+		
+		vector destination = $motel_front_door_cam_heighter.getWorldOrigin() + ($motel_front_door_cam_target_0.getWorldOrigin() - origin);
+
+		$motel_front_door_cam_heighter.moveToPos(destination);
+
+		sys.waitFor($motel_front_door_hinge);
+		sys.waitFor($motel_front_door_cam_heighter);
+		sys.wait(1);
+		
+		$motel_front_door_cam_mover.move(90, 256);
+
+		$motel_front_door_cam_mover.moveTo($motel_front_door_cam_target_1);
+
+		sys.wait(6);
+
+		$motel_front_door_cam_mover.rotateOnce('0 40 0');
+		
+		sys.waitFor($motel_front_door_cam_mover);
+
+		sys.wait(2);
+		
+		sys.trigger($motel_bathroom_cam);
+
+		sys.wait(6);
+
+		$motel_bathroom_cupboard_cam_mover.move(270, 16);
+		sys.trigger($motel_bathroom_cupboard_cam);
+
+		sys.wait(6);
+
+		sys.trigger($motel_bathroom_bath_cam);
+		
+		sys.wait(6);
+		
+		sys.trigger($motel_top_cam);
+
+		sys.wait(6);
+
+		$motel_floor_cam_mover.move(0, 256);
+		sys.trigger($motel_floor_cam);
+
+		sys.waitFor($motel_floor_cam_mover);
+		sys.trigger($motel_desk_cam);
+
+		sys.wait(6);
+
+		sys.trigger($motel_tools_cam);
+
+		sys.wait(6);
+
+		sys.trigger($motel_broken_door_cam);
+
+		sys.wait(6);
+
+		sys.trigger($motel_fan_cam);
+
+		sys.wait(6);
+
+		sys.trigger($motel_head_cam);
+
+		sys.wait(6);
+
+		$bathroom_shower_speaker_130.fadeSound (SND_CHANNEL_ANY, -100, 10);
+		
+		sys.fadeTo('0 0 0', 1, 1);
+
+		sys.wait(6);
+
+		Back_To_Level();
+	}
+	
+	void OpenMotelBathroomDoor()
+	{
+		$motel_bathroom_door_handle.startSoundShader("e1m1_doorknobopen", SND_CHANNEL_ANY);
+		$motel_bathroom_door_handle.rotateOnce('0 0 -30');
+		
+		$motel_bathroom_door_hinge.rotateOnce('0 -85 0');
+		$motel_bathroom_door_handle.startSoundShader("e1m4_3_door_creak_2", SND_CHANNEL_ANY);
+		
+		sys.wait(.5);
+
+		CharacterSays($player1, "player_vo_general_Hello");
+
+		$motel_bathroom_door_handle.rotateOnce('0 0 30');
+	}
+	
+	void ShowerOff()
+	{
+		$ShowerKnob.rotateOnce('45 0 0');
+		sys.wait(.5);					
+		$ShowerBeams.move(DOWN, 128);	
+		$ShowerSplash.move(DOWN, 128);
+		sys.wait(.75);
+		sys.trigger($bathroom_shower_speaker_130);
+		sys.wait(.25);
+		
+		sys.wait(.5);
+		sys.waitFor($ShowerBeams);
+		$ShowerBeams.hide();
+	}
+
+	void Start_Struggle()
+	{
+		sys.trigger($setinfluence_motel);
+
+		// Open up the vault door
+		$vault_door_hinge.accelTime(0);
+		$vault_door_hinge.decelTime(0);
+		$vault_door_hinge.time(0.01);
+		$vault_door_hinge.rotateOnce('0 90 0');
+
+		// Set up the phone
+		$motel_phone_mover.rotateOnce('0 10 0');
+
+		//StartMotelStruggleBarnScene();
+		//return;
+
+		// TEST DUALSCREEN FUN
+		if(0)
+		{
+			sys.trigger($portalsky_motel);
+			sys.trigger($func_cameraview_1);
+
+			sys.wait(1);
+			
+			$portalview_barnmotel.bind($func_mover_9);
+			$func_mover_9.rotateOnce('0 -90 0');
+			$func_mover_10.rotateOnce('0 90 0');
+
+			sys.wait(2);
+
+			$func_mover_9.rotateOnce('0 -90 0');
+			//$func_mover_10.rotateOnce('0 90 0');
+
+			return;
+		}
+
+		// VAULT SCENE
+		if(1)
+		{
+			$player1.startSoundShader("sound/shav/e1m5_4/box_found.ogg", SND_CHANNEL_ANY);
+
+			sys.trigger($intro_scene_portalsky);
+
+			// Set up the scene
+			sys.fadeTo('0 0 0', 1, 0);
+			$motel_front_door_hinge.rotateOnce('0 -20 0');
+			$motel_bathroom_door_hinge.rotateOnce('0 -85 0');				
+
+			Benson_House_Call_Scene();
+		}
+
+
+		// Goto barn
+		{
+			sys.fadeTo('0 0 0', 1, .125);
+			sys.wait(.5);
+			//sys.wait($player1.startSoundShader("sound/shav/e1m1/ominoushorn.ogg", SND_CHANNEL_ANY) + 1);
+
+			sys.wait(3.5);
+
+			sys.trigger($barn_teleport);
+
+			sys.wait(0.5);
+
+			// Establish the location (The Barn)
+			$benson_barn_cam_mover.move(DOWN, 192);
+			sys.trigger($start_barn_cam);
+			sys.trigger($Speaker_TheLastCall);
+			sys.fadeTo('0 0 0', 0, .25);
+
+			sys.wait(6);
+			
+			sys.trigger($start_barn_cam);
+		}
+	}
+	
+	float SKIP_ALL = 0;
+	float SKIP_INTRO = 0;
+	
+	void main()
+	{
+		if(!SKIP_ALL)
+		{
+			thread setup();		
+
+			if(SKIP_INTRO == 0)
+			{
+				Start_Struggle();
+			}
+			else
+			{
+				StartPhobosSkyBoxGlitching();
+				Back_To_Level();
+				sys.wait(3);
+				//StartMuseumPart1();
+				sys.trigger($setinfluence_motel);
+			}
+		}
+		else
+		{
+			SetupMallLights();
+			SetupMuseumLights();
+		}
+	}
+}

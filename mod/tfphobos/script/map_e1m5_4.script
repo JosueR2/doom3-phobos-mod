@@ -1,0 +1,2834 @@
+namespace map_e1m5_4
+{	
+	void LeeTexts(string text)
+	{
+		float textTime = sys.strLength(text) * 0.125;
+
+		sys.showTextTyping();
+		sys.wait(textTime);
+		sys.hideTextTyping();
+		sys.showTextMessage(text, 0);
+	}
+
+	void ShowText(string text, float type)
+	{
+		if(type == 0)
+		{
+			sys.showTextTyping();
+			sys.wait(2);
+			sys.hideTextTyping();
+		}
+
+		sys.showTextMessage(text, type);
+	}
+
+	//===========================================
+	// START CRANE
+	//===========================================
+
+	#define CRANE_NONE		0
+	#define CRANE_NORTH		1
+	#define CRANE_SOUTH		2
+	#define CRANE_WEST		3
+	#define CRANE_EAST		4
+	#define CRANE_UP		5
+	#define CRANE_DOWN		6
+	#define CRANE_CALL_DETENTION 7
+	#define CRANE_CALL_OFFICES 8
+	#define CRANE_CALL_ARMORY 9
+	#define CRANE_CALL_RECREATION 10
+	#define CRANE_CALL_CARGO 11
+	#define CRANE_CALL_SERVERS 12
+
+	float command = CRANE_NONE;		
+	vector	crane_mins;
+	vector	crane_maxs;
+	vector	crane_pos;
+
+	void cache_crane_sounds() 
+	{
+		sys.cacheSoundShader( "al3_crane_fingers_open" );
+		sys.cacheSoundShader( "al3_crane_fingers_close" );
+		sys.cacheSoundShader( "al3_crane_loop" );
+		sys.cacheSoundShader( "al3_crane_end" );
+		sys.cacheSoundShader( "al3_crane_updown_loop" );
+		sys.cacheSoundShader( "al3_crane_updown_end" );
+	}
+
+	void sound_crane_fingers_open() {
+		$crane_hook.startSoundShader ("al3_crane_fingers_open", SND_CHANNEL_VOICE2 );
+	}
+
+	void sound_crane_fingers_close() {
+		$crane_hook.startSoundShader ("al3_crane_fingers_close", SND_CHANNEL_VOICE2 );
+	}
+
+	void sound_crane_loop() {
+		$crane_hook.startSoundShader ("m1_loop", SND_CHANNEL_VOICE2 );
+	}
+
+	void sound_crane_stop() {
+		$crane_hook.startSoundShader ("m1_stop", SND_CHANNEL_VOICE2 );
+	}
+
+	void sound_crane_updown_loop() {
+		$crane_hook.startSoundShader ("m2_loop", SND_CHANNEL_VOICE2 );
+	}
+
+	void sound_crane_updown_end() {
+		$crane_hook.startSoundShader ("m2_stop", SND_CHANNEL_VOICE2 );
+	}
+	
+	void crane_move( entity part, entity wheel1, entity wheel2, float dir, float amount, float stopOnCommand ) 
+	{
+		float cmd;
+
+		if ( amount < 0.01 ) {
+			return;
+		}
+
+		if ( ( dir == UP ) || ( dir == DOWN ) ) 
+		{
+			sound_crane_updown_loop();
+		} 
+		else 
+		{
+			sound_crane_loop();
+		}
+			
+		part.move( dir, amount );
+
+		float rotTime = amount / 45;
+		wheel1.time(rotTime);
+		wheel2.time(rotTime);
+
+		float wheelDiameter = wheel1.getFloatKey("wheelDiameter");
+		float revolutions = amount / wheelDiameter;
+		float rotDir = 1;
+		if(dir == SOUTH || dir == UP)
+			rotDir = -1;		
+		
+		vector rotVec1 = wheel1.getVectorKey("rotVec");
+		vector rotVec2 = wheel2.getVectorKey("rotVec");
+
+		wheel1.rotateOnce(rotVec1 * revolutions * rotDir);
+		wheel2.rotateOnce(rotVec2 * revolutions * rotDir);
+
+		if ( !stopOnCommand ) 
+		{
+			sys.waitFor( part );
+		} 
+		else 
+		{
+			cmd = command;
+			while( command == cmd ) 
+			{
+				sys.waitFrame();
+
+				vector diff = crane_maxs - $crane_hook.getWorldOrigin();
+
+				float num = diff_z / 64;
+				num += 1;				
+
+				float i = 1;
+				while(i < 15)
+				{
+					entity wire = sys.getEntity("crane_wire_" + i);
+					if(i < num)
+					{
+						wire.show();
+					}
+					else
+					{
+						wire.hide();
+					}
+					i++;
+				}				
+				
+				if ( !part.isMoving() )
+				{
+					break;
+				}
+			}
+			part.stopMoving();			
+			wheel1.stopRotating();
+			wheel2.stopRotating();
+		}
+
+		if ( ( dir == UP ) || ( dir == DOWN ) ) {
+			sound_crane_updown_end();
+		} else {
+			sound_crane_stop();
+		}
+
+		crane_pos = $crane_hook.getWorldOrigin();
+	}
+
+	void crane_call_station_on(string name)
+	{
+		entity texture = sys.getEntity("crane_caller_" + name + "_texture");
+		entity light = sys.getEntity("crane_caller_" + name + "_light");		
+		
+		texture.setColor(0, 0.25, 0);
+		light.setColor(0, 0.25, 0);
+	}
+
+	void crane_call_station_off(string name)
+	{
+		entity texture = sys.getEntity("crane_caller_" + name + "_texture");
+		entity light = sys.getEntity("crane_caller_" + name + "_light");		
+		
+		texture.setColor(0.15, 0.15, 0);
+		light.setColor(0.15, 0.15, 0);
+	}
+
+	void crane_call_station_broken(string name)
+	{
+		entity texture = sys.getEntity("crane_caller_" + name + "_texture");
+		entity light = sys.getEntity("crane_caller_" + name + "_light");		
+		
+		texture.setColor(0.25, 0, 0);
+		light.setColor(0.25, 0, 0);
+	}
+
+	void crane_reset_clickers()
+	{
+		$crane_caller_detention_clicker.setKey("item_disabled", 0);
+		$crane_caller_armory_clicker.setKey("item_disabled", 0);
+		$crane_caller_cargo_clicker.setKey("item_disabled", 0);
+		$crane_caller_servers_clicker.setKey("item_disabled", 0);
+		$crane_caller_recreation_clicker.setKey("item_disabled", 0);
+		$crane_caller_offices_clicker.setKey("item_disabled", 0);
+	}
+
+	void crane_reset_callers()
+	{
+		crane_call_station_off("detention");
+		crane_call_station_off("offices");
+		crane_call_station_off("armory");
+		crane_call_station_off("recreation");
+		crane_call_station_off("servers");
+	}
+
+	void crane_disable_clickers()
+	{
+		$crane_main_gui_1.setKey("gui_noninteractive", 1);
+
+		sys.disableItemGroup("crane_clickers");
+
+		crane_reset_clickers();
+	}
+
+	void crane_enable_clickers(entity ignoreClicker)
+	{
+		$crane_main_gui_1.setKey("gui_noninteractive", 0);
+
+		ignoreClicker.setKey("item_disabled", 1);
+		sys.enableItemGroup("crane_clickers");
+	}
+
+	void crane_update_loop() 
+	{
+		crane_mins = $crane_pos_min.getOrigin();
+		crane_maxs = $crane_pos_max.getOrigin();
+		crane_pos = $crane_hook.getWorldOrigin();
+		$crane_hook.speed( 45 );
+		$crane_roller_top.speed( 45 );
+		$crane_roller_side.speed( 45 );
+
+		while( 1 ) 
+		{
+			command = CRANE_NONE;
+			while( command == CRANE_NONE ) 
+			{
+				//update_laser();
+				sys.waitFrame();
+			}
+
+			if ( command == CRANE_WEST ) {
+				if ( crane_pos_x > crane_mins_x ) 
+				{
+					crane_reset_clickers();
+					crane_reset_callers();
+					crane_move( $crane_roller_top, $crane_roller_topwheel1, $crane_roller_topwheel2, WEST, crane_pos_x - crane_mins_x, true );
+				}
+
+			} else if ( command == CRANE_EAST ) {
+				if ( crane_pos_x < crane_maxs_x ) 
+				{
+					crane_reset_clickers();
+					crane_reset_callers();
+					crane_move( $crane_roller_top, $crane_roller_topwheel1, $crane_roller_topwheel2, EAST, crane_maxs_x - crane_pos_x, true );
+				}
+
+			} else if ( command == CRANE_SOUTH ) {
+				if ( crane_pos_y > crane_mins_y ) 
+				{
+					crane_reset_clickers();
+					crane_reset_callers();
+					crane_move( $crane_roller_side, $crane_roller_northwheel,$crane_roller_southwheel, SOUTH, crane_pos_y - crane_mins_y, true );
+				}
+
+			} else if ( command == CRANE_NORTH ) {
+				if ( crane_pos_y < crane_maxs_y ) 
+				{
+					crane_reset_clickers();
+					crane_reset_callers();
+					crane_move( $crane_roller_side, $crane_roller_northwheel,$crane_roller_southwheel, NORTH, crane_maxs_y - crane_pos_y, true );
+				}
+			} else if ( command == CRANE_UP ) {
+				if ( crane_pos_z < crane_maxs_z ) 
+				{
+					crane_reset_clickers();
+					crane_reset_callers();
+					crane_move( $crane_hook, $crane_hook_westwheel,$crane_hook_eastwheel, UP, crane_maxs_z - crane_pos_z, true );
+				}
+
+			} else if ( command == CRANE_DOWN ) {
+				if ( ( crane_pos_z > crane_mins_z ) ) 
+				{
+					crane_reset_clickers();
+					crane_reset_callers();
+					crane_move( $crane_hook, $crane_hook_westwheel,$crane_hook_eastwheel, DOWN, crane_pos_z - crane_mins_z, true );
+				}
+			} 
+			else if(command >= CRANE_CALL_DETENTION)
+			{				
+				crane_disable_clickers();
+
+				vector destination = crane_pos;
+				entity destinationClicker = $crane_caller_detention_clicker;							
+				
+				if(command == CRANE_CALL_DETENTION)
+				{
+					destination = $crane_pos_detention.getWorldOrigin();
+				}
+				else if(command == CRANE_CALL_OFFICES)
+				{
+					destination = $crane_pos_offices.getWorldOrigin();
+					destinationClicker = $crane_caller_offices_clicker;
+				}
+				else if(command == CRANE_CALL_SERVERS)
+				{
+					destination = $crane_pos_servers.getWorldOrigin();
+					destinationClicker = $crane_caller_servers_clicker;
+				}
+				else if(command == CRANE_CALL_RECREATION)
+				{
+					destination = $crane_pos_recreation.getWorldOrigin();
+					destinationClicker = $crane_caller_recreation_clicker;
+				}
+				else if(command == CRANE_CALL_CARGO)
+				{
+					destination = $crane_pos_cargo.getWorldOrigin();
+					destinationClicker = $crane_caller_cargo_clicker;
+				}
+				else if(command == CRANE_CALL_ARMORY)
+				{
+					destination = $crane_pos_armory.getWorldOrigin();
+					destinationClicker = $crane_caller_armory_clicker;
+				}
+
+				destinationClicker.startSoundShader( "sound/shav/e1m5_4/callme.ogg", SND_CHANNEL_VOICE );
+
+				vector diff = crane_pos - destination;
+
+				float distanceX = abs(diff_x);
+				float distanceY = abs(diff_y);
+				float distanceZ = abs(diff_z);
+
+				
+				float dir;
+
+				if(abs(diff_x) > 0)
+				{
+					dir = WEST;
+					if(diff_x < 0)
+						dir = EAST;
+
+					crane_move( $crane_roller_top, $crane_roller_topwheel1, $crane_roller_topwheel2, dir, distanceX, true );
+				}
+
+				if(abs(diff_z) > 0)
+				{
+					dir = DOWN;
+					if(diff_z < 0)
+						dir = UP;
+
+					crane_move( $crane_hook, $crane_hook_westwheel,$crane_hook_eastwheel, dir, distanceZ, true );
+				}
+
+				if(abs(diff_y) > 0)
+				{
+					dir = SOUTH;
+					if(diff_y < 0)
+						dir = NORTH;
+					
+					crane_move( $crane_roller_side, $crane_roller_northwheel,$crane_roller_southwheel, dir, distanceY, true );
+				}
+
+				crane_enable_clickers(destinationClicker);
+			}			
+		}
+	}
+
+	void crane_north() 
+	{
+		command = CRANE_NORTH;
+		/*
+		//$crane_hook.setAngularVelocity('2 0 0');
+		$crane_hook.sway(10, 0, '1 0 0');
+
+		float damp = 1;
+		float lastFrame = sys.getTime();
+
+		while(damp > 0)
+		{
+			vector vel = $crane_hook.getAngularVelocity();
+			sys.waitFrame();
+			
+			float timeDiff = sys.getTime() - lastFrame;
+			damp -= 0.01;
+
+			$crane_hook.setAngularVelocity(vel * damp);
+		}
+
+		//$crane_hook.sway(0, 0, '0 0 0');
+		*/
+	}
+
+	void crane_south() {
+		command = CRANE_SOUTH;
+	}
+
+	void crane_west() {
+		command = CRANE_WEST;
+	}
+
+	void crane_east() {
+		command = CRANE_EAST;
+	}
+
+	void crane_up() {
+		command = CRANE_UP;
+	}
+
+	void crane_down() {
+		command = CRANE_DOWN;
+	}
+
+	void crane_stop() {
+		command = CRANE_NONE;
+	}
+
+	void crane_call_detention()
+	{		
+		command = CRANE_CALL_DETENTION;
+		
+		crane_call_station_on("detention");
+		crane_call_station_off("offices");
+		crane_call_station_off("armory");
+		crane_call_station_off("recreation");
+		crane_call_station_off("servers");
+	}
+
+	void crane_call_offices()
+	{
+		command = CRANE_CALL_OFFICES;
+
+		crane_call_station_on("offices");
+		crane_call_station_off("detention");
+		crane_call_station_off("armory");
+		crane_call_station_off("recreation");
+		crane_call_station_off("servers");
+	}
+	
+	void crane_call_cargo()
+	{
+		crane_call_station_broken("cargo");
+		sys.trigger($func_fx_246);
+
+		//command = CRANE_CALL_CARGO;
+		//crane_call_station("cargo");
+	}
+
+	void crane_call_servers()
+	{
+		command = CRANE_CALL_SERVERS;
+
+		crane_call_station_on("servers");
+		crane_call_station_off("detention");
+		crane_call_station_off("offices");
+		crane_call_station_off("armory");
+		crane_call_station_off("recreation");
+	}
+
+	void crane_call_recreation()
+	{
+		command = CRANE_CALL_RECREATION;
+
+		crane_call_station_on("recreation");
+		crane_call_station_off("detention");
+		crane_call_station_off("offices");
+		crane_call_station_off("armory");
+		crane_call_station_off("servers");
+	}
+
+	void crane_call_armory()
+	{
+		command = CRANE_CALL_ARMORY;
+
+		crane_call_station_on("armory");
+		crane_call_station_off("detention");
+		crane_call_station_off("offices");
+		crane_call_station_off("recreation");
+		crane_call_station_off("servers");
+	}
+	
+	//===========================================
+	// END CRANE
+	//===========================================
+
+	//===========================================
+	// START SOMA DOORS
+	//===========================================
+
+	void OpenSomaDoor(string name)
+	{
+		entity door = sys.getEntity("somadoor_round_" + name);
+		entity portal = sys.getEntity("somadoor_portal_" + name);
+		
+		entity aas_obstacle = sys.getEntity("somadoor_aas_" + name);
+		
+		entity somaparm_green = sys.getEntity("somaguis_" + name + "_green");
+		entity somaparm_blue = sys.getEntity("somaguis_" + name + "_blue");
+		
+		float state = door.getFloatKey("state");
+		float openDir = door.getFloatKey("openDir");
+		float closeDir = door.getFloatKey("closeDir");
+		vector rv = door.getVectorKey("rotateVector");
+
+		if( state == 0)
+		{
+			door.setKey("state", 2);
+
+			sys.trigger(portal);
+			
+			sys.trigger(somaparm_blue);
+			
+			door.accelTime(1);
+			door.decelTime(1);
+			door.time(2.5);
+
+			door.startSoundShader ("al4_openslats_2s", SND_CHANNEL_VOICE);
+			door.rotateOnce(rv * 135);
+			sys.waitFor(door);
+			
+			door.accelTime(1);
+			door.decelTime(.5);
+			door.time(3.5);
+
+			door.startSoundShader ("sound/doors/large/hugedoor_01_open.wav", SND_CHANNEL_VOICE);
+			
+			sys.trigger(aas_obstacle);
+			
+			door.move(openDir, 128);
+			door.rotateOnce(rv * 90);
+		
+			sys.waitFor(door);
+			
+
+			door.setKey("state", 1);
+
+			sys.wait(5);
+
+			door.setKey("state", 2);
+			
+			sys.trigger(aas_obstacle);
+
+			door.startSoundShader ("sound/doors/large/hugedoor_01_close.wav", SND_CHANNEL_VOICE);
+			door.move(closeDir, 128);
+			door.rotateOnce(rv * -90);
+
+			sys.waitFor(door);
+
+			door.accelTime(1);
+			door.decelTime(1);
+			door.time(2.5);
+
+			door.startSoundShader ("al4_openslats_2s", SND_CHANNEL_VOICE);
+			door.rotateOnce(rv * -135);
+			sys.waitFor(door);
+
+			sys.trigger(portal);
+			
+			sys.trigger(somaparm_green);
+			
+			door.setKey("state", 0);
+		}
+	}
+	
+	void OpenSomaDoorDetention()
+	{
+		OpenSomaDoor("detention");
+	}
+	
+	float blueKeyFound = 0;
+	float greenKeyFound = 0;
+	float yellowKeyFound = 0;
+
+	float ScanSomaDoor(entity panel, entity key_relay, entity scanner, entity clicker, float state, entity enable_somaguis, string name)
+	{		
+
+		if(state == 2)
+		{
+			OpenSomaDoor(name);
+			sys.wait(1);
+			sys.trigger(enable_somaguis);
+			
+			return state;
+		}
+
+		sys.trigger(scanner);
+		scanner.startSoundShader( "sound/shav/e1m5_4/scanner.ogg", SND_CHANNEL_VOICE );
+
+		sys.wait(1);
+
+		if(state == 0)
+		{
+			sys.trigger(scanner);
+			
+			//sys.trigger(panel);
+			panel.startSoundShader("shav_general_alarm5", SND_CHANNEL_ANY);
+			
+			sys.wait(3.5);
+			
+			sys.trigger(enable_somaguis);
+			
+			return 0;
+		}
+		else
+		{
+			sys.trigger(key_relay);
+			
+			sys.wait(1);
+			
+			sys.trigger(scanner);
+			
+			sys.trigger(panel);
+			panel.startSoundShader("shav_general_accepted", SND_CHANNEL_ANY);
+
+			OpenSomaDoor(name);
+			sys.wait(1);
+			sys.trigger(enable_somaguis);
+			
+			return 2;
+		}
+	}
+	
+	float ScanSomaDoorInner(entity clicker, float state, entity enable_somaguis, string name)
+	{		
+
+		if(state == 2)
+		{
+			OpenSomaDoor(name);
+			sys.wait(1);
+			sys.trigger(enable_somaguis);
+			
+			return state;
+		}
+
+		if(state == 0)
+		{	
+			sys.wait(3.5);
+			
+			sys.trigger(enable_somaguis);
+			
+			return 0;
+		}
+		else
+		{
+			sys.wait(1);
+			
+			OpenSomaDoor(name);
+			sys.wait(1);
+			sys.trigger(enable_somaguis);
+			
+			return 2;
+		}
+	}
+
+	void ScanSomaDoorArmory()
+	{
+		blueKeyFound = ScanSomaDoor($somadoor_keypanel_armory, $bluekey_relay, $somadoor_keypanelscanner_armory, $somadoor_keypanelclicker_armory, blueKeyFound, $enable_somaguis_armory, "armory");
+	}
+
+	void ScanSomaDoorInnerArmory()
+	{
+		blueKeyFound = ScanSomaDoorInner($somadoor_keypanelclicker_innerarmory, blueKeyFound, $enable_somaguis_armory, "innerarmory");
+	}
+
+	void ScanSomaDoorServers()
+	{
+		greenKeyFound = ScanSomaDoor($somadoor_keypanel_servers, $greenkey_relay, $somadoor_keypanelscanner_servers, $somadoor_keypanelclicker_servers, greenKeyFound, $enable_somaguis_servers, "servers");
+	}
+
+	void ScanSomaDoorInnerServers()
+	{
+		greenKeyFound = ScanSomaDoorInner($somadoor_keypanelclicker_innerservers, greenKeyFound, $enable_somaguis_servers, "innerservers");
+	}
+	
+	void ScanSomaDoorRecreationLower()
+	{
+		yellowKeyFound = ScanSomaDoor($somadoor_keypanel_recreationlower, $yellowkey_relaylower, $somadoor_keypanelscanner_recreationlower, $somadoor_keypanelclicker_recreationlower, yellowKeyFound, $enable_somaguis_recreationlower, "recreationlower");
+	}
+
+	void ScanSomaDoorRecreationUpper()
+	{
+		yellowKeyFound = ScanSomaDoor($somadoor_keypanel_recreationupper, $yellowkey_relayupper, $somadoor_keypanelscanner_recreationupper, $somadoor_keypanelclicker_recreationupper, yellowKeyFound, $enable_somaguis_recreationupper, "recreationupper");
+	}
+
+	void ScanSomaDoorDetention()
+	{
+		ScanSomaDoor($somadoor_keypanel_detention, $redkey_relay, $somadoor_keypanelscanner_detention, $somadoor_keypanelclicker_detention, 0, $enable_somaguis_detention, "detention");
+	}
+	
+	void keyscan_blue()
+	{
+		$bluekey_insert.show();
+		$bluekey_insert.startSoundShader( "sound/shav/e1m5_4/insertkey.ogg", SND_CHANNEL_VOICE );
+		$bluekey_insert.move(180, 10);
+		sys.waitFor($bluekey_insert);
+			
+		sys.trigger($keyinsert_spkr_blue);
+		
+		sys.wait(.35);
+			
+		$bluekey_insert.move(0, 8);
+		$bluekey_insert.startSoundShader( "sound/shav/e1m5_4/removekey.ogg", SND_CHANNEL_VOICE );
+		sys.waitFor($bluekey_insert);
+		$bluekey_insert.hide();
+	}
+	
+	void keyscan_green()
+	{
+		$greenkey_insert.show();
+		$greenkey_insert.startSoundShader( "sound/shav/e1m5_4/insertkey.ogg", SND_CHANNEL_VOICE );
+		$greenkey_insert.move(0, 10);
+		sys.waitFor($greenkey_insert);
+			
+		sys.trigger($keyinsert_spkr_green);
+		
+		sys.wait(.35);
+			
+		$greenkey_insert.move(180, 8);
+		$greenkey_insert.startSoundShader( "sound/shav/e1m5_4/removekey.ogg", SND_CHANNEL_VOICE );
+		sys.waitFor($greenkey_insert);
+		$greenkey_insert.hide();
+	}
+	
+	void keyscan_yellow1()
+	{
+		$yellowkey_insert1.show();
+		$yellowkey_insert1.startSoundShader( "sound/shav/e1m5_4/insertkey.ogg", SND_CHANNEL_VOICE );
+		$yellowkey_insert1.move(90, 10);
+		sys.waitFor($yellowkey_insert1);
+			
+		sys.trigger($keyinsert_spkr_yellow1);
+		
+		sys.wait(.35);
+			
+		$yellowkey_insert1.move(270, 8);
+		$yellowkey_insert1.startSoundShader( "sound/shav/e1m5_4/removekey.ogg", SND_CHANNEL_VOICE );
+		sys.waitFor($yellowkey_insert1);
+		$yellowkey_insert1.hide();
+	}
+	
+	void keyscan_yellow2()
+	{
+		$yellowkey_insert2.show();
+		$yellowkey_insert2.startSoundShader( "sound/shav/e1m5_4/insertkey.ogg", SND_CHANNEL_VOICE );
+		$yellowkey_insert2.move(90, 10);
+		sys.waitFor($yellowkey_insert2);
+			
+		sys.trigger($keyinsert_spkr_yellow2);
+		
+		sys.wait(.35);
+			
+		$yellowkey_insert2.move(270, 8);
+		$yellowkey_insert2.startSoundShader( "sound/shav/e1m5_4/removekey.ogg", SND_CHANNEL_VOICE );
+		sys.waitFor($yellowkey_insert2);
+		$yellowkey_insert2.hide();
+	}
+
+	void GreenKeyInspected()
+	{
+		greenKeyFound = 1;
+		$KeyCard_Green.hide();
+	}
+	
+	void BlueKeyInspected()
+	{
+		blueKeyFound = 1;
+		$KeyCard_Blue.hide();
+	}
+
+	void YellowKeyInspected()
+	{
+		yellowKeyFound = 1;
+		$KeyCard_Yellow.hide();
+	}
+
+	//===========================================
+	// END SOMA DOORS
+	//===========================================
+
+
+	void techlights_scroll1()
+	{
+		while (1)
+		{
+			$techlight_mover1.moveTo($techlight_dest1);
+			$techlight_mover2.moveTo($techlight_dest2);
+			sys.waitFor($techlight_mover1);
+			$techlight_mover1.restorePosition();
+			$techlight_mover2.restorePosition();
+		}
+	}
+
+		void techlights_scroll2()
+	{
+		while (1)
+		{
+			$techlight_mover3.moveTo($techlight_dest3);
+			$techlight_mover4.moveTo($techlight_dest4);
+			sys.waitFor($techlight_mover3);
+			$techlight_mover3.restorePosition();
+			$techlight_mover4.restorePosition();
+		}
+	}
+
+
+	//===========================================
+	// START SERVER PUZZLE
+	//===========================================
+
+	// gotoPos 0 -> down
+	// gotoPos 1 -> up
+	// gotoPos 2 -> toggle
+	
+	void ToggleServerBridge(entity bridge, float gotoPos)
+	{
+			string bridgenum = bridge.getKey("bridgenumber");
+		
+				entity bridgedest_up = sys.getEntity("server_puzzle_bridge_" + bridgenum + "_uppos");
+				entity bridgedest_down = sys.getEntity("server_puzzle_bridge_" + bridgenum + "_downpos");
+	
+				float state = bridge.getFloatKey("bridge_state");
+				if(gotoPos != 0 && state == 0)
+				{
+					bridge.moveTo(bridgedest_up);
+					//sys.waitFor(bridge);
+					bridge.setKey("bridge_state", 1);
+				}
+				else if(gotoPos != 1 && state == 1)
+				{
+					bridge.moveTo(bridgedest_down);					
+					//sys.waitFor(bridge);
+					bridge.setKey("bridge_state", 0);
+				}
+	}
+
+	// gotoPos 0 -> down
+	// gotoPos 1 -> up
+	// gotoPos 2 -> toggle
+	void ToggleServerPuzzleNode(float i, float gotoPos)
+	{
+		entity node = sys.getEntity("server_puzzle_node_" + i);
+			
+		if(!node)
+			return;
+
+		float bridgeMax = 6;
+		float j = 0;
+		while(j < bridgeMax)
+		{
+			j++;
+
+			string bridgeName = node.getKey("bridge_" + j);
+			if(bridgeName == "")
+				break;
+				
+			entity bridge = sys.getEntity(bridgeName);
+			if(bridge)
+			{
+				ToggleServerBridge(bridge, gotoPos);
+			}
+		}
+	}
+
+	void MaintainPoweredBridges()
+	{
+		float bridgeMax = 12;
+		float i = 0;
+		while(i < bridgeMax)
+		{
+			i++;
+			entity bridge = sys.getEntity("server_puzzle_bridge_" + i);
+
+			string node1Name = bridge.getKey("node_1");
+			string node2Name = bridge.getKey("node_2");
+
+			entity node1 = sys.getEntity(node1Name);
+			entity node2 = sys.getEntity(node2Name);
+
+			float power1 = node1.getFloatKey("powered_state");
+			float power2 = node2.getFloatKey("powered_state");
+
+			ToggleServerBridge(bridge, power1 || power2);
+		}
+	}
+	
+	void SetupServerPuzzle()
+	{
+		float i = 0;
+		while(i < 4)
+		{
+			entity light = sys.getEntity("server_puzzle_end_house_light" + (i+1));
+			vector ogcolor = light.getColor();
+			light.setKey("ogcolor", ogcolor);
+			light.setColor(0, 0, 0);
+			i++;
+			sys.trigger($target_entity_fadeout_1);
+			
+			$server_puzzle_end_bridge_door_frame_light1.setColor(0, 0, 0);
+			$server_puzzle_end_bridge_door_frame_light2.setColor(0, 0, 0);
+			
+			$server_puzzle_healthgui.hide();
+			$server_puzzle_healthgui_light.setColor(0, 0, 0);
+		}
+
+		vector bridgeAngle = '0 37 0';
+
+		// Rotate the angled bridges
+		$server_puzzle_bridge_3.rotateOnce(bridgeAngle);
+		$server_puzzle_bridge_5.rotateOnce(bridgeAngle);
+		$server_puzzle_bridge_8.rotateOnce(bridgeAngle);
+		$server_puzzle_bridge_10.rotateOnce(bridgeAngle);
+		$server_puzzle_bridge_2.rotateOnce(-bridgeAngle);
+		$server_puzzle_bridge_4.rotateOnce(-bridgeAngle);
+		$server_puzzle_bridge_9.rotateOnce(-bridgeAngle);
+		$server_puzzle_bridge_11.rotateOnce(-bridgeAngle);		
+
+		/// Lower the end server bridge
+		$server_puzzle_end_bridge.move(DOWN, 256);
+		sys.trigger($server_puzzle_end_bridge_aas);
+		sys.trigger($server_puzzle_end_bridge_clip);
+	}
+
+	void NodePowerSoundsStart(entity sndstart, entity loop)
+	{
+		sys.trigger( sndstart );
+		sys.wait( .968 );
+		sys.trigger( loop );
+	}
+
+	void NodePowerSoundsStop(entity sndstop, entity loop)
+	{
+		sys.trigger( sndstop );
+		sys.trigger( loop );
+	}
+	
+		float ServerBridge1Raised = 0;
+		float ServerBridge2Raised = 0;
+		float ServerBridge3Raised = 0;
+		float ServerBridge4Raised = 0;
+		float ServerBridge5Raised = 0;
+		float ServerBridge6Raised = 0;
+		float ServerBridge7Raised = 0;
+		float ServerBridgeMainRaised = 1;
+	
+	void CrossCheckServerBridges()
+	{
+		if(ServerBridge1Raised == 0 && ServerBridge2Raised == 1
+		&& ServerBridge3Raised == 0 && ServerBridge4Raised == 0
+		&& ServerBridge5Raised == 0 && ServerBridge6Raised == 0 		
+		&& ServerBridge7Raised == 0 && ServerBridgeMainRaised == 0)
+			{
+				$trigger_once_115.enable();
+				$trigger_once_113.disable();
+				$trigger_once_114.disable();
+				$trigger_once_59.disable();
+				if(debug)
+				sys.println("Trig Config 1");
+			}
+		else if(ServerBridge1Raised == 0 && ServerBridge2Raised == 0
+		&& ServerBridge3Raised == 0 && ServerBridge4Raised == 0
+		&& ServerBridge5Raised == 0 && ServerBridge6Raised == 0 		
+		&& ServerBridge7Raised == 1 && ServerBridgeMainRaised == 0)
+			{
+				$trigger_once_115.enable();
+				$trigger_once_113.disable();
+				$trigger_once_114.disable();
+				$trigger_once_59.disable();
+				if(debug)
+				sys.println("Trig Config 2");
+			}
+		else if(ServerBridge1Raised == 0 && ServerBridge2Raised == 0
+		&& ServerBridge3Raised == 0 && ServerBridge4Raised == 0
+		&& ServerBridge5Raised == 1 && ServerBridge6Raised == 0 		
+		&& ServerBridge7Raised == 1 && ServerBridgeMainRaised == 0)
+			{
+				$trigger_once_115.enable();
+				$trigger_once_113.disable();
+				$trigger_once_114.disable();
+				$trigger_once_59.disable();
+				if(debug)
+				sys.println("Trig Config 3");
+			}
+		else if(ServerBridge1Raised == 0 && ServerBridge2Raised == 1
+		&& ServerBridge3Raised == 0 && ServerBridge4Raised == 0
+		&& ServerBridge5Raised == 1 && ServerBridge6Raised == 0 		
+		&& ServerBridge7Raised == 0 && ServerBridgeMainRaised == 0)
+			{
+				$trigger_once_115.enable();
+				$trigger_once_113.disable();
+				$trigger_once_114.disable();
+				$trigger_once_59.disable();
+				if(debug)
+				sys.println("Trig Config 4");
+			}
+		else if(ServerBridge1Raised == 0 && ServerBridge2Raised == 0
+		&& ServerBridge3Raised == 0 && ServerBridge4Raised == 0
+		&& ServerBridge5Raised == 0 && ServerBridge6Raised == 0 		
+		&& ServerBridge7Raised == 0 && ServerBridgeMainRaised == 0)
+			{
+				$trigger_once_115.enable();
+				$trigger_once_113.enable();
+				$trigger_once_114.enable();
+				$trigger_once_59.enable();
+				if(debug)
+				sys.println("Trig Config 5");
+			}
+		else
+			{
+				$trigger_once_115.disable();
+				$trigger_once_113.disable();
+				$trigger_once_114.disable();
+				$trigger_once_59.disable();
+				if(debug)
+				sys.println("Trig Config 6");
+			}
+	}
+	
+	void Flag_ServerBridge1()
+	{
+		if(ServerBridge1Raised == 0)
+				{
+					ServerBridge1Raised = 1;
+					if(debug)
+					sys.println("ServerBridge1Raised = 1");
+				}
+				else if(ServerBridge1Raised == 1)
+				{
+					ServerBridge1Raised = 0;
+					if(debug)
+					sys.println("ServerBridge1Raised = 0");
+				}
+				sys.wait(1);
+			CrossCheckServerBridges();
+	}
+	
+	void Flag_ServerBridge2()
+	{
+		if(ServerBridge2Raised == 0)
+				{
+					ServerBridge2Raised = 1;
+					if(debug)
+					sys.println("ServerBridge2Raised = 1");
+				}
+				else if(ServerBridge2Raised == 1)
+				{
+					ServerBridge2Raised = 0;
+					if(debug)
+					sys.println("ServerBridge2Raised = 0");
+				}
+				sys.wait(1);
+			CrossCheckServerBridges();
+	}
+	
+	void Flag_ServerBridge3()
+	{
+		if(ServerBridge3Raised == 0)
+				{
+					ServerBridge3Raised = 1;
+					if(debug)
+					sys.println("ServerBridge3Raised = 1");
+				}
+				else if(ServerBridge3Raised == 1)
+				{
+					ServerBridge3Raised = 0;
+					if(debug)
+					sys.println("ServerBridge3Raised = 0");
+				}
+				sys.wait(1);
+			CrossCheckServerBridges();
+	}
+	
+	void Flag_ServerBridge4()
+	{
+		if(ServerBridge4Raised == 0)
+				{
+					ServerBridge4Raised = 1;
+					if(debug)
+					sys.println("ServerBridge4Raised = 1");
+				}
+				else if(ServerBridge4Raised == 1)
+				{
+					ServerBridge4Raised = 0;
+					if(debug)
+					sys.println("ServerBridge4Raised = 0");
+				}
+				sys.wait(1);
+			CrossCheckServerBridges();
+	}
+	
+	void Flag_ServerBridge5()
+	{
+		if(ServerBridge5Raised == 0)
+				{
+					ServerBridge5Raised = 1;
+					if(debug)
+					sys.println("ServerBridge5Raised = 1");
+				}
+				else if(ServerBridge5Raised == 1)
+				{
+					ServerBridge5Raised = 0;
+					if(debug)
+					sys.println("ServerBridge5Raised = 0");
+				}
+				sys.wait(1);
+			CrossCheckServerBridges();
+	}
+	
+	void Flag_ServerBridge6()
+	{
+		if(ServerBridge6Raised == 0)
+				{
+					ServerBridge6Raised = 1;
+					if(debug)
+					sys.println("ServerBridge6Raised = 1");
+				}
+				else if(ServerBridge6Raised == 1)
+				{
+					ServerBridge6Raised = 0;
+					if(debug)
+					sys.println("ServerBridge6Raised = 0");
+				}
+				sys.wait(1);
+			CrossCheckServerBridges();
+	}
+	
+	void Flag_ServerBridge7()
+	{
+		if(ServerBridge7Raised == 0)
+				{
+					ServerBridge7Raised = 1;
+					if(debug)
+					sys.println("ServerBridge7Raised = 1");
+				}
+				else if(ServerBridge7Raised == 1)
+				{
+					ServerBridge7Raised = 0;
+					if(debug)
+					sys.println("ServerBridge7Raised = 0");
+				}
+				sys.wait(1);
+			CrossCheckServerBridges();
+	}
+	
+	void Flag_ServerBridgeMain()
+	{
+		if(ServerBridgeMainRaised == 0)
+				{
+					ServerBridgeMainRaised = 1;
+					if(debug)
+					sys.println("ServerBridgeMainRaised = 1");
+				}
+				else if(ServerBridgeMainRaised == 1)
+				{
+					ServerBridgeMainRaised = 0;
+					if(debug)
+					sys.println("ServerBridgeMainRaised = 0");
+				}
+				sys.wait(1);
+			CrossCheckServerBridges();
+	}
+
+	void NodePowerIn(float i)
+	{
+		entity sndstart = sys.getEntity("node_" + i + "_powercell_start");
+		entity loop = sys.getEntity("node_" + i + "_powercell_loop");
+		entity powercell = sys.getEntity("node_" + i + "_powercell");
+		entity generator = sys.getEntity("node_" + i + "_generator");
+		entity openclose1 = sys.getEntity("node_" + i + "_powercell_openclose1");
+		entity idle1 = sys.getEntity("node_" + i + "_powercell_idle1");
+		entity node = sys.getEntity("server_puzzle_node_" + i);
+		entity node_powerbeam = sys.getEntity("node_" + i + "_powerbeam");
+		entity node_powerlight = sys.getEntity("node_" + i + "_powerlight");
+		entity node_powerzzz = sys.getEntity("node_" + i + "_powerzzz");
+		entity serverlight = sys.getEntity("node_" + i + "_serverlight");
+		entity serverspkron_relay = sys.getEntity("serverspkron_relay" + i);
+		entity serverflares1 = sys.getEntity("node_" + i + "_serverflares1");
+		entity serverflares2 = sys.getEntity("node_" + i + "_serverflares2");
+		entity nodeonoff_relay = sys.getEntity("nodeonoff_relay" + i);
+	
+		sys.trigger( nodeonoff_relay );
+	
+		//Door closing sound/anims
+		$player1.removeInventoryItem("Pwr Cell");
+		powercell.show();
+		sys.wait(0.5);
+
+		generator.setAnimation("closing");
+		sys.trigger(generator);
+		sys.trigger(openclose1);
+		sys.trigger(idle1);
+		//generator_gui.guiNamedEvent(1, "powercellDeviceStarted");
+		sys.trigger(node_powerbeam);
+		sys.trigger(node_powerzzz);
+		thread crossFadeEnt (node_powerlight, '0 0 0', '0.12 0.73 0.12', 0.75);
+		sys.wait( 1.0 );
+		
+		sys.trigger(serverspkron_relay);
+		thread crossFadeEnt (serverlight, '0 0 0', '0.12 0.73 0.12', 1.5);
+		thread crossFadeEnt (serverflares1, '0 0 0', '0.12 0.73 0.12', 1.5);
+		thread crossFadeEnt (serverflares2, '0 0 0', '0.73 0.93 0.73', 2.25);
+
+		//Power starting sound
+		thread NodePowerSoundsStart(sndstart, loop);
+
+		node.setKey("powered_state", 1);
+		MaintainPoweredBridges();
+	}
+
+	void NodePowerOut(float i)
+	{
+		entity sndstop = sys.getEntity("node_" + i + "_powercell_stop");
+		entity loop = sys.getEntity("node_" + i + "_powercell_loop");
+		entity powercell = sys.getEntity("node_" + i + "_powercell");
+		entity generator = sys.getEntity("node_" + i + "_generator");
+		entity openclose1 = sys.getEntity("node_" + i + "_powercell_openclose1");
+		entity idle1 = sys.getEntity("node_" + i + "_powercell_idle1");
+		entity node = sys.getEntity("server_puzzle_node_" + i);
+		entity node_powerbeam = sys.getEntity("node_" + i + "_powerbeam");
+		entity node_powerzzz = sys.getEntity("node_" + i + "_powerzzz");
+		entity node_powerlight = sys.getEntity("node_" + i + "_powerlight");
+		entity serverlight = sys.getEntity("node_" + i + "_serverlight");
+		entity serverspkroff_relay = sys.getEntity("serverspkroff_relay" + i);
+		entity serverflares1 = sys.getEntity("node_" + i + "_serverflares1");
+		entity serverflares2 = sys.getEntity("node_" + i + "_serverflares2");
+		entity nodeonoff_relay = sys.getEntity("nodeonoff_relay" + i);
+
+		sys.trigger( nodeonoff_relay );
+
+		// Lower the bridges
+		node.setKey("powered_state", 0);
+		MaintainPoweredBridges();
+
+		sys.trigger(node_powerbeam);
+		sys.trigger(node_powerzzz);
+		thread crossFadeEnt (node_powerlight, '0.12 0.73 0.12', '0 0 0', 0.75);
+
+		//Power shutdown sound
+		thread NodePowerSoundsStop(sndstop, loop);
+		sys.wait( 1.5 );
+		
+		sys.trigger(serverspkroff_relay);
+		thread crossFadeEnt (serverlight, '0.12 0.73 0.12', '0 0 0', 1.25);
+		thread crossFadeEnt (serverflares1, '0.12 0.73 0.12', '0 0 0', 1.25);
+		thread crossFadeEnt (serverflares2, '0.73 0.93 0.73', '0 0 0', 1.75);
+		
+		//Door opening sound/anims
+		sys.trigger( openclose1 );
+		sys.trigger( idle1 );
+		generator.setAnimation( "opening" );
+		sys.trigger( generator );
+		sys.wait( 0.5 );
+
+		powercell.hide();		
+		$player1.giveInventoryItem("item_powercell");
+		$player1.startSoundShader( "guisounds_item", SND_CHANNEL_VOICE );
+	}
+
+	void Node1PowerIn() { NodePowerIn(1); }
+	void Node1PowerOut() { NodePowerOut(1); }
+	void Node2PowerIn() { NodePowerIn(2); }
+	void Node2PowerOut() { NodePowerOut(2); }
+	void Node3PowerIn() { NodePowerIn(3); }
+	void Node3PowerOut() { NodePowerOut(3); }
+	void Node5PowerIn() { NodePowerIn(5); }
+	void Node5PowerOut() { NodePowerOut(5); }
+	void Node6PowerIn() { NodePowerIn(6); }
+	void Node6PowerOut() { NodePowerOut(6); }
+	void Node7PowerIn() { NodePowerIn(7); }
+	void Node7PowerOut() { NodePowerOut(7); }
+	
+	void NodeMasterPowerIn()
+	{
+		sys.trigger($nodeonoff_relaymaster);
+	
+		//Door closing sound/anims
+		$player1.removeInventoryItem("Pwr Cell");
+		$node_master_powercell.show();
+		sys.wait(0.5);
+
+		$node_master_generator.setAnimation("closing");
+		sys.trigger($node_master_generator);
+		sys.trigger($node_master_powercell_openclose1);
+		sys.trigger($node_master_powercell_idle1);
+		//generator_gui.guiNamedEvent(1, "powercellDeviceStarted");
+		sys.trigger($node_master_powerbeam);
+		sys.trigger($node_master_powerzzz);
+		thread crossFadeEnt ($node_master_powerlight, '0 0 0', '0.12 0.73 0.12', 0.75);
+		sys.wait( 1.0 );
+		
+		sys.trigger($serverspkron_relaymaster);
+		thread crossFadeEnt ($node_master_serverlight, '0 0 0', '0.12 0.73 0.12', 1.5);
+		thread crossFadeEnt ($node_master_serverflares1, '0 0 0', '0.12 0.73 0.12', 1.5);
+		thread crossFadeEnt ($node_master_serverflares2, '0 0 0', '0.73 0.93 0.73', 2.25);
+
+		//Power starting sound
+		thread NodePowerSoundsStart($node_master_powercell_start, $node_master_powercell_loop);
+
+		$server_puzzle_node_4.setKey("powered_state", 1);
+		MaintainPoweredBridges();	
+	}
+	void NodeMasterPowerOut()
+	{
+		sys.trigger($nodeonoff_relaymaster);
+	
+		sys.trigger($node_master_powerbeam);
+		sys.trigger($node_master_powerzzz);
+		thread crossFadeEnt ($node_master_powerlight, '0.12 0.73 0.12', '0 0 0', 0.75);
+	
+		//Power shutdown sound
+		thread NodePowerSoundsStop($node_master_powercell_stop, $node_master_powercell_loop);
+		sys.wait(1.5);
+		
+		sys.wait(1.25);
+		
+		sys.trigger($serverspkroff_relaymaster);
+		thread crossFadeEnt ($node_master_serverlight, '0.12 0.73 0.12', '0 0 0', 1.25);
+		thread crossFadeEnt ($node_master_serverflares1, '0.12 0.73 0.12', '0 0 0', 1.25);
+		thread crossFadeEnt ($node_master_serverflares2, '0.73 0.93 0.73', '0 0 0', 1.75);
+
+		//Door opening sound/anims
+		sys.trigger($node_master_powercell_openclose1);
+		sys.trigger($node_master_powercell_idle1);
+		$node_master_generator.setAnimation("opening");
+		sys.trigger($node_master_generator);
+		sys.wait(0.5);
+
+		$node_master_powercell.hide();
+		$player1.giveInventoryItem("item_powercell");
+		$player1.startSoundShader("guisounds_item", SND_CHANNEL_VOICE);
+		//Lock the gui
+		//$node_master_generator_gui.guiNamedEvent(1, "powercellDeviceStarted");
+		
+		$server_puzzle_node_4.setKey("powered_state", 0);
+		MaintainPoweredBridges();
+	}
+	
+	
+	//float nodeEndOnce = 0;
+	float nodeEndCells = 0;
+	float nodeEndBridgeState = 0;
+	void NodeEndPowerIn()
+	{
+		nodeEndBridgeState = 2;
+		
+		sys.trigger($server_puzzle_end_bridge_clip);
+		
+		$player1.removeInventoryItem("Pwr Cell");
+		$player1.removeInventoryItem("Pwr Cell");
+		$server_puzzle_end_generator_pcell_1.show();
+		$server_puzzle_end_generator_pcell_2.show();
+		
+		sys.trigger($server_puzzle_end_lights_flicker);
+		
+		sys.wait(.5);
+
+		$server_puzzle_end_generator.setAnimation("closing");
+		sys.trigger($server_puzzle_end_generator);
+		sys.trigger($server_puzzle_end_powercell_openclose);
+		sys.trigger($server_puzzle_end_powercell_idle);
+		
+
+		sys.wait(1);		
+
+		thread NodePowerSoundsStart($server_puzzle_end_powercell_start, $server_puzzle_end_powercell_loop);
+
+		$server_puzzle_end_bridge.move(UP, 256);
+		sys.waitFor($server_puzzle_end_bridge);
+		sys.trigger($server_puzzle_end_bridge_aas);
+
+		$server_puzzle_end_bridge_door.lock(0);
+		$server_puzzle_end_bridge_door_frame.setColor(1, 0.8, 0.5);
+
+		//if(nodeEndOnce == 0)
+		{
+			//nodeEndOnce = 1;
+			float i = 0;
+			while(i < 4)
+			{
+				entity light = sys.getEntity("server_puzzle_end_house_light" + (i + 1));
+				vector color = light.getColor();
+				vector ogcolor = light.getVectorKey("ogcolor");
+			
+				sys.trigger($target_entity_fadein_1);
+				sys.trigger($target_entity_fadein_2);
+				sys.trigger($target_entity_fadein_3);
+				$server_puzzle_end_bridge_door_frame_light1.setColor(1, 0.7, 0);
+				$server_puzzle_end_bridge_door_frame_light2.setColor(1, 0.7, 0);
+			
+				$server_puzzle_healthgui.show();
+				$server_puzzle_healthgui_light.setColor(0.77, 0.85, 1);
+			
+				thread crossFadeEnt (light, color, ogcolor, 0.25);
+				i++;
+			}
+		}
+
+		nodeEndBridgeState = 1;
+		return;
+	}
+	void NodeEndPowerOut()
+	{	
+		nodeEndBridgeState = 2;
+		
+		sys.trigger($server_puzzle_end_bridge_clip);
+
+		thread NodePowerSoundsStop($server_puzzle_end_powercell_stop, $server_puzzle_end_powercell_loop);
+		sys.wait(1.5);
+
+		sys.trigger($server_puzzle_end_powercell_openclose);
+		sys.trigger($server_puzzle_end_powercell_idle);
+		$server_puzzle_end_generator.setAnimation("opening");
+		sys.trigger($server_puzzle_end_generator);
+		
+		sys.wait(0.5);
+
+		$server_puzzle_end_generator_pcell_2.hide();
+		$player1.giveInventoryItem("item_powercell");
+		$server_puzzle_end_generator_pcell_1.hide();
+		$player1.giveInventoryItem("item_powercell");
+
+		sys.trigger($server_puzzle_end_lights_flicker);
+
+		$server_puzzle_end_bridge_door.lock(1);
+		$server_puzzle_end_bridge_door_frame.setColor(.5, 0, 0);
+		{
+			float i = 0;
+			while(i < 4)
+			{
+				entity light = sys.getEntity("server_puzzle_end_house_light" + (i+1));
+				vector ogcolor = light.getColor();
+				light.setKey("ogcolor", ogcolor);
+				light.setColor(0, 0, 0);
+				i++;
+				sys.trigger($target_entity_fadeout_1);
+				
+				$server_puzzle_end_bridge_door_frame_light1.setColor(0, 0, 0);
+				$server_puzzle_end_bridge_door_frame_light2.setColor(0, 0, 0);
+				
+				$server_puzzle_healthgui.hide();
+				$server_puzzle_healthgui_light.setColor(0, 0, 0);
+			}
+		}
+
+		$server_puzzle_end_bridge.move(DOWN, 256);
+		sys.trigger($server_puzzle_end_bridge_aas);
+		sys.waitFor($server_puzzle_end_bridge);
+		nodeEndBridgeState = 0;
+		return;
+	}
+
+		float ServerElevatorState = 1;
+		// elevator states: 0 = bottom, 1 = top, 2 = in transit 
+
+	void ServerElevatorPowerOut()
+	{	
+		$ServerElGui_Top.setGuiParm( "gui_parm5", 4 );
+		$ServerElGui_Bot.setGuiParm( "gui_parm5", 4 );
+		$ServerElGui.setGuiParm( "gui_parm5", 4 );
+		
+		//Power shutdown sound
+		thread NodePowerSoundsStop($server_elevator_powercell_onstop, $server_elevator_powercell_loop);
+		sys.wait(1.5);
+
+		//Door opening sound/anims
+		sys.trigger($server_elevator_powercell_openclose1);
+		sys.trigger($server_elevator_powercell_idle1);
+		$server_elevator_generator.setAnimation("opening");
+		sys.trigger($server_elevator_generator);
+		sys.wait(0.5);
+
+		$server_elevator_powercell.hide();
+		$player1.giveInventoryItem("item_powercell");
+		$player1.startSoundShader("guisounds_item", SND_CHANNEL_VOICE);		
+
+		sys.wait(1.0);
+		
+		if(ServerElevatorState == 1)
+		{
+			ServerElevatorState = 2;
+			$server_power_elevator.setKey("snd_accel", "m2_start");
+			$server_power_elevator.setKey("snd_decel", "m2_stop");
+			$server_power_elevator.setKey("snd_move", "m2_loop");
+			$server_power_elevator.moveTo($server_el_bot_dest);
+			sys.trigger($ServerEl_AAS_Top);
+			sys.waitFor($server_power_elevator);
+			sys.trigger($ServerEl_AAS_Bottom);
+			$ServerElGui.setGuiParm( "gui_parm1", 1 );
+			ServerElevatorState = 0;
+		}
+		else if(ServerElevatorState == 0)
+		{
+			return;
+		}
+			else if(ServerElevatorState == 2)
+		{
+			$server_power_elevator.setKey("snd_accel", "m2_start");
+			$server_power_elevator.setKey("snd_decel", "m2_stop");
+			$server_power_elevator.setKey("snd_move", "m2_loop");
+			$server_power_elevator.moveTo($server_el_bot_dest);
+			sys.waitFor($server_power_elevator);
+			sys.trigger($ServerEl_AAS_Bottom);
+			$ServerElGui.setGuiParm( "gui_parm1", 1 );
+			ServerElevatorState = 0;
+		}
+	}
+
+	void ServerElevatorPowerIn()
+	{
+		$ServerElGui_Top.setGuiParm( "gui_parm5", 0 );
+		$ServerElGui_Bot.setGuiParm( "gui_parm5", 0 );
+		$ServerElGui.setGuiParm( "gui_parm5", 0 );
+	
+		//Door closing sound/anims
+		$player1.removeInventoryItem("Pwr Cell");
+		$server_elevator_powercell.show();
+		sys.wait(0.5);
+
+		$server_elevator_generator.setAnimation("closing");
+		sys.trigger($server_elevator_generator);
+		sys.trigger($server_elevator_powercell_openclose1);
+		sys.trigger($server_elevator_powercell_idle1);
+		//generator_gui.guiNamedEvent(1, "powercellDeviceStarted");
+		sys.wait(1.0);
+
+		//Power starting sound
+		thread NodePowerSoundsStart($server_elevator_powercell_start, $server_elevator_powercell_loop);
+
+		sys.wait(1.0);
+	}
+	
+	void ServerElevatorUp()
+	{
+		if(ServerElevatorState == 0)
+		{
+			ServerElevatorState = 2;
+			$server_power_elevator.setKey("snd_accel", "m3_start");
+			$server_power_elevator.setKey("snd_decel", "m3_stop");
+			$server_power_elevator.setKey("snd_move", "m3_loop");
+			$server_power_elevator.moveTo($server_el_top_dest);
+			sys.trigger($ServerEl_AAS_Bottom);
+			sys.waitFor($server_power_elevator);
+			sys.trigger($ServerEl_AAS_Top);
+			$ServerElGui.setGuiParm( "gui_parm1", 2 );
+			ServerElevatorState = 1;
+		}
+		else if(ServerElevatorState == 1)
+		{
+			return;
+		}
+		else if(ServerElevatorState == 2)
+		{
+			return;
+		}
+	}
+	
+	void ServerElevatorDown()
+	{
+		if(ServerElevatorState == 1)
+		{
+			ServerElevatorState = 2;
+			$server_power_elevator.setKey("snd_accel", "m3_start");
+			$server_power_elevator.setKey("snd_decel", "m3_stop");
+			$server_power_elevator.setKey("snd_move", "m3_loop");
+			$server_power_elevator.moveTo($server_el_bot_dest);
+			sys.trigger($ServerEl_AAS_Top);
+			sys.waitFor($server_power_elevator);
+			sys.trigger($ServerEl_AAS_Bottom);
+			$ServerElGui.setGuiParm( "gui_parm1", 1 );
+			ServerElevatorState = 0;
+		}
+		else if(ServerElevatorState == 0)
+		{
+			return;
+		}
+		else if(ServerElevatorState == 2)
+		{
+			return;
+		}
+	}
+		
+	void ToggleServerElevator()
+	{
+		if(ServerElevatorState == 1)
+		{
+			ServerElevatorState = 2;
+			$server_power_elevator.setKey("snd_accel", "m3_start");
+			$server_power_elevator.setKey("snd_decel", "m3_stop");
+			$server_power_elevator.setKey("snd_move", "m3_loop");
+			$server_power_elevator.moveTo($server_el_bot_dest);
+			sys.trigger($ServerEl_AAS_Top);
+			sys.waitFor($server_power_elevator);
+			sys.trigger($ServerEl_AAS_Bottom);
+			$ServerElGui.setGuiParm( "gui_parm1", 1 );
+			ServerElevatorState = 0;
+		}
+		else if(ServerElevatorState == 0)
+		{
+			ServerElevatorState = 2;
+			$server_power_elevator.setKey("snd_accel", "m3_start");
+			$server_power_elevator.setKey("snd_decel", "m3_stop");
+			$server_power_elevator.setKey("snd_move", "m3_loop");
+			$server_power_elevator.moveTo($server_el_top_dest);
+			sys.trigger($ServerEl_AAS_Bottom);
+			sys.waitFor($server_power_elevator);
+			sys.trigger($ServerEl_AAS_Top);
+			$ServerElGui.setGuiParm( "gui_parm1", 2 );
+			ServerElevatorState = 1;
+		}
+		else if(ServerElevatorState == 2)
+		{
+			return;
+		}
+	}
+
+	//===========================================
+	// END SERVER PUZZLE
+	//===========================================
+	
+	//===========================================
+	// START SHOOTING RANGE
+	//===========================================
+
+	void CallManPoster(float num)
+	{
+		entity mover = sys.getEntity("manposter_" + num + "_mover");
+		float state = mover.getFloatKey("state");
+		if(state == 5)
+			return;
+		
+		entity rotator = sys.getEntity("manposter_" + num + "_rotator");		
+
+		if(state < 3)
+		{
+			mover.time(2);
+			mover.setKey("state", 5);
+
+			rotator.rotateOnce('-10 0 0');
+			mover.move(180, 208);
+
+			sys.wait(1.5);
+			rotator.rotateOnce('10 0 0');
+
+			sys.waitFor(rotator);
+
+			sys.wait(1);
+
+			mover.setKey("state", state++);
+		}
+		else if(state == 3)
+		{
+			mover.setKey("state", 5);
+
+			sys.wait(1);
+
+			entity dmg = sys.getEntity("manposter_" + num + "_x");
+			entity light = sys.getEntity("manposter_" + num + "_light");
+			entity terminal = sys.getEntity("manposter_" + num + "_terminal");
+			entity poster = sys.getEntity("manposter_" + num);
+
+			dmg.hide();						
+
+			terminal.startSoundShader("sound/shav/e1m5_4/clear.ogg", SND_CHANNEL_ANY);
+
+			light.setKey("hits", 0);
+			vector c = light.getColor();
+
+			if(poster.getShaderParm(7) == 1)
+			{
+				poster.setShaderParm(7, 0);
+				light.setColor(c_x - 0.25, 0, 0);
+				sys.wait(.125);
+			}
+			if(poster.getShaderParm(8) == 1)
+			{
+				poster.setShaderParm(8, 0);
+				light.setColor(c_x - 0.25, 0, 0);
+				sys.wait(.125);
+			}
+			if(poster.getShaderParm(9) == 1)
+			{
+				poster.setShaderParm(9, 0);
+				light.setColor(c_x - 0.25, 0, 0);
+				sys.wait(.125);
+			}
+			if(poster.getShaderParm(10) == 1)
+			{
+				poster.setShaderParm(10, 0);
+				light.setColor(c_x - 0.25, 0, 0);
+				sys.wait(.125);
+			}
+
+			mover.time(6);			
+						
+			rotator.rotateOnce('10 0 0');
+			mover.move(0, 624);
+
+			sys.wait(5.5);
+			rotator.rotateOnce('-10 0 0');
+
+			sys.waitFor(rotator);
+			
+			sys.wait(1);
+
+			mover.setKey("state", 0);
+
+			dmg.show();
+		}
+	}
+
+	void HitManPoster(float num)
+	{
+		entity terminal = sys.getEntity("manposter_" + num + "_terminal");
+		entity poster = sys.getEntity("manposter_" + num);
+		entity dmg = sys.getEntity("manposter_" + num + "_x");
+		entity light = sys.getEntity("manposter_" + num + "_light");
+		
+		dmg.hide();
+
+		vector worldOrigin = dmg.getWorldOrigin();
+		vector collisionOrigin = dmg.getVectorKey("collisionOrigin");
+		collisionOrigin -= worldOrigin;
+		collisionOrigin_z *= 0.64;
+		float dis = sys.vecLength(collisionOrigin);
+
+		float hits = poster.getFloatKey("hits");		
+		
+		if(dis > 8)
+		{
+			if(poster.getShaderParm(7) == 0)
+			{
+				poster.setShaderParm(7, 1);
+				terminal.startSoundShader("sound/shav/e1m5_4/hit_7.ogg", SND_CHANNEL_ANY);
+				hits++;
+			}
+		}
+		else if(dis > 5.5)
+		{
+			if(poster.getShaderParm(8) == 0)
+			{
+				poster.setShaderParm(8, 1);
+				terminal.startSoundShader("sound/shav/e1m5_4/hit_8.ogg", SND_CHANNEL_ANY);
+				hits++;
+			}
+		}
+		else if(dis > 3)
+		{
+			if(poster.getShaderParm(9) == 0)
+			{
+				poster.setShaderParm(9, 1);
+				terminal.startSoundShader("sound/shav/e1m5_4/hit_9.ogg", SND_CHANNEL_ANY);
+				hits++;
+			}
+		}
+		else
+		{
+			if(poster.getShaderParm(10) == 0)
+			{
+				poster.setShaderParm(10, 1);
+				terminal.startSoundShader("sound/shav/e1m5_4/hit_x.ogg", SND_CHANNEL_ANY);
+				hits++;
+			}
+		}
+
+		if(hits > 4)
+			hits = 4;
+		
+		light.setColor(1 * (hits / 4), 0, 0);
+		poster.setKey("hits", hits);
+
+		sys.wait(.25);
+
+		dmg.show();
+	}
+
+	void CallManPoster1() { CallManPoster(1); }
+	//void CallManPoster2() { CallManPoster(2); }
+	void CallManPoster3() { CallManPoster(3); }
+	void CallManPoster4() { CallManPoster(4); }
+	void CallManPoster5() { CallManPoster(5); }
+	void HitManPoster1_X() { HitManPoster(1); }
+	void HitManPoster2_X() { HitManPoster(2); }
+	void HitManPoster3_X() { HitManPoster(3); }
+	void HitManPoster4_X() { HitManPoster(4); }
+	void HitManPoster5_X() { HitManPoster(5); }
+
+	//===========================================
+	// END SHOOTING RANGE
+	//===========================================
+
+	void CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+
+	float CharacterSaysNoWait(entity characterEntity, string line)
+	{
+		return characterEntity.startSoundShader(line, SND_CHANNEL_ANY);
+	}
+
+	void select_code()
+	{
+		float codeselect;
+
+		while (1)
+		{
+			codeselect = sys.random(15);
+		
+				if (codeselect <= 5){
+					sys.trigger ($code_config1);
+					sys.wait(1);
+				} else if (codeselect >= 11){
+					sys.trigger ($code_config2);
+					sys.wait(1);
+				} 
+				  else {
+					sys.trigger ($code_config3);
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_code_selection()
+	{
+		sys.killthread ("map_e1m5_4::select_code");
+	}
+	
+	void select_impconfig()
+	{
+		float impselect;
+
+		while (1)
+		{
+			impselect = sys.random(15);
+		
+				if (impselect <= 5){
+					sys.trigger ($imp_config1);
+					sys.wait(1);
+				} else if (impselect >= 11){
+					sys.trigger ($imp_config2);
+					sys.wait(1);
+				} 
+				  else {
+					sys.trigger ($imp_config3);
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_imp_selection()
+	{
+		sys.killthread ("map_e1m5_4::select_impconfig");
+	}
+	
+	void select_wraithconfig()
+	{
+		float wraithselect;
+
+		while (1)
+		{
+			wraithselect = sys.random(15);
+		
+				if (wraithselect <= 5){
+					sys.trigger ($wraith_config1);
+					sys.wait(1);
+				} else if (wraithselect >= 11){
+					sys.trigger ($wraith_config2);
+					sys.wait(1);
+				} 
+				  else {
+					sys.trigger ($wraith_config3);
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_wraith_selection()
+	{
+		sys.killthread ("map_e1m5_4::select_wraithconfig");
+	}
+	
+	void wraithselectb1()
+	{
+		sys.trigger ($trigger_once_28);
+		sys.trigger ($trigger_once_31);
+		sys.trigger ($trigger_once_33);
+		sys.trigger ($trigger_once_34);
+		sys.trigger ($trigger_once_35);
+		if(debug)
+		sys.println("wraith_configb1 selected");
+	}
+	
+	void wraithselectb2()
+	{
+		sys.trigger ($trigger_once_64);
+		sys.trigger ($trigger_once_66);
+		sys.trigger ($trigger_once_62);
+		sys.trigger ($trigger_once_68);
+		sys.trigger ($trigger_once_77);
+		if(debug)
+		sys.println("wraith_configb2 selected");
+	}
+	
+	void wraithselectb3()
+	{
+		sys.trigger ($trigger_once_65);
+		sys.trigger ($trigger_once_67);
+		sys.trigger ($trigger_once_63);
+		sys.trigger ($trigger_once_70);
+		sys.trigger ($trigger_once_78);
+		if(debug)
+		sys.println("wraith_configb3 selected");
+	}	
+
+	void select_lostsoulconfig()
+	{
+		float lostsoulselect;
+
+		while (1)
+		{
+			lostsoulselect = sys.random(20);
+		
+				if (lostsoulselect <= 5){
+					sys.trigger ($lostsoul_config1);
+					if(debug)
+					sys.println("soul_config1 selected");
+					sys.wait(1);
+				} else if (lostsoulselect <= 10){
+					sys.trigger ($lostsoul_config2);
+					if(debug)
+					sys.println("soul_config2 selected");
+					sys.wait(1);
+				} else if (lostsoulselect <= 15){
+					sys.trigger ($lostsoul_config3);
+					if(debug)
+					sys.println("soul_config3 selected");
+					sys.wait(1);
+				} 
+				  else {
+					sys.trigger ($lostsoul_config4);
+					if(debug)
+					sys.println("soul_config4 selected");
+					sys.wait(1);
+				}
+		}
+	}
+	
+	void kill_lostsoul_selection()
+	{
+		sys.killthread ("map_e1m5_4::select_lostsoulconfig");
+	}
+
+	void printer_loop1()
+	{
+		while(1)
+			{
+				$printer_spark1.bind($printer_rot1);
+				$printer_rot1.rotateUpTo(Y_AXIS, 72);
+				sys.waitFor($printer_rot1);
+				$printer_spark1.unbind();
+				sys.trigger($trigger_relay_prot1);
+				sys.wait(2);
+				sys.trigger($trigger_relay_prot1);
+				$printer_spark1.bind($printer_rot1);
+				$printer_rot1.rotateUpTo(Y_AXIS, 102);
+				sys.waitFor($printer_rot1);
+				$printer_spark1.unbind();
+				sys.trigger($trigger_relay_prot1);
+				sys.wait(1.5);
+				sys.trigger($trigger_relay_prot1);
+				$printer_spark1.bind($printer_rot1);
+				$printer_rot1.rotateUpTo(Y_AXIS, 175);
+				sys.waitFor($printer_rot1);
+				$printer_spark1.unbind();
+				sys.trigger($trigger_relay_prot1);
+				sys.wait(1.7);
+				sys.trigger($trigger_relay_prot1);
+				$printer_spark1.bind($printer_rot1);
+				$printer_rot1.rotateDownTo(Y_AXIS, 122);
+				sys.waitFor($printer_rot1);
+				$printer_spark1.unbind();
+				sys.trigger($trigger_relay_prot1);
+				sys.wait(2.3);
+				sys.trigger($trigger_relay_prot1);
+				$printer_spark1.bind($printer_rot1);
+				$printer_rot1.rotateUpTo(Y_AXIS, 190);
+				sys.waitFor($printer_rot1);
+				$printer_spark1.unbind();
+				sys.trigger($trigger_relay_prot1);
+				sys.wait(2);
+				sys.trigger($trigger_relay_prot1);
+				$printer_spark1.bind($printer_rot1);
+				$printer_rot1.rotateUpTo(Y_AXIS, 230);
+				sys.waitFor($printer_rot1);
+				$printer_spark1.unbind();
+				sys.trigger($trigger_relay_prot1);
+				sys.wait(1.8);
+				sys.trigger($trigger_relay_prot1);
+				$printer_spark1.bind($printer_rot1);
+				$printer_rot1.rotateUpTo(Y_AXIS, 290);
+				sys.waitFor($printer_rot1);
+				$printer_spark1.unbind();
+				sys.trigger($trigger_relay_prot1);
+				sys.wait(1.5);
+				sys.trigger($trigger_relay_prot1);
+				$printer_spark1.bind($printer_rot1);
+				$printer_rot1.rotateUpTo(Y_AXIS, 0);
+				sys.waitFor($printer_rot1);
+				$printer_spark1.unbind();
+				sys.trigger($trigger_relay_prot1);
+				sys.wait(2);
+				sys.trigger($trigger_relay_prot1);
+			}
+	}
+	
+	void printer_loop2()
+	{
+		while(1)
+			{
+				$printer_spark2.bind($printer_rot2);
+				$printer_rot2.rotateDownTo(Y_AXIS, 324);
+				sys.waitFor($printer_rot2);
+				$printer_spark2.unbind();
+				sys.trigger($trigger_relay_prot2);
+				sys.wait(1.7);
+				sys.trigger($trigger_relay_prot2);
+				$printer_spark2.bind($printer_rot2);
+				$printer_rot2.rotateUpTo(Y_AXIS, 75);
+				sys.waitFor($printer_rot2);
+				$printer_spark2.unbind();
+				sys.trigger($trigger_relay_prot2);
+				sys.wait(1.9);
+				sys.trigger($trigger_relay_prot2);
+				$printer_spark2.bind($printer_rot2);
+				$printer_rot2.rotateUpTo(Y_AXIS, 125);
+				sys.waitFor($printer_rot2);
+				$printer_spark2.unbind();
+				sys.trigger($trigger_relay_prot2);
+				sys.wait(1.7);
+				sys.trigger($trigger_relay_prot2);
+				$printer_spark2.bind($printer_rot2);
+				$printer_rot2.rotateDownTo(Y_AXIS, 330);
+				sys.waitFor($printer_rot2);
+				$printer_spark2.unbind();
+				sys.trigger($trigger_relay_prot2);
+				sys.wait(2.3);
+				sys.trigger($trigger_relay_prot2);
+				$printer_spark2.bind($printer_rot2);
+				$printer_rot2.rotateUpTo(Y_AXIS, 110);
+				sys.waitFor($printer_rot2);
+				$printer_spark2.unbind();
+				sys.trigger($trigger_relay_prot2);
+				sys.wait(1.8);
+				sys.trigger($trigger_relay_prot2);
+				$printer_spark2.bind($printer_rot2);
+				$printer_rot2.rotateDownTo(Y_AXIS, 29);
+				sys.waitFor($printer_rot2);
+				$printer_spark2.unbind();
+				sys.trigger($trigger_relay_prot2);
+				sys.wait(1.2);
+				sys.trigger($trigger_relay_prot2);
+				$printer_spark2.bind($printer_rot2);
+				$printer_rot2.rotateUpTo(Y_AXIS, 120);
+				sys.waitFor($printer_rot2);
+				$printer_spark2.unbind();
+				sys.trigger($trigger_relay_prot2);
+				sys.wait(1.2);
+				sys.trigger($trigger_relay_prot2);
+				$printer_spark2.bind($printer_rot2);
+				$printer_rot2.rotateUpTo(Y_AXIS, 250);
+				sys.waitFor($printer_rot2);
+				$printer_spark2.unbind();
+				sys.trigger($trigger_relay_prot2);
+				sys.wait(2);
+				sys.trigger($trigger_relay_prot2);
+				$printer_spark2.bind($printer_rot2);
+				$printer_rot2.rotateUpTo(Y_AXIS, 322);
+				sys.waitFor($printer_rot2);
+				$printer_spark2.unbind();
+				sys.trigger($trigger_relay_prot2);
+				sys.wait(1.4);
+				sys.trigger($trigger_relay_prot2);
+				$printer_spark2.bind($printer_rot2);
+				$printer_rot2.rotateUpTo(Y_AXIS, 0);
+				sys.waitFor($printer_rot2);
+				$printer_spark2.unbind();
+				sys.trigger($trigger_relay_prot2);
+				sys.wait(1.2);
+				sys.trigger($trigger_relay_prot2);
+			}
+	}
+	
+	void printer_loop3()
+	{
+		while(1)
+			{
+				$printer_spark3.bind($printer_rot3);
+				$printer_rot3.rotateDownTo(Y_AXIS, 288);
+				sys.waitFor($printer_rot3);
+				$printer_spark3.unbind();
+				sys.trigger($trigger_relay_prot3);
+				sys.wait(2);
+				sys.trigger($trigger_relay_prot3);
+				$printer_spark3.bind($printer_rot3);
+				$printer_rot3.rotateDownTo(Y_AXIS, 258);
+				sys.waitFor($printer_rot3);
+				$printer_spark3.unbind();
+				sys.trigger($trigger_relay_prot3);
+				sys.wait(1.5);
+				sys.trigger($trigger_relay_prot3);
+				$printer_spark3.bind($printer_rot3);
+				$printer_rot3.rotateDownTo(Y_AXIS, 185);
+				sys.waitFor($printer_rot3);
+				$printer_spark3.unbind();
+				sys.trigger($trigger_relay_prot3);
+				sys.wait(1.7);
+				sys.trigger($trigger_relay_prot3);
+				$printer_spark3.bind($printer_rot3);
+				$printer_rot3.rotateUpTo(Y_AXIS, 238);
+				sys.waitFor($printer_rot3);
+				$printer_spark3.unbind();
+				sys.trigger($trigger_relay_prot3);
+				sys.wait(2.3);
+				sys.trigger($trigger_relay_prot3);
+				$printer_spark3.bind($printer_rot3);
+				$printer_rot3.rotateDownTo(Y_AXIS, 170);
+				sys.waitFor($printer_rot3);
+				$printer_spark3.unbind();
+				sys.trigger($trigger_relay_prot3);
+				sys.wait(2);
+				sys.trigger($trigger_relay_prot3);
+				$printer_spark3.bind($printer_rot3);
+				$printer_rot3.rotateDownTo(Y_AXIS, 130);
+				sys.waitFor($printer_rot3);
+				$printer_spark3.unbind();
+				sys.trigger($trigger_relay_prot3);
+				sys.wait(1.8);
+				sys.trigger($trigger_relay_prot3);
+				$printer_spark3.bind($printer_rot3);
+				$printer_rot3.rotateDownTo(Y_AXIS, 70);
+				sys.waitFor($printer_rot3);
+				$printer_spark3.unbind();
+				sys.trigger($trigger_relay_prot3);
+				sys.wait(1.5);
+				sys.trigger($trigger_relay_prot3);
+				$printer_spark3.bind($printer_rot3);
+				$printer_rot3.rotateDownTo(Y_AXIS, 0);
+				sys.waitFor($printer_rot3);
+				$printer_spark3.unbind();
+				sys.trigger($trigger_relay_prot3);
+				sys.wait(2);
+				sys.trigger($trigger_relay_prot3);
+			}
+	}
+	
+	void release_bfgcell()
+	{
+		sys.killthread ("map_e1m5_4::printer_loop1");
+		sys.killthread ("map_e1m5_4::printer_loop2");
+		sys.killthread ("map_e1m5_4::printer_loop3");
+		sys.wait(.25);
+		
+		$printer_beam1_spkr.fadeSound(SND_CHANNEL_ANY, -30, 1);
+		$printer_beam2_spkr.fadeSound(SND_CHANNEL_ANY, -30, 1);
+		$printer_beam3_spkr.fadeSound(SND_CHANNEL_ANY, -30, 1);
+		$printer_spark1.unbind();
+		$printer_spark2.unbind();
+		$printer_spark3.unbind();
+		sys.wait(.25);
+		$printer_spark1.remove();
+		$printer_spark2.remove();
+		$printer_spark3.remove();
+		sys.trigger($target_entity_setcolor_21);
+		sys.trigger($target_entity_setcolor_24);
+		sys.trigger($target_entity_setcolor_25);
+		$printer_lightbeam1.setColor(0, 0, 0);
+		$printer_lightbeam2.setColor(0, 0, 0);
+		$printer_lightbeam3.setColor(0, 0, 0);
+		
+		sys.wait(.25);
+		
+		$printer_rot1.rotateDownTo(Y_AXIS, 0);
+		$printer_rot2.rotateDownTo(Y_AXIS, 0);
+		$printer_rot3.rotateDownTo(Y_AXIS, 0);
+		
+		sys.wait(.25);
+		sys.trigger($bfg_forcefield);
+		sys.wait(.25);
+		sys.trigger($bfgcell_clip);
+		
+		sys.trigger($bfgcell_rot);
+		sys.wait(.5);
+		$ammo_bfg_small_1.unbind();
+		sys.trigger($ammo_bfg_small_1);
+	}
+	
+	void shippingcrates1()
+	{
+		while(1)
+		{
+			$shippingcrate_mover_1up.move(UP, 1600);
+			$shippingcrate_mover_1down.move(DOWN, 1600);	
+			sys.wait(4);
+		    $shippingcrate_mover_1up.restorePosition();
+			$shippingcrate_mover_1down.restorePosition();
+		}
+	}
+	
+	void shippingcrates2()
+	{
+		while(1)
+		{
+			$shippingcrate_mover_2up.move(UP, 1600);
+			$shippingcrate_mover_2down.move(DOWN, 1600);	
+			sys.wait(4);
+		    $shippingcrate_mover_2up.restorePosition();
+			$shippingcrate_mover_2down.restorePosition();
+		}
+	}
+	
+	void deactivate_security_station()
+	{
+	   $trigger_multiple_18.disable();
+	   $guicam.hide();
+	   $trigger_multiple_16.enable();
+	}
+	
+	void activate_security_station()
+	{
+	   $trigger_multiple_16.disable();
+	   $station_ready_gui.hide();
+	   $trigger_multiple_18.enable();
+	}
+	
+	void crankshaft_move()
+	{
+		while (1)
+		{
+			$mc_piston1.move ( REL_UP, 30 );
+			$mc_pistrod1.rotateOnce ( '26.56 0 0' );
+			$mc_piston2.move ( REL_DOWN, 30 );
+			$mc_pistrod2.rotateOnce ( '-26.56 0 0' );
+			$mc_piston3.move ( REL_UP, 30 );
+			$mc_pistrod3.rotateOnce ( '26.56 0 0' );
+			$mc_crankshaft.rotateOnce ( '90 0 0' );
+			sys.waitFor ($mc_piston1);
+
+			$mc_piston1.move ( REL_UP, 30 );
+			$mc_pistrod1.rotateOnce ( '-26.56 0 0' );
+			$mc_piston2.move ( REL_DOWN, 30 );
+			$mc_pistrod2.rotateOnce ( '26.56 0 0' );
+			$mc_piston3.move ( REL_UP, 30 );
+			$mc_pistrod3.rotateOnce ( '-26.56 0 0' );
+			$mc_crankshaft.rotateOnce ( '90 0 0' );
+			sys.waitFor ($mc_piston1);
+
+			$mc_piston1.move ( REL_DOWN, 30 );
+			$mc_pistrod1.rotateOnce ( '-26.56 0 0' );
+			$mc_piston2.move ( REL_UP, 30 );
+			$mc_pistrod2.rotateOnce ( '26.56 0 0' );
+			$mc_piston3.move ( REL_DOWN, 30 );
+			$mc_pistrod3.rotateOnce ( '-26.56 0 0' );
+			$mc_crankshaft.rotateOnce ( '90 0 0' );
+			sys.waitFor ($mc_piston1);
+
+			$mc_piston1.move ( REL_DOWN, 30 );
+			$mc_pistrod1.rotateOnce ( '26.56 0 0' );
+			$mc_piston2.move ( REL_UP, 30 );
+			$mc_pistrod2.rotateOnce ( '-26.56 0 0' );
+			$mc_piston3.move ( REL_DOWN, 30 );
+			$mc_pistrod3.rotateOnce ( '26.56 0 0' );
+			$mc_crankshaft.rotateOnce ( '90 0 0' );
+			sys.waitFor ($mc_pistrod1);
+		} 
+	}
+	
+	float PUMPS_RUNNING = 1;
+	
+	void cycle_pump1() {
+		sys.wait(1);
+		while( PUMPS_RUNNING ) {
+			$water_pump_01.time(3);
+			$water_pump_01.move( UP, 112 );
+			sys.waitFor( $water_pump_01 );
+			sys.trigger($speaker_pump1);
+			$water_pump_01.time(1.5);
+			$water_pump_01.move( DOWN, 112 );
+			sys.waitFor( $water_pump_01 );
+		}
+	}
+
+	void cycle_pump2() {
+		sys.wait(1);
+		while( PUMPS_RUNNING ) {
+			$water_pump_02.time(3);
+			$water_pump_02.move( UP, 112 );
+			sys.waitFor( $water_pump_02 );
+			sys.trigger($speaker_pump2);
+			$water_pump_02.time(1.5);
+			$water_pump_02.move( DOWN, 112 );
+			sys.waitFor( $water_pump_02 );
+		}
+	}
+	
+	void cycle_pump3() {
+		sys.wait(1);
+		while( PUMPS_RUNNING ) {
+			$water_pump_03.time(3);
+			$water_pump_03.move( UP, 112 );
+			sys.waitFor( $water_pump_03 );
+			sys.trigger($speaker_pump3);
+			$water_pump_03.time(1.5);
+			$water_pump_03.move( DOWN, 112 );
+			sys.waitFor( $water_pump_03 );
+		}
+	}
+	
+	void spectre_fall()
+	{
+		$monster_demon_spectre_1.kill();	
+	}
+	
+	void hk_fall()
+	{
+		$monster_demon_hellknight_1.kill();	
+	}
+	
+	void comm_fall()
+	{
+		$monster_zombie_commando_3.kill();	
+	}
+	
+	void zt_fall()
+	{
+		$monster_zombie_tshirt_fce_1.kill();	
+	}
+	
+	void zj_fall()
+	{
+		$monster_zombie_jumpsuit_fce_2.kill();	
+	}
+	
+	void zt_fall2()
+	{
+		$monster_zombie_tshirt_fce_blown_5.kill();	
+	}
+	
+	void zj_fall2()
+	{
+		$monster_zombie_jumpsuit_fce_1.kill();	
+	}
+	
+	void ghostscape_fadeIn()
+	{
+		$speaker_144.fadeSound(SND_CHANNEL_ANY, 0, 2.5);
+	}
+	
+	void ghostscape_fadeOut()
+	{
+		$speaker_144.fadeSound(SND_CHANNEL_ANY, -20, 4);
+	}
+	
+	void candleskins()
+	{
+		$candle1.setSkin( "skins/candlec_red_noglow" );
+		$candle2.setSkin( "skins/candlec_noglow" );
+		$candle3.setSkin( "skins/candled_red_noglow" );
+		$candle4.setSkin( "skins/candleb_noglow" );
+		$candle5.setSkin( "skins/candlea_red_noglow" );
+		$candle6.setSkin( "skins/candlea_noglow" );	
+		$candle7.setSkin( "skins/candled_red_noglow" );
+		$candle8.setSkin( "skins/candleb_noglow" );	
+		$candle9.setSkin( "skins/candlec_red_noglow" );
+		$candle10.setSkin( "skins/candlea_noglow" );
+		$candle11.setSkin( "skins/candled_noglow" );
+		$candle12.setSkin( "skins/candleb_noglow" );
+		$candle13.setSkin( "skins/candlea_red_noglow" );
+		$candle14.setSkin( "skins/candleb_noglow" );
+		$candle15.setSkin( "skins/candlea_noglow" );
+		$candle16.setSkin( "skins/candlec_noglow" );	
+		$candle17.setSkin( "skins/candlec_red_noglow" );
+		$candle18.setSkin( "skins/candleb_red_noglow" );	
+		$candle19.setSkin( "skins/candleb_noglow" );
+		$candle20.setSkin( "skins/candlea_noglow" );
+		$candle21.setSkin( "skins/candlea_noglow" );
+		$candle22.setSkin( "skins/candleb_noglow" );
+		$candle23.setSkin( "skins/candlec_red_noglow" );
+		$candle24.setSkin( "skins/candled_red_noglow" );
+		$candle25.setSkin( "skins/candlea_red_noglow" );
+		$candle26.setSkin( "skins/candlea_red_noglow" );	
+		$candle27.setSkin( "skins/candlec_red_noglow" );
+		$candle28.setSkin( "skins/candlea_noglow" );	
+		$candle29.setSkin( "skins/candleb_noglow" );
+		$candle30.setSkin( "skins/candleb_red_noglow" );
+		$candle31.setSkin( "skins/candlec_noglow" );
+		$candle32.setSkin( "skins/candlea_red_noglow" );
+		$candle33.setSkin( "skins/candlec_red_noglow" );
+		$candle34.setSkin( "skins/candled_noglow" );
+		$candle35.setSkin( "skins/candleb_noglow" );
+		$candle36.setSkin( "skins/candlea_red_noglow" );
+		$candle37.setSkin( "skins/candlec_noglow" );
+		$candle38.setSkin( "skins/candleb_red_noglow" );
+		$candle39.setSkin( "skins/candleb_noglow" );	
+		$candle40.setSkin( "skins/candled_red_noglow" );
+		$candle41.setSkin( "skins/candled_red_noglow" );	
+		$candle42.setSkin( "skins/candlea_red_noglow" );
+		$candle43.setSkin( "skins/candlec_red_noglow" );
+		$candle44.setSkin( "skins/candlea_red_noglow" );	
+		$candle45.setSkin( "skins/candled_red_noglow" );
+		$candle46.setSkin( "skins/candled_noglow" );	
+		$candle47.setSkin( "skins/candlea_red_noglow" );
+		$candle48.setSkin( "skins/candleb_red_noglow" );	
+		$candle49.setSkin( "skins/candlea_noglow" );
+		$candle50.setSkin( "skins/candlec_noglow" );	
+		$candle51.setSkin( "skins/candlec_noglow" );
+		$candle52.setSkin( "skins/candlec_noglow" );	
+		$candle53.setSkin( "skins/candleb_red_noglow" );
+		$candle54.setSkin( "skins/candleb_noglow" );	
+		$candle55.setSkin( "skins/candlec_noglow" );
+		$candle56.setSkin( "skins/candlea_noglow" );	
+		$candle57.setSkin( "skins/candled_noglow" );
+		$candle58.setSkin( "skins/candled_red_noglow" );	
+		$candle59.setSkin( "skins/candleb_noglow" );
+		$candle60.setSkin( "skins/candled_red_noglow" );
+		$candle61.setSkin( "skins/candled_noglow" );
+		$candle62.setSkin( "skins/candleb_noglow" );	
+		$candle63.setSkin( "skins/candleb_noglow" );
+		$candle64.setSkin( "skins/candleb_red_noglow" );	
+		$candle65.setSkin( "skins/candled_red_noglow" );
+		$candle66.setSkin( "skins/candled_red_noglow" );
+		$candle67.setSkin( "skins/candlea_red_noglow" );	
+		$candle68.setSkin( "skins/candlec_red_noglow" );
+		$candle69.setSkin( "skins/candlea_red_noglow" );	
+		$candle70.setSkin( "skins/candlec_red_noglow" );
+		$candle71.setSkin( "skins/candleb_noglow" );	
+		$candle72.setSkin( "skins/candled_noglow" );
+		$candle73.setSkin( "skins/candlea_red_noglow" );	
+		$candle74.setSkin( "skins/candleb_noglow" );
+		$candle75.setSkin( "skins/candlec_red_noglow" );	
+		$candle76.setSkin( "skins/candlec_noglow" );
+		$candle77.setSkin( "skins/candlea_red_noglow" );	
+		$candle78.setSkin( "skins/candleb_red_noglow" );
+		$candle79.setSkin( "skins/candlea_red_noglow" );	
+		$candle80.setSkin( "skins/candled_red_noglow" );
+		$candle81.setSkin( "skins/candleb_noglow" );	
+		$candle82.setSkin( "skins/candlea_red_noglow" );
+		$candle83.setSkin( "skins/candled_noglow" );
+		$candle84.setSkin( "skins/candlea_noglow" );
+		$candle85.setSkin( "skins/candled_noglow" );	
+		$candle86.setSkin( "skins/candlec_red_noglow" );
+		$candle87.setSkin( "skins/candleb_noglow" );
+		$candle88.setSkin( "skins/candlec_noglow" );	
+		$candle89.setSkin( "skins/candlea_noglow" );
+		$candle90.setSkin( "skins/candlec_red_noglow" );
+		$candle91.setSkin( "skins/candleb_noglow" );
+		$candle92.setSkin( "skins/candlec_red_noglow" );
+		$candle93.setSkin( "skins/candleb_noglow" );	
+		$candle94.setSkin( "skins/candlec_noglow" );
+		$candle95.setSkin( "skins/candleb_red_noglow" );
+		$candle96.setSkin( "skins/candlea_red_noglow" );
+		$candle97.setSkin( "skins/candlea_red_noglow" );
+		$candle98.setSkin( "skins/candlea_red_noglow" );	
+		$candle99.setSkin( "skins/candled_red_noglow" );
+		$candle100.setSkin( "skins/candleb_noglow" );
+		$candle101.setSkin( "skins/candleb_noglow" );
+		$candle102.setSkin( "skins/candlea_noglow" );
+		$candle103.setSkin( "skins/candled_noglow" );	
+		$candle104.setSkin( "skins/candlec_red_noglow" );
+		$candle105.setSkin( "skins/candlec_noglow" );
+		$candle106.setSkin( "skins/candleb_noglow" );
+		$candle107.setSkin( "skins/candlea_noglow" );
+		$candle108.setSkin( "skins/candlea_red_noglow" );	
+		$candle109.setSkin( "skins/candlec_red_noglow" );
+		$candle110.setSkin( "skins/candlea_red_noglow" );
+		$candle111.setSkin( "skins/candled_red_noglow" );
+		$candle112.setSkin( "skins/candleb_noglow" );
+		$candle113.setSkin( "skins/candlea_red_noglow" );
+		$candle114.setSkin( "skins/candled_red_noglow" );
+		$candle115.setSkin( "skins/candleb_red_noglow" );
+	}
+	
+	//===========================================
+	// START CHECKPOINTS
+	//===========================================
+	
+	void offices_checkpoint1()
+	{
+		sys.quickSave("The Last Date - Checkpoint 2");
+	}
+	
+	void servers_checkpoint1()
+	{
+		sys.quickSave("The Last Date - Checkpoint 3");
+	}
+	
+	void servers_checkpoint2()
+	{
+		sys.quickSave("The Last Date - Checkpoint 4");
+	}
+	
+	void armory_checkpoint1()
+	{
+		sys.quickSave("The Last Date - Checkpoint 5");
+	}
+	
+	void armory_checkpoint2()
+	{
+		sys.quickSave("The Last Date - Checkpoint 6");
+	}
+	
+	void offices_checkpoint2()
+	{
+		sys.quickSave("The Last Date - Checkpoint 7");
+	}
+	
+	void recreation_checkpoint1()
+	{
+		sys.quickSave("The Last Date - Checkpoint 8");
+	}
+	
+	void recreation_checkpoint2()
+	{
+		sys.quickSave("The Last Date - Checkpoint 9");
+	}	
+	
+	//===========================================
+	// END CHECKPOINTS
+	//===========================================
+
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m5_4(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+
+	
+	
+
+	float Beat(float delay)
+	{
+		sys.wait(delay);
+		return delay;
+	}	
+
+	void Miles4Subs()
+	{
+		ShowSubtitles("Miles", "I don't know you.\nAnd I don't even know if Calloway knows you.", 4.5);
+		ShowSubtitles("Miles", "I...I was...I had to do something important and I...\nI couldn't...", 8.5);
+		ShowSubtitles("Miles", "I wanted to make sure Calloway was okay...\nAnd then you came along. No memory. Nowhere to go.", 9.5);
+	}
+
+	void Player5Subs()
+	{
+		ShowSubtitles("Sam", "Wait. So you lied to me and sent me on a wild goose chase because you had better things to do?", 7);
+		ShowSubtitles("Sam", "Oh, no, right. There were higher ups. Probably forced you at gunpoint, right?", 5);
+	}
+
+	void Miles6Subs()
+	{
+		ShowSubtitles("Miles", "But where else were you going to go?", 2);
+		ShowSubtitles("Miles", "You show up in a federal uniform.", 2);
+		ShowSubtitles("Miles", "Naturally you would have the best chances of finding your identity at the Bulwark.", 5.25);
+		ShowSubtitles("Miles", "So I sent you on your way.", 2.5);
+	}
+
+	void Miles7Subs()
+	{
+		ShowSubtitles("Miles", "But that was after we met and at the time,\nthe only evacuation that took place was far from you.", 6);
+		ShowSubtitles("Miles", "I even tried to arrange for transportation to the Bulwark.\nThe shuttle, remember?", 4.5);
+	}
+
+	void Miles8Subs()
+	{
+		ShowSubtitles("Miles", "I'm sorry I lied. I really wish I hadn't.", 2.5);
+		ShowSubtitles("Miles", "But in the end I still think we did the right thing; Getting you to safety.", 3.75);
+		ShowSubtitles("Miles", "Even if it turned out not to be so safe after all.", 5);
+		ShowSubtitles("Miles", "There are no safe places right now.", 3);
+		ShowSubtitles("Miles", "I don't know what to say.", 3.5);
+		ShowSubtitles("Miles", "Please say something.", 3);
+	}
+
+	void Miles5Subs()
+	{
+		ShowSubtitles("Miles", "No...no higher ups.\nNo orders. No mission.", 5);
+		ShowSubtitles("Miles", "There are some things I need to do.\nSomething that can't be put off.", 5);
+	}
+
+	void Player6Subs()
+	{
+		ShowSubtitles("Sam", "Ah well that only kind of makes it worse.", 3);
+		ShowSubtitles("Sam", "So you lied of your own volition and sent me through what can only be described as...as...", 4);
+	}
+
+	float miles_called = 0;
+	void StartMilesCall()
+	{
+		if(miles_called == 1)
+		{
+			return;
+		}
+		
+		miles_called = 1;
+
+		$func_static_108752.setKey("gui_noninteractive", 1);
+
+		sys.trigger($setinfluence_talk);
+		$func_static_108752.startSoundShader("sound/shav/e1m5_4/ethanrom.ogg", SND_CHANNEL_ANY);
+		$player1.startSoundShader("sound/shav/e1m5_4/lies.ogg", SND_CHANNEL_ANY);
+
+		$speaker_157.fadeSound(SND_CHANNEL_ANY, -20, 10);
+		$speaker_154.fadeSound(SND_CHANNEL_ANY, -20, 10);
+
+		$func_door_188678.close();
+		$func_door_188678.setKey("locked", 1);
+		$func_static_108491.setColor(1, 0, 0);
+
+		sys.wait(8);
+
+		thread ShowSubtitles("AP", "Welcome to the Federal Recreation Area, Ethan Rom.\nHave a nice day.", 5);
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Welcome.ogg");
+
+		Beat(2);
+
+		thread ShowSubtitles("Sam", "Ethan? Miles?\nYou said my name was Sam, right? Just Sam?", 6.25);
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Player1.ogg");
+
+		Beat(1.5);
+
+		thread ShowSubtitles("Miles", "Yeah. I don't recall your last name.\nJust Sam.", 4.5);
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Miles1.ogg");
+		
+		Beat(.75);
+
+		thread ShowSubtitles("Sam", "So Calloway never mentioned it? There's some sort of personnel scanner here.\nIt says my name is Ethan Rom.", 8);
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Player2.ogg");
+
+		Beat(1);
+
+		thread ShowSubtitles("Miles", "Ah.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Miles2.ogg");
+		
+		Beat(1.75);
+
+		thread ShowSubtitles("Sam", "Ah?", 2);
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Player3.ogg");
+
+		Beat(1.5);
+
+		thread ShowSubtitles("Miles", "Look, I have not been completely truthful.\nTo put it mildly.", 7.25);
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Miles3.ogg");
+		
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "To put it mildly?", 2);
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Player4.ogg");
+
+		Beat(1.25);
+
+		thread Miles4Subs();
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Miles4.ogg");
+		
+		Beat(.25);
+
+		thread Player5Subs();
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Player5.ogg");
+
+		Beat(.5);
+
+		thread Miles5Subs();
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Miles5.ogg");
+		
+		Beat(.25);
+
+		thread Player6Subs();
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Player6.ogg");
+
+		Beat(.1);
+
+		thread Miles6Subs();
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Miles6.ogg");
+		
+		Beat(.5);
+
+		thread ShowSubtitles("Sam", "But I could have been evacuated!?", 2);
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Player7.ogg");
+
+		Beat(.5);
+
+		thread Miles7Subs();
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Miles7.ogg");
+		
+		Beat(1.5);
+
+		thread Miles8Subs();
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Miles8.ogg");
+
+		Beat(1.5);
+
+		thread ShowSubtitles("Sam", "There's nothing to say.", 2);
+		CharacterSays($player1, "sound/vo/e1m5_4/MilesCall/Player8.ogg");			
+
+		Beat(1);
+
+		sys.fadeTo('0 0 0', 1, 2);
+
+		sys.wait(3);
+
+		// Change level
+		sys.trigger($target_endlevel_1);
+	}
+
+	void setup()
+	{
+		thread select_code();
+		sys.wait(2.5);
+		thread select_impconfig();
+		sys.wait(5);
+		thread select_wraithconfig();
+		sys.wait(8);
+		thread select_lostsoulconfig();
+		
+		sys.trigger($func_static_77865);
+		
+		sys.trigger($trigger_count_12);
+		
+		$trigger_once_115.disable();
+		$trigger_once_113.disable();
+		$trigger_once_114.disable();
+		$trigger_once_59.disable();
+		
+		CrossCheckServerBridges();
+		
+		SetupServerPuzzle();
+
+		cache_crane_sounds();
+
+		thread crane_update_loop();		
+		
+		sys.trigger($printer3_on);
+		sys.trigger($printer2_on);
+		sys.trigger($printer1_on);
+		sys.wait(1);
+		thread printer_loop1();
+		thread printer_loop2();
+		thread printer_loop3();	
+		
+		sys.wait(1);
+		thread shippingcrates1();
+		sys.wait(1.5);
+		thread shippingcrates2();
+		
+		$mc_assembly_midpoint.rotateOnce ( '-135 0 0' );
+		sys.waitFor ($mc_assembly_midpoint);
+
+		$mc_pistrod1.bind ($mc_piston1);
+		$mc_pistrod2.bind ($mc_piston2);
+		$mc_pistrod3.bind ($mc_piston3);
+
+		$mc_piston1.time (.125);
+		$mc_pistrod1.time (.125);
+		$mc_piston2.time (.125);
+		$mc_pistrod2.time (.125);
+		$mc_piston3.time (.125);
+		$mc_pistrod3.time (.125);
+		$mc_crankshaft.time (.125);
+
+		sys.wait(1);
+
+		thread crankshaft_move();
+		
+		sys.wait(1);
+		
+		thread cycle_pump3();
+		sys.wait(1.35);
+		thread cycle_pump2();
+		sys.wait(2.55);
+		thread cycle_pump1();
+		
+		sys.wait(1);
+		
+		thread techlights_scroll1();
+		thread techlights_scroll2();
+		
+		$trigger_multiple_18.disable();
+		
+	}
+
+	void main()
+	{		
+		thread setup();
+		
+		sys.trigger($setinfluence_levelstart);	
+
+		sys.wait(3);
+
+		$tension_leg_top_cargo_lift.move(UP, 576);
+		
+		sys.waitFor($tension_leg_top_cargo_lift);
+		$func_mover_209.unbind();
+		$func_mover_206.unbind();
+		$func_mover_205.unbind();
+		$func_mover_212.unbind();
+		$func_mover_224.unbind();
+		$func_mover_221.unbind();
+		$func_mover_218.unbind();
+		$func_mover_215.unbind();
+
+	}
+}

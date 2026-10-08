@@ -1,0 +1,1533 @@
+namespace map_e1m3_1
+{	
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m3_1(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+
+	void CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+	
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}		
+	
+	float callMilesCompleted = 0;
+
+	void CallMilesCSInterupt(entity characterEntity, string line, float interrupt)
+    {
+		if(callMilesCompleted == 0)
+		{
+			sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY) - interrupt);
+		}		
+    }	
+
+	void CompleteCallMiles()
+	{
+		if(callMilesCompleted == 0)
+		{
+			callMilesCompleted = 1;			
+		}
+	}
+
+	void CallMilesCS(entity entity, string line)
+	{
+		if(callMilesCompleted == 0)
+		{
+			CharacterSays(entity, line);
+		}
+	}	
+
+	void CallMilesBeat(float amount)
+	{
+		if(callMilesCompleted == 0)
+		{
+			Beat(amount);
+		}
+	}
+
+	//rack server states
+	//0 = in
+	//1 = out
+	float rack_server1 = 0;
+	float rack_server2 = 0;
+	float rack_server3 = 0;
+	float rack_server4 = 0;
+	float rack_server5 = 0;
+	float rack_server6 = 0;
+	float rack_server7 = 0;
+	float rack_server8 = 0;
+	float rack_server9 = 0;
+	
+	float rack_toggle = 1;
+	
+	float toggle_server(entity serverEntity, float state)
+	{
+		$server_control.setGuiParm ("gui_parm20", state);
+		$server_control.setGuiParm ("gui_parm10", 1);
+		if( state == 0 )
+		{
+			serverEntity.move(0, 32);
+			sys.waitFor(serverEntity);			
+			state = 1;
+		}
+		else
+		{
+			serverEntity.move(180, 32);
+			sys.waitFor(serverEntity);
+			state = 0;
+		}
+				
+		 $server_control.setGuiParm ("gui_parm10", 0);
+		
+		if( rack_toggle == 1 )
+			rack_toggle = 0;
+		else
+			rack_toggle = 1;
+		
+		$server_control.setGuiParm ("gui_parm11", rack_toggle);
+		$server_control.setGuiParm ("gui_parm12", rack_toggle);
+		$server_control.setGuiParm ("gui_parm13", rack_toggle);
+		$server_control.setGuiParm ("gui_parm14", rack_toggle);
+		$server_control.setGuiParm ("gui_parm15", rack_toggle);
+		$server_control.setGuiParm ("gui_parm16", rack_toggle);
+		$server_control.setGuiParm ("gui_parm17", rack_toggle);
+		$server_control.setGuiParm ("gui_parm18", rack_toggle);
+		$server_control.setGuiParm ("gui_parm19", rack_toggle);
+		return state;
+	}
+
+	void toggle_server1()
+	{
+		rack_server1 = toggle_server($func_server01, rack_server1);
+	}
+	
+	void toggle_server2()
+	{
+		rack_server2 = toggle_server($func_server02, rack_server2);
+	}
+	
+	void toggle_server3()
+	{
+		rack_server3 = toggle_server($func_server03, rack_server3);
+	}
+	
+	void toggle_server4()
+	{
+		rack_server4 = toggle_server($func_server04, rack_server4);
+	}
+	
+	void toggle_server5()
+	{
+		rack_server5 = toggle_server($func_server05, rack_server5);
+	}
+	
+	void toggle_server6()
+	{
+		rack_server6 = toggle_server($func_server06, rack_server6);
+	}
+	
+	void toggle_server7()
+	{
+		rack_server7 = toggle_server($func_server07, rack_server7);
+	}
+	
+	void toggle_server8()
+	{
+		rack_server8 = toggle_server($func_server08, rack_server8);
+	}
+	
+	void toggle_server9()
+	{
+		rack_server9 = toggle_server($func_server09, rack_server9);
+	}
+
+	float hangar_state = 1;
+	float hangar_lock_state = 0;
+	float hangar_alt_objective_state = 0;
+
+	void ClickCacheButton(entity button)
+	{
+		float direction = button.getFloatKey("direction");
+		button.move(direction, 1);
+		button.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+		sys.waitFor(button);
+
+		sys.wait(.125);
+		button.startSoundShader("e1m1_intercomclick2", SND_CHANNEL_ANY);
+		button.move(direction + 180, 1);
+	}
+
+	void SetClickerState(entity clicker, float state)
+	{
+		clicker.setKey ("click_item", "" + state);
+	}
+
+	void DisableClickers()
+	{
+		SetClickerState(sys.getEntity("HangarLock_Clicker"), 0);
+		SetClickerState(sys.getEntity("HangarLock_Inner_Clicker"), 0);
+		SetClickerState(sys.getEntity("HangarLock_Outer_Clicker"), 0);
+	}
+
+	void EnableClickers()
+	{
+		SetClickerState(sys.getEntity("HangarLock_Clicker"), 1);
+
+		if(hangar_lock_state == 1)
+		{
+			SetClickerState(sys.getEntity("HangarLock_Inner_Clicker"), 1);
+		}
+		else
+		{
+			SetClickerState(sys.getEntity("HangarLock_Outer_Clicker"), 1);
+		}
+	}
+
+	float CycleHangarLock(float state)
+	{	
+		float newState = state;
+
+		entity innerRDoor = sys.getEntity("hangarlock_inner_r");
+		entity outerRDoor = sys.getEntity("hangarlock_outer_r");
+		entity innerLDoor = sys.getEntity("hangarlock_inner_l");
+		entity outerLDoor = sys.getEntity("hangarlock_outer_l");
+		entity centerClicker = sys.getEntity("HangarLock_Clicker");
+				
+		if( state == 0 && hangar_state == 0)
+		{
+			// if the player is leaving, force complete the call
+			CompleteCallMiles();
+	
+			sys.trigger($hangarlock_inner_close_spkr);
+			sys.trigger($hangarlock_inner_clip);
+			innerRDoor.move(0, 56);
+			innerLDoor.move(180, 56);
+			sys.waitFor(innerRDoor);
+
+			centerClicker.startSoundShader("movement_5seconds", SND_CHANNEL_ANY);
+			sys.wait(5);
+
+			sys.trigger($hangarlock_outer_open_spkr);
+			sys.trigger($hangarlock_outer_clip);
+			outerRDoor.move(180, 56);
+			outerLDoor.move(0, 56);
+			sys.waitFor(outerRDoor);
+
+			newState = 1;
+		}
+		else if( state == 0 && hangar_state == 1)
+		{
+			thread ShowNPCSubtitles("AP", "Hangar can not be accessed while Hangar doors are open.", 5.5);
+			sys.wait($player1.startSoundShader("e1m3_1_hangardoorsopen", SND_CHANNEL_VOICE2 ));
+			
+			//Objective
+			if(hangar_alt_objective_state == 0)
+			{
+				hangar_alt_objective_state = 1;
+				sys.trigger($trigger_relay_647);
+			}
+		}
+		else if( state == 1 && hangar_state == 1 )
+		{
+			thread ShowNPCSubtitles("AP", "Hangar can not be accessed while Hangar doors are open.", 5.5);
+			sys.wait($player1.startSoundShader("e1m3_1_hangardoorsopen", SND_CHANNEL_VOICE2 ));
+		}
+		else if( state == 1 && hangar_state == 0)
+		{
+			// if the player is leaving, force complete the call
+			CompleteCallMiles();
+
+			sys.trigger($hangarlock_outer_close_spkr);
+			sys.trigger($hangarlock_outer_clip);
+			outerRDoor.move(0, 56);
+			outerLDoor.move(180, 56);
+			sys.waitFor(outerRDoor);
+
+			centerClicker.startSoundShader("movement_5seconds", SND_CHANNEL_ANY);
+			sys.wait(5);
+
+			sys.trigger($hangarlock_inner_open_spkr);
+			sys.trigger($hangarlock_inner_clip);
+			innerRDoor.move(180, 56);
+			innerLDoor.move(0, 56);
+			sys.waitFor(innerRDoor);
+
+			newState = 0;
+		}		
+
+		return newState;
+	}	
+
+	void CallHangarLock_Inner()
+	{
+		DisableClickers();
+		
+		ClickCacheButton(sys.getEntity("HangarLock_Inner_Button"));
+		hangar_lock_state = CycleHangarLock(hangar_lock_state);
+		
+		EnableClickers();
+	}
+
+	void CycleHangarLock_Middle()
+	{
+		DisableClickers();
+
+		ClickCacheButton(sys.getEntity("HangarLock_Button"));
+		hangar_lock_state = CycleHangarLock(hangar_lock_state);
+
+		EnableClickers();
+	}
+
+	void CallHangarLock_Outer()
+	{
+		DisableClickers();
+
+		ClickCacheButton(sys.getEntity("HangarLock_Outer_Button"));
+		hangar_lock_state = CycleHangarLock(hangar_lock_state);
+
+		EnableClickers();
+	}
+	
+	float hasTriedKeyCardOnce = 0;
+	
+	void MaintenanceKey_Grabbed()
+	{
+		hasTriedKeyCardOnce = 1;
+		$Keycard_Slot.setKey ("item_type", "action");
+	}
+
+	void MaintenanceKey_Test()
+	{	
+		sys.trigger($trigger_relay_618);
+		
+		if(hasTriedKeyCardOnce == 0)
+		{
+			hasTriedKeyCardOnce = 1;
+			entity playerC = sys.getEntity("player1");
+			thread ShowNPCSubtitles("Sam", "Gotta be around here somewhere. I hope", 3.15);
+			CharacterSays(playerC, "e1m3_1_Player_GottaBeAroundHereSomewhere");						
+		}
+	}
+	
+	void MaintenanceKey_Valid()
+	{	
+		SetClickerState(sys.getEntity("Keycard_Slot"), 0);
+		sys.trigger($func_static_97389);
+		
+		$KeyMover.moveTo($KeyDestination);
+	}
+
+	void toggle_hangar_lights()
+	{
+		sys.trigger($hangar_alert);
+		sys.trigger($hangar_light_01);
+		sys.trigger($hangar_blink01);
+		sys.trigger($hangar_light_02);
+		sys.trigger($hangar_blink02);
+		sys.trigger($hangar_light_03);
+		sys.trigger($hangar_blink03);
+		sys.trigger($hangar_light_04);
+		sys.trigger($hangar_blink04);
+	}
+
+	void toggle_hangar()
+	{	
+		SetClickerState($HangarDoorClicker, 0);
+		
+		sys.trigger($SpeakerLonelyCaverns);
+		
+		toggle_hangar_lights();
+	
+		if(hangar_state == 0)
+		{
+			$hangar_doors_handle.rotateOnce('0 0 90');
+			$hangar_doors_handle.startSoundShader("e1m5_3_large_switch", SND_CHANNEL_ANY);
+
+			sys.wait(1.5);
+
+			sys.trigger($hangar_portal);
+			$hangar_door01.move( 90, 384);
+			sys.wait(.5);
+			$hangar_door02.move( 270, 384);
+			$hangar_bit.move(270, 192);			
+			
+			sys.waitFor($hangar_door02);
+						
+			hangar_state = 1;
+		}
+		else
+		{
+			sys.trigger($post_hangar_relay);
+		
+			$hangar_doors_handle.rotateOnce('0 0 -90');
+			$hangar_doors_handle.startSoundShader("e1m5_3_large_switch", SND_CHANNEL_ANY);
+
+			sys.wait(1.5);
+
+			$hangar_door01.move( 270, 384);
+			sys.wait(.5);
+			$hangar_door02.move( 90, 384);
+			$hangar_bit.move(90, 192);
+			
+			sys.waitFor($hangar_door02);
+			sys.trigger($hangar_portal);
+			
+			$hangar_door01.startSoundShader("chamber_core_down_speaker", SND_CHANNEL_ANY);
+			
+			hangar_state = 0;				
+		}
+		
+		toggle_hangar_lights();
+		
+		sys.wait(5);
+		
+		//Objective
+		sys.trigger($trigger_relay_650);
+		
+		sys.wait(3.75);
+		
+		if(hangar_alt_objective_state == 1)
+		{			
+			//Objective
+			sys.trigger($trigger_relay_648);
+		}
+	}
+	
+	//0 = closed, 1 = opened, 2 = transferring
+	float hugewindow = 1;
+
+	void OpenHugeWindow()
+	{
+		if( hugewindow == 0 )
+		{
+			hugewindow = 2;
+			
+			$hugewindow_west.move(WEST, 128);
+			$hugewindow_east.move(EAST, 128);			
+			sys.waitFor($hugewindow_east);
+
+			hugewindow = 1;
+		}
+	}
+
+	void CloseHugeWindow()
+	{
+		if( hugewindow == 1 )
+		{
+			hugewindow = 2;
+
+			$hugewindow_west.move(EAST, 128);
+			$hugewindow_east.move(WEST, 128);
+			sys.waitFor($hugewindow_east);
+
+			hugewindow = 0;
+		}
+	}
+		
+	void floorhatch_open()
+	{
+		sys.trigger($func_portal_1);
+		$floor_panel.move(-2, 4);
+		sys.waitFor($floor_panel);
+		$floor_panel.move(0, 60);		
+	}
+	
+	void floorhatch_close()	
+	{			
+		$floor_panel.move(180, 60);
+		sys.waitFor($floor_panel);
+		$floor_panel.move(-1, 4);
+		sys.waitFor($floor_panel);
+		sys.trigger($func_portal_1);	
+	}
+		
+	void floorhatch2_open()	
+	{		
+		sys.trigger($func_portal_2);
+		$floor_panel2.move(-2, 4);
+		sys.waitFor($floor_panel2);
+		$floor_panel2.move(0, 60);		
+	}
+		
+	void floorhatch2_close()	
+	{		
+		$floor_panel2.move(180, 60);
+		sys.waitFor($floor_panel2);
+		$floor_panel2.move(-1, 4);
+		sys.waitFor($floor_panel2);
+		sys.trigger($func_portal_2);		
+	}
+
+	float timelinePoster1 = 0;
+	float inTP1 = 0;
+
+	float timelinePoster2 = 0;
+	float inTP2 = 0;
+
+	float timelinePoster3 = 0;
+	float inTP3 = 0;
+
+	float timelinePoster4 = 0;
+	float inTP4 = 0;
+
+	float timelinePoster5 = 0;
+	float inTP5 = 0;
+
+	float timelinePoster6 = 0;
+	float inTP6 = 0;
+
+	void TimelinePoster1On()
+	{
+		inTP1 = 1;
+		$trigger_multiple_8.disable();
+		$trigger_multiple_7.enable();
+	}
+
+	void TimelinePoster1Off()
+	{
+		inTP1 = 0;
+		$trigger_multiple_8.enable();
+		$trigger_multiple_7.disable();
+	}
+
+	void TimelinePoster2On()
+	{
+		inTP2 = 1;
+		$trigger_multiple_6.disable();
+		$trigger_multiple_5.enable();
+	}
+
+	void TimelinePoster2Off()
+	{
+		inTP2 = 0;
+		$trigger_multiple_5.disable();
+		$trigger_multiple_6.enable();
+	}
+	
+	void TimelinePoster3On()
+	{
+		inTP3 = 1;
+		$trigger_multiple_3.disable();
+		$trigger_multiple_4.enable();
+	}
+
+	void TimelinePoster3Off()
+	{
+		inTP3 = 0;
+		$trigger_multiple_4.disable();
+		$trigger_multiple_3.enable();
+	}
+
+	void TimelinePoster4On()
+	{
+		inTP4 = 1;
+		$trigger_multiple_14.disable();
+		$trigger_multiple_13.enable();
+	}
+
+	void TimelinePoster4Off()
+	{
+		inTP4 = 0;
+		$trigger_multiple_13.disable();
+		$trigger_multiple_14.enable();
+	}
+
+	void TimelinePoster5On()
+	{
+		inTP5 = 1;
+		$trigger_multiple_12.disable();
+		$trigger_multiple_11.enable();
+	}
+
+	void TimelinePoster5Off()
+	{
+		inTP5 = 0;
+		$trigger_multiple_11.disable();
+		$trigger_multiple_12.enable();
+	}
+
+	void TimelinePoster6On()
+	{
+		inTP6 = 1;
+		$trigger_multiple_10.disable();
+		$trigger_multiple_9.enable();
+	}
+
+	void TimelinePoster6Off()
+	{
+		inTP6 = 0;
+		$trigger_multiple_9.disable();
+		$trigger_multiple_10.enable();
+	}
+
+	void ManageTimeline(float number, float state)
+	{
+		entity timeline = sys.getEntity("timelineposter" + number);
+		entity speaker = sys.getEntity("timelineposter" + number + "_speaker");
+
+		if(state == 0)
+		{
+			timeline.startSoundShader("e1m3_1_timeline_start", SND_CHANNEL_ANY);
+			crossFadeEnt (timeline, '0 0 0', '1 1 1', .75);
+			sys.trigger(speaker);
+		}
+		else if(state == 1)
+		{
+			sys.trigger(speaker);
+			timeline.startSoundShader("e1m3_1_timeline_end", SND_CHANNEL_ANY);				
+			crossFadeEnt (timeline, '1 1 1', '0 0 0', .25);				
+		}		
+	}
+
+	void ManageTimeline1()
+	{
+		if(inTP1 == 1 && timelinePoster1 == 0)
+		{
+			timelinePoster1 = 2;				
+			ManageTimeline(1, 0);
+			timelinePoster1 = 1;
+		}
+		else if(inTP1 == 0 && timelinePoster1 == 1)
+		{
+			timelinePoster1 = 2;
+			ManageTimeline(1, 1);
+			timelinePoster1 = 0;
+		}
+	}
+
+	void ManageTimeline2()
+	{
+		if(inTP2 == 1 && timelinePoster2 == 0)
+		{
+			timelinePoster2 = 2;				
+			ManageTimeline(2, 0);
+			timelinePoster2 = 1;
+		}
+		else if(inTP2 == 0 && timelinePoster2 == 1)
+		{
+			timelinePoster2 = 2;
+			ManageTimeline(2, 1);
+			timelinePoster2 = 0;
+		}
+	}
+
+	void ManageTimeline3()
+	{
+		if(inTP3 == 1 && timelinePoster3 == 0)
+		{
+			timelinePoster3 = 2;				
+			ManageTimeline(3, 0);
+			timelinePoster3 = 1;
+		}
+		else if(inTP3 == 0 && timelinePoster3 == 1)
+		{
+			timelinePoster3 = 2;
+			ManageTimeline(3, 1);
+			timelinePoster3 = 0;
+		}
+	}
+
+	void ManageTimeline4()
+	{
+		if(inTP4 == 1 && timelinePoster4 == 0)
+		{
+			timelinePoster4 = 2;				
+			ManageTimeline(4, 0);
+			timelinePoster4 = 1;
+		}
+		else if(inTP4 == 0 && timelinePoster4 == 1)
+		{
+			timelinePoster4 = 2;
+			ManageTimeline(4, 1);
+			timelinePoster4 = 0;
+		}
+	}
+
+	void ManageTimeline5()
+	{
+		if(inTP5 == 1 && timelinePoster5 == 0)
+		{
+			timelinePoster5 = 2;				
+			ManageTimeline(5, 0);
+			timelinePoster5 = 1;
+		}
+		else if(inTP5 == 0 && timelinePoster5 == 1)
+		{
+			timelinePoster5 = 2;
+			ManageTimeline(5, 1);
+			timelinePoster5 = 0;
+		}
+	}
+
+	void ManageTimeline6()
+	{
+		if(inTP6 == 1 && timelinePoster6 == 0)
+		{
+			timelinePoster6 = 2;				
+			ManageTimeline(6, 0);
+			timelinePoster6 = 1;
+		}
+		else if(inTP6 == 0 && timelinePoster6 == 1)
+		{
+			timelinePoster6 = 2;
+			ManageTimeline(6, 1);
+			timelinePoster6 = 0;
+		}
+	}
+
+	void TimelinePosters()
+	{
+		while(1)
+		{
+			thread ManageTimeline1();
+			thread ManageTimeline2();
+			thread ManageTimeline3();
+			thread ManageTimeline4();
+			thread ManageTimeline5();
+			thread ManageTimeline6();
+			sys.wait(.25);
+		}
+	}
+
+	void hologram_button(string buttonName, string fromName, string toName)
+	{
+		entity button = sys.getEntity(buttonName);
+		entity from = sys.getEntity(fromName);
+		entity to = sys.getEntity(toName);
+		
+		button.moveTo(to);				
+		button.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+		sys.waitFor(button);
+
+		sys.wait(.125);
+		button.startSoundShader("e1m1_intercomclick2", SND_CHANNEL_ANY);
+		button.moveTo(from);	
+	}
+
+	float ShowHoloSubtitles = 0;
+
+	void HoloNarr1Sub()
+	{		
+		if(ShowHoloSubtitles == 1)
+		{
+			ShowNPCSubtitles("AP", "The past is the key to the future.", 2.6);
+		}
+		if(ShowHoloSubtitles == 1)
+		{
+			ShowNPCSubtitles("AP", "As excavations suggest, Mars was once the host of a sprawling civilization.", 5.45);
+		}
+		if(ShowHoloSubtitles == 1)
+		{
+			ShowNPCSubtitles("AP", "The origin of the alien race and its technology remains a mystery to this day.", 5);
+		}
+		if(ShowHoloSubtitles == 1)
+		{
+			ShowNPCSubtitles("AP", "A mystery solvable only by the UAC.", 3.1);
+		}
+	}
+
+	void HoloNarr2Sub()
+	{
+		if(ShowHoloSubtitles == 1)
+		{
+			ShowNPCSubtitles("AP", "Mars City is the cutting edge of UAC technology.\nAnd thereby the human endeavour in space.", 6.65);
+		}
+		if(ShowHoloSubtitles == 1)
+		{
+			ShowNPCSubtitles("AP", "We are unearthing advanced technology.\nThat will help propel us towards a new and brighter future.", 6.25);
+		}
+	}
+
+	void HoloNarr3Sub()
+	{
+		if(ShowHoloSubtitles == 1)
+		{
+			ShowNPCSubtitles("AP", "The universe may be expanding.\nBut nothing can outrun the technological advancements of the UAC.", 7.4);
+		}
+		if(ShowHoloSubtitles == 1)
+		{
+			ShowNPCSubtitles("AP", "Mars City will in the future serve as a base for missions.\nTo reach neighbouring stars and beyond.", 6.75);
+		}
+	}
+
+	void hologramdisablesubs()
+	{
+		sys.hideSubtitles();
+		ShowHoloSubtitles = 0;
+	}
+
+	void holograms1()
+	{	
+		sys.trigger($target_setkeyval_7);
+		thread hologram_button("func_mover_103", "func_static_99346", "func_static_99343");
+		hologram_button("func_mover_102", "func_static_99342", "func_static_99341");
+
+		sys.trigger($holo1_scan_spkr);
+		sys.trigger($h1_scanline1);
+		sys.trigger($h1_scanline2);
+		sys.trigger($h1_scanline3);
+		sys.trigger($h1_scanline4);
+		sys.trigger($h1_scanline5);
+		sys.trigger($h1_scanline6);
+		sys.trigger($h1_scanline7);
+		sys.trigger($h1_scanline8);
+		$holo1_landscapescan1.move(180, 160);
+		$holo1_landscapescan2.move(0, 160);
+		$holo1_landscapescan3.move(90, 184);
+		$holo1_landscapescan4.move(270, 184);
+		sys.waitFor($holo1_landscapescan1);		
+		$holo1_landscapescan1.move(0, 160);
+		$holo1_landscapescan2.move(180, 160);
+		$holo1_landscapescan3.move(270, 184);
+		$holo1_landscapescan4.move(90, 184);
+		sys.waitFor($holo1_landscapescan1);
+		sys.trigger($hologram_landscape1);
+		sys.trigger($hologram_meshgrid1);
+		sys.trigger($h1_scanline1);
+		sys.trigger($h1_scanline2);
+		sys.trigger($h1_scanline3);
+		sys.trigger($h1_scanline4);
+		sys.trigger($h1_scanline5);
+		sys.trigger($h1_scanline6);
+		sys.trigger($h1_scanline7);
+		sys.trigger($h1_scanline8);
+		$holo_landscape1.move(-1, 24);
+		sys.trigger($holo1_landscape_spkr);
+		sys.waitFor($holo_landscape1);
+		thread crossFadeEnt ($hologram_landscape1, '0 0 0', '1 1 1', 0.35);
+		thread crossFadeEnt ($hologram_meshgrid1, '1 1 1', '0 0 0', 0.35);
+		thread crossFadeEnt ($hologram_grid1, '1 1 1', '0 0 0', 0.35);
+		sys.trigger($holo1_building_spkr1);
+		thread crossFadeEnt ($hologram1_buildings1, '0 0 0', '0 0.7 0.7', 0.6);
+		sys.wait(.6);
+		sys.trigger($holo1_building_spkr2);
+		thread crossFadeEnt ($hologram1_buildings2, '0 0 0', '1 0.2 0.2', 0.6);
+		sys.wait(.6);
+		sys.trigger($holo1_building_spkr3);
+		thread crossFadeEnt ($hologram1_buildings3, '0 0 0', '0.2 0.2 1', 0.6);
+		sys.wait(.6);
+		ShowHoloSubtitles = 1;
+		thread HoloNarr1Sub();
+		sys.trigger($holo_narr_spkr1);
+		sys.trigger($holospeak_disablerelay1);
+		sys.trigger($holo1_loop_spkr);
+		sys.wait(.5);
+		$trigger_multiple_25.enable();
+		$trigger_multiple_19.enable();
+	}
+	
+	void holospeak_disableswitch1()
+	{
+		sys.hideSubtitles();
+		$trigger_multiple_25.disable();
+	}
+
+	void holograms2()
+	{
+		sys.trigger($target_setkeyval_9);
+
+		thread hologram_button("func_mover_107", "func_static_99362", "func_static_99359");
+		hologram_button("func_mover_104", "func_static_99350", "func_static_99347");
+
+		sys.trigger($holo2_scan_spkr);
+		sys.trigger($h2_scanline1);
+		sys.trigger($h2_scanline2);
+		sys.trigger($h2_scanline3);
+		sys.trigger($h2_scanline4);
+		sys.trigger($h2_scanline5);
+		sys.trigger($h2_scanline6);
+		sys.trigger($h2_scanline7);
+		sys.trigger($h2_scanline8);
+		$holo2_landscapescan1.move(180, 160);
+		$holo2_landscapescan2.move(0, 160);
+		$holo2_landscapescan3.move(90, 184);
+		$holo2_landscapescan4.move(270, 184);
+		sys.waitFor($holo2_landscapescan1);
+		
+		$holo2_landscapescan1.move(0, 160);
+		$holo2_landscapescan2.move(180, 160);
+		$holo2_landscapescan3.move(270, 184);
+		$holo2_landscapescan4.move(90, 184);
+		sys.waitFor($holo2_landscapescan1);
+		sys.trigger($hologram_landscape2);
+		sys.trigger($hologram_meshgrid2);
+		sys.trigger($h2_scanline1);
+		sys.trigger($h2_scanline2);
+		sys.trigger($h2_scanline3);
+		sys.trigger($h2_scanline4);
+		sys.trigger($h2_scanline5);
+		sys.trigger($h2_scanline6);
+		sys.trigger($h2_scanline7);
+		sys.trigger($h2_scanline8);
+		$holo_landscape2.move(-1, 24);
+		sys.trigger($holo2_landscape_spkr);
+		sys.waitFor($holo_landscape2);
+		thread crossFadeEnt ($hologram_landscape2, '0 0 0', '1 1 1', 0.35);
+		thread crossFadeEnt ($hologram_meshgrid2, '1 1 1', '0 0 0', 0.35);
+		thread crossFadeEnt ($hologram_grid2, '1 1 1', '0 0 0', 0.35);
+		sys.trigger($holo2_mono);
+		sys.trigger($holo2_scaff);
+		sys.trigger($holo2_pipes);
+		sys.trigger($holo2_vents);
+		sys.trigger($holo2_bridges);
+		sys.trigger($holo2_braces);
+		sys.trigger($holo2_walk);
+		sys.trigger($holo2_signs);
+		sys.trigger($holo2_bld1);
+		sys.trigger($holo2_bld2);
+		sys.trigger($holo2_bld3);
+		sys.trigger($holo2_bld4);
+		sys.trigger($holo2_bld5);
+		sys.trigger($holo2_bld6);
+		sys.trigger($holo2_bld7);
+		sys.trigger($holo2_building_spkr1);
+		thread crossFadeEnt ($holo2_mono, '0 0 0', '0.9 0.1 0.1', 0.6);
+		sys.wait(.6);
+		sys.trigger($holo2_building_spkr2);
+		thread crossFadeEnt ($holo2_bridges, '0 0 0', '0.07 0.19 0.1', 0.6);
+		thread crossFadeEnt ($holo2_pipes, '0 0 0', '0.9 0.1 0.3', 0.6);
+		thread crossFadeEnt ($holo2_braces, '0 0 0', '0.9 0.1 0.6', 0.6);
+		thread crossFadeEnt ($holo2_vents, '0 0 0', '0.1 0.6 0.9', 0.6);
+		sys.wait(.6);
+		sys.trigger($holo2_building_spkr3);
+		thread crossFadeEnt ($holo2_bld2, '0 0 0', '0.14 0.38 0.2', 0.6);
+		thread crossFadeEnt ($holo2_bld3, '0 0 0', '0.14 0.38 0.2', 0.6);
+		sys.wait(.6);
+		sys.trigger($holo2_building_spkr1);
+		thread crossFadeEnt ($holo2_bld6, '0 0 0', '0.14 0.38 0.2', 0.6);
+		thread crossFadeEnt ($holo2_bld5, '0 0 0', '0.14 0.38 0.2', 0.6);
+		thread crossFadeEnt ($holo2_bld1, '0 0 0', '0.14 0.38 0.2', 0.6);
+		thread crossFadeEnt ($holo2_bld7, '0 0 0', '0.14 0.38 0.2', 0.6);
+		thread crossFadeEnt ($holo2_walk, '0 0 0', '0.14 0.38 0.2', 0.6);
+		sys.wait(.6);
+		sys.trigger($holo2_building_spkr2);
+		thread crossFadeEnt ($holo2_scaff, '0 0 0', '0.9 0.1 0.6', 0.6);
+		thread crossFadeEnt ($holo2_signs, '0 0 0', '0.1 0.6 0.9', 0.6);
+		thread crossFadeEnt ($holo2_bld4, '0 0 0', '0.14 0.38 0.2', 0.6);
+		sys.wait(.6);
+		sys.trigger($holospeak_disablerelay2);
+		ShowHoloSubtitles = 1;
+		thread HoloNarr2Sub();
+		sys.trigger($holo_narr_spkr2);
+		sys.trigger($holo2_loop_spkr);
+		sys.wait(.5);
+		$trigger_multiple_26.enable();
+		$trigger_multiple_21.enable();
+	}
+	
+	void holospeak_disableswitch2()
+	{
+		sys.hideSubtitles();
+		$trigger_multiple_26.disable();
+	}
+
+	void holograms3()
+	{
+		sys.trigger($target_setkeyval_11);
+		thread hologram_button("func_mover_105", "func_static_99354", "func_static_99351");
+		hologram_button("func_mover_106", "func_static_99358", "func_static_99355");
+
+		sys.trigger($holo3_scan_spkr);
+		sys.trigger($h3_scanline1);
+		sys.trigger($h3_scanline2);
+		sys.trigger($h3_scanline3);
+		sys.trigger($h3_scanline4);
+		sys.trigger($h3_scanline5);
+		sys.trigger($h3_scanline6);
+		sys.trigger($h3_scanline7);
+		sys.trigger($h3_scanline8);
+		$holo3_landscapescan1.move(180, 160);
+		$holo3_landscapescan2.move(0, 160);
+		$holo3_landscapescan3.move(90, 184);
+		$holo3_landscapescan4.move(270, 184);
+		sys.waitFor($holo3_landscapescan1);
+		
+		$holo3_landscapescan1.move(0, 160);
+		$holo3_landscapescan2.move(180, 160);
+		$holo3_landscapescan3.move(270, 184);
+		$holo3_landscapescan4.move(90, 184);
+		sys.waitFor($holo3_landscapescan1);
+		sys.trigger($hologram_landscape3);
+		sys.trigger($hologram_meshgrid3);
+		sys.trigger($h3_scanline1);
+		sys.trigger($h3_scanline2);
+		sys.trigger($h3_scanline3);
+		sys.trigger($h3_scanline4);
+		sys.trigger($h3_scanline5);
+		sys.trigger($h3_scanline6);
+		sys.trigger($h3_scanline7);
+		sys.trigger($h3_scanline8);
+		$holo_landscape3.move(-1, 24);
+		sys.trigger($holo3_landscape_spkr);
+		sys.waitFor($holo_landscape3);
+		thread crossFadeEnt ($hologram_landscape3, '0 0 0', '1 1 1', 0.35);
+		thread crossFadeEnt ($hologram_meshgrid3, '1 1 1', '0 0 0', 0.35);
+		thread crossFadeEnt ($hologram_grid3, '1 1 1', '0 0 0', 0.35);
+		sys.trigger($hologram3_buildings1);
+		sys.trigger($holo3_static);
+		thread crossFadeEnt ($hologram3_buildings1, '0 0 0', '0.1 0.1 0.2', 0.6);
+		thread crossFadeEnt ($hologram3_buildings2, '0 0 0', '0.1 0.1 0.2', 0.6);
+		thread crossFadeEnt ($hologram3_buildings3, '0 0 0', '0.1 0.1 0.2', 0.6);
+		sys.trigger($holo3_static_relay);
+		sys.trigger($holospeak_disablerelay3);
+		ShowHoloSubtitles = 1;
+		thread HoloNarr3Sub();
+		sys.trigger($holo_narr_spkr3);
+		sys.wait(1.65);
+		thread crossFadeEnt ($hologram3_buildings1, '0.1 0.1 0.2', '0 0 0', 0.6);
+		thread crossFadeEnt ($hologram3_buildings2, '0.1 0.1 0.2', '0 0 0', 0.6);
+		thread crossFadeEnt ($hologram3_buildings3, '0.1 0.1 0.2', '0 0 0', 0.6);
+		sys.trigger($holo3_static);
+		sys.wait(.5);
+		sys.trigger($holo3_fade);
+		$trigger_multiple_27.enable();
+		$trigger_multiple_22.enable();
+	}
+
+	void holospeak_disableswitch3()
+	{
+		sys.hideSubtitles();
+		$trigger_multiple_27.disable();
+	}
+
+	void holograms1_reset()
+	{	
+		sys.hideSubtitles();
+		$trigger_multiple_19.disable();
+		$trigger_multiple_25.disable();
+		sys.trigger($holo1_building_spkr1);
+		thread crossFadeEnt ($hologram1_buildings1, '0 0.7 0.7', '0 0 0', 0.6);
+		thread crossFadeEnt ($hologram1_buildings2, '1 0.2 0.2', '0 0 0', 0.6);
+		thread crossFadeEnt ($hologram1_buildings3, '0.2 0.2 1', '0 0 0', 0.6);
+		sys.wait(.6);
+		$holo_landscape1.move(-2, 24);
+		sys.trigger($holo1_landscape_spkr);
+		thread crossFadeEnt ($hologram_landscape1, '1 1 1', '0 0 0', 0.35);
+		thread crossFadeEnt ($hologram_meshgrid1, '0 0 0', '1 1 1', 0.35);
+		thread crossFadeEnt ($hologram_grid1, '0 0 0', '1 1 1', 0.35);
+		sys.waitFor($holo_landscape1);
+		sys.trigger($holo1_loop_spkr);
+		sys.trigger($hologram_landscape1);
+		sys.trigger($hologram_meshgrid1);
+		sys.wait(.5);
+		sys.trigger($target_setkeyval_8);
+	}
+
+	void holograms2_reset()
+	{	
+		sys.hideSubtitles();
+		$trigger_multiple_21.disable();
+		$trigger_multiple_26.disable();
+		sys.trigger($holo2_building_spkr1);
+		thread crossFadeEnt ($holo2_bridges, '0.07 0.19 0.1', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_pipes, '0.9 0.1 0.3', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_braces, '0.9 0.1 0.6', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_vents, '0.1 0.6 0.9', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_bld2, '0.14 0.38 0.2', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_bld3, '0.14 0.38 0.2', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_bld4, '0.14 0.38 0.2', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_bld6, '0.14 0.38 0.2', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_bld5, '0.14 0.38 0.2', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_bld1, '0.14 0.38 0.2', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_walk, '0.14 0.38 0.2', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_scaff, '0.9 0.1 0.6', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_signs, '0.1 0.6 0.9', '0 0 0', 0.6);
+		thread crossFadeEnt ($holo2_bld7, '0.14 0.38 0.2', '0 0 0', 0.6);
+		sys.wait(.6);
+		sys.trigger($holo2_mono);
+		sys.trigger($holo2_scaff);
+		sys.trigger($holo2_pipes);
+		sys.trigger($holo2_vents);
+		sys.trigger($holo2_bridges);
+		sys.trigger($holo2_braces);
+		sys.trigger($holo2_walk);
+		sys.trigger($holo2_signs);
+		sys.trigger($holo2_bld1);
+		sys.trigger($holo2_bld2);
+		sys.trigger($holo2_bld3);
+		sys.trigger($holo2_bld4);
+		sys.trigger($holo2_bld5);
+		sys.trigger($holo2_bld6);
+		sys.trigger($holo2_bld7);
+		$holo_landscape2.move(-2, 24);
+		sys.trigger($holo2_landscape_spkr);
+		thread crossFadeEnt ($hologram_landscape2, '1 1 1', '0 0 0', 0.35);
+		thread crossFadeEnt ($hologram_meshgrid2, '0 0 0', '1 1 1', 0.35);
+		thread crossFadeEnt ($hologram_grid2, '0 0 0', '1 1 1', 0.35);
+		sys.waitFor($holo_landscape2);
+		sys.trigger($holo2_loop_spkr);
+		sys.trigger($hologram_landscape2);
+		sys.trigger($hologram_meshgrid2);
+		sys.wait(.5);
+		sys.trigger($target_setkeyval_10);
+	}
+
+	void holograms3_reset()
+	{	
+		sys.hideSubtitles();
+		$trigger_multiple_22.disable();
+		$trigger_multiple_27.disable();
+		$holo_landscape3.move(-2, 24);
+		sys.trigger($holo3_landscape_spkr);
+		thread crossFadeEnt ($hologram_landscape3, '1 1 1', '0 0 0', 0.35);
+		thread crossFadeEnt ($hologram_meshgrid3, '0 0 0', '1 1 1', 0.35);
+		thread crossFadeEnt ($hologram_grid3, '0 0 0', '1 1 1', 0.35);
+		sys.waitFor($holo_landscape3);
+		sys.trigger($hologram_landscape3);
+		sys.trigger($hologram_meshgrid3);
+		sys.wait(.5);
+		sys.trigger($target_setkeyval_12);
+	}
+	
+	void Miles8Sub()
+	{
+		ShowNPCSubtitles("Miles", "Let's not get ahead of ourselves.\nRight now you're stuck in Mars City.", 5);		
+		ShowNPCSubtitles("Miles", "You mentioned fuel lines.\nI know for a fact that The Bulwark has a thick pipeline heading up to its landing pad.", 7.15);
+		ShowNPCSubtitles("Miles", "I would guess it connects back to the main Fuel Station.\nThe Landing Terminal where you're located obviously would as well.", 8); 
+		ShowNPCSubtitles("Miles", "Sam. You need to pass through the Fuel Station.\nIt's the most direct route.", 6);
+	}
+
+	void Miles7Sub()
+	{
+		ShowNPCSubtitles("Miles", "James Benson? Yeah I knew him. Don't worry about that.\nI understand your confusion.", 6.1);
+		ShowNPCSubtitles("Miles", "That's why it's so important that you find Calloway.", 3.3);
+	}
+
+	void Player5Sub()
+	{
+		ShowNPCSubtitles("Sam", "Hmm. You know. Back when the feds took over the shuttle.\nThey called out to some guy Benson about using the fuel lines.", 8);
+		ShowNPCSubtitles("Sam", "He didn't get on the flight either.", 3);
+	}
+
+	float callmileslock = 0;
+
+	void CallMiles()
+	{
+		if(callmileslock == 0)
+		{
+			callmileslock = 1;
+
+			entity playerC = sys.getEntity("player1");
+			CallMilesBeat(.5);
+			thread ShowNPCSubtitles("Miles", "So. Did you hitch a ride?", 2);
+			CallMilesCS($Comm_Holder, "e1m3_1_Miles1");
+			CallMilesBeat(.5);
+			thread ShowNPCSubtitles("Sam", "Did I hitch a ri...No! They fucking left. They left everyone behind.\nThe ships crew is dead. I thought you knew these guys.", 9.15);
+			CallMilesCS(playerC, "e1m3_1_Player1");
+			CallMilesBeat(.25);
+			thread ShowNPCSubtitles("Miles", "Dead? Frank too?", 2);
+			CallMilesCS($Comm_Holder, "e1m3_1_Miles2");
+			CallMilesBeat(1.75);
+			thread ShowNPCSubtitles("Sam", "Yeah. Frank too.", 2);
+			CallMilesCS(playerC, "e1m3_1_Player2");
+			CallMilesBeat(.25);
+			thread ShowNPCSubtitles("Miles", "Shit! I...Frank...", 4);
+			CallMilesCS($Comm_Holder, "e1m3_1_Miles3");
+			CallMilesBeat(1);
+			thread ShowNPCSubtitles("Sam", "I'm sorry. Did you know him well?", 2.5);
+			CallMilesCS(playerC, "e1m3_1_Player3");
+			CallMilesBeat(.5);
+			thread ShowNPCSubtitles("Miles", "He...was an old friend of the family. One of my dads friends.\nI've known him since I was a little girl.", 8.5);
+			CallMilesCS($Comm_Holder, "e1m3_1_Miles4");
+			CallMilesBeat(.75);
+			thread ShowNPCSubtitles("Sam", "Your dad. Does he also work for the Commonwealth?", 3);
+			CallMilesCS(playerC, "e1m3_1_Player4");
+			CallMilesBeat(.25);
+			thread ShowNPCSubtitles("Miles", "He doesn't...He's not...no.\nLook we need to get you to The Bulwark. To Calloway. Somehow.", 8);
+			CallMilesCS($Comm_Holder, "e1m3_1_Miles5");
+			CallMilesBeat(.5);
+			thread Player5Sub();
+			CallMilesCS(playerC, "e1m3_1_Player5");
+			CallMilesBeat(.125);
+			thread ShowNPCSubtitles("Miles", "Benson? Okay.", 2);
+			CallMilesCS($Comm_Holder, "e1m3_1_Miles6");
+			CallMilesBeat(.5);
+			thread ShowNPCSubtitles("Sam", "You know him?", 2);
+			CallMilesCS(playerC, "e1m3_1_Player6");
+			CallMilesBeat(.25);
+			thread Miles7Sub();
+			CallMilesCS($Comm_Holder, "e1m3_1_Miles7");
+			CallMilesBeat(.5);
+			thread ShowNPCSubtitles("Sam", "Find him? Isn't he at The Bulwark?", 2.25);
+			CallMilesCS(playerC, "e1m3_1_Player7");
+			CallMilesBeat(.125);
+			thread Miles8Sub();
+			CallMilesCS($Comm_Holder, "e1m3_1_Miles8");
+			CallMilesBeat(.25);
+			thread ShowNPCSubtitles("Sam", "What? Crawl through the fuel lines? Sounds safe.", 4);
+			CallMilesCS(playerC, "e1m3_1_Player8");
+			CallMilesBeat(.5);
+			thread ShowNPCSubtitles("Miles", "Yeah well...you know.", 2.25);
+			CallMilesCS($Comm_Holder, "e1m3_1_Miles9");
+			CallMilesBeat(.75);
+			thread ShowNPCSubtitles("Sam", "I'll watch out for your friends.", 2);
+			CallMilesCS(playerC, "e1m3_1_Player9");
+			CallMilesBeat(.25);
+			thread ShowNPCSubtitles("Miles", "No friends of mine.", 2);
+			CallMilesCS($Comm_Holder, "e1m3_1_Miles10");		
+			CallMilesBeat(.125);
+		
+			playerC.startSoundShader("e1m1_intercomclick2", SND_CHANNEL_ANY);
+			$comm_snapin.hide();
+		
+			sys.wait(.1);
+			$commscreen.hide();
+			sys.wait(.1);
+			$commscreen_offline.show();
+		
+			CallMilesBeat(.25);
+		
+			//Objective
+			sys.trigger($trigger_relay_644);		
+		
+			CallMilesBeat(3);
+			thread ShowNPCSubtitles("Sam", "Fuel lines. Great!", 2);
+			CallMilesCS(playerC, "e1m3_1_Player10");
+		
+			sys.wait(2.5);
+		
+			//Main Objective
+			sys.trigger($trigger_relay_645);
+		
+			sys.wait(2.5);
+		
+			//Objective
+			sys.trigger($trigger_relay_646);
+
+			sys.quickSave("The Beginning of The End - Checkpoint 2");
+		}
+	}
+	
+	float talkingToMiles = 0;
+
+	void InsertSnapin()
+	{
+		talkingToMiles = 1;
+
+		$player1.startSoundShader("e1m1_intercomclick1", SND_CHANNEL_ANY);
+
+		$comm_snapin.show();
+		sys.trigger($comm_beep);
+		$comm_blinker_tex.hide();
+		$comm_blinking_light.hide();
+		sys.wait(.1);
+		$commscreen_online.hide();
+		sys.wait(.1);
+		$commscreen.setGuiParm("gui_parm41", 1);		
+		sys.trigger($commscreen);
+		$commscreen.show();
+
+		sys.trigger($CancelMiles1);
+
+		sys.wait(2.5);
+		CallMiles();
+
+		sys.wait(4);
+
+		talkingToMiles = 0;
+	}
+		
+	void activate_sentry()	
+	{
+		$sentry_glass_door.moveTo($sentry_door_close);
+		sys.trigger($target_entity_fadein_1);
+		sys.wait(.5);
+		sys.trigger($sentry_scan_beam_relay);
+		sys.trigger($sentry_scanner_spkr);
+		$sentry_scan_rp.move(270, 64);
+		$sentry_scan_lp.move(270, 64);
+		$sentry_scan_rgear.rotate('0 270 0');
+		$sentry_scan_lgear.rotate('0 -270 0');
+		$sentry_scan_gearmove.move(270, 64);
+		$sentry_scan_rs.rotate('0 0 360');
+		$sentry_scan_ls.rotate('0 0 360');
+		sys.waitFor($sentry_scan_rp);
+		$sentry_scan_rp.move(90, 64);
+		$sentry_scan_lp.move(90, 64);
+		$sentry_scan_rgear.rotate('0 -270 0');
+		$sentry_scan_lgear.rotate('0 270 0');
+		$sentry_scan_gearmove.move(90, 64);
+		sys.waitFor($sentry_scan_rp);
+		$sentry_scan_rgear.stopRotating();
+		$sentry_scan_lgear.stopRotating();
+		$sentry_scan_rs.stopRotating();
+		$sentry_scan_ls.stopRotating();
+		sys.trigger($sentry_scan_beam_relay);
+		sys.trigger($target_entity_fadeout_2);
+		sys.trigger($sentry_door_open_spkr);
+		$sentry_glass_door.moveTo($sentry_door_open);
+	}
+	
+	float sentryBotReaction = 0;
+	
+	void close_sentry_door()	
+	{
+		sys.trigger($sentry_door_close_spkr);
+		$sentry_glass_door.moveTo($sentry_door_close);
+		
+		if(sentryBotReaction == 0)
+		{
+			thread ShowNPCSubtitles("Sam", "Hey buddy!", 2);
+			$player1.startSoundShader("e1m3_1_Player_SentryBotReaction", SND_CHANNEL_ANY);
+			sentryBotReaction = 1;
+		}
+	}
+	
+	float sentryPath1 = 1; 
+	float sentryAltPath1 = 0; 
+	float sentryAltPath2 = 0;
+	
+	void sentry_path_check()
+	{
+		if(sentryPath1 == 1)
+		{
+			sys.trigger($comm1_sentry_2);
+		}
+		else if(sentryAltPath1 == 1)
+		{
+			sys.trigger($comm1_sentry_3);
+		}
+		else if(sentryAltPath2 == 1)
+		{
+			sys.trigger($comm1_sentry_4);
+		}
+	}
+	
+	void setup_sentryaltpath1()
+	{
+		sentryPath1 = 0;
+		sentryAltPath1 = 1;
+	}
+	
+	void setup_sentryaltpath2()
+	{
+		sentryAltPath1 = 0;
+		sentryAltPath2 = 1;
+	}
+	
+	void SpeakerAmbience_fadein() {
+		//$SpeakerAbandonedFields.fadeSound (SND_CHANNEL_ANY, -60, 5);
+		$speaker_4.fadeSound (SND_CHANNEL_ANY, 9, 5);
+		$speaker_0.fadeSound (SND_CHANNEL_ANY, 6, 5);
+		$speaker_5.fadeSound (SND_CHANNEL_ANY, 4, 5);
+		$speaker_6.fadeSound (SND_CHANNEL_ANY, 8, 5);
+		$speaker_7.fadeSound (SND_CHANNEL_ANY, 2, 5);
+		$speaker_13.fadeSound (SND_CHANNEL_ANY, 3, 5);
+		$speaker_15.fadeSound (SND_CHANNEL_ANY, 4, 5);
+		$speaker_14.fadeSound (SND_CHANNEL_ANY, 7, 5);
+		$speaker_42.fadeSound (SND_CHANNEL_ANY, 5, 5);
+		$speaker_43.fadeSound (SND_CHANNEL_ANY, 5, 5);
+		$speaker_55.fadeSound (SND_CHANNEL_ANY, 6, 5);
+		$speaker_56.fadeSound (SND_CHANNEL_ANY, 4, 5);
+		$speaker_16.fadeSound (SND_CHANNEL_ANY, 5, 5);
+	}
+	
+	void EnterMarsCity()
+	{
+		sys.trigger($SpeakerAbandonedFields);
+		sys.trigger($SpeakerAmbience_relay);
+
+		sys.wait(6);
+
+		sys.trigger($camview_hangar);
+		sys.trigger($trigger_fade_12);
+
+		sys.wait(3);
+
+		$camview_hangar_mover.time(24);
+
+		$camview_hangar_mover.move(UP, 1572.25);
+
+		sys.wait(2);
+
+		$camview_hangar_rotator.time(16);
+		$camview_hangar_rotator.rotateOnce('0 180 0');
+
+		sys.wait(17);
+
+		$camview_hangar_rotator.rotateOnce('0 0 90');
+
+		sys.waitFor($camview_hangar_mover);
+		$camview_hangar_mover.move(270, 640);
+
+		$camview_hangar_mover.accelTime(1);
+		$camview_hangar_mover.time(4);
+		
+		sys.waitFor($camview_hangar_mover);
+		sys.trigger($camview_hangar);
+
+		sys.trigger($speaker_68);
+		sys.trigger($speaker_69);
+		sys.trigger($speaker_70);
+		sys.trigger($speaker_1009);
+		sys.trigger($speaker_677);
+		sys.trigger($speaker_51);
+
+		sys.wait(5);
+		sys.trigger($trigger_relay_641);		
+	}
+	
+	float hasFrankIdReaction = 0;	
+	
+	void FrankIdReaction()
+	{		
+		if(hasFrankIdReaction == 0)
+		{
+			$func_static_100001.hide();
+			hasFrankIdReaction = 1;
+
+			if(talkingToMiles == 0)
+			{
+				thread ShowNPCSubtitles("Sam", "Frank. I thought you left me behind.\nMaybe you should have.", 4.25);
+				CharacterSays($player1,"e1m3_1_Player_FrankLeftBehind");
+			}
+			$func_static_100001.show();
+		}
+	}
+
+	void FrankGunnedDownReaction()
+	{
+		$func_static_100000.hide();
+		thread ShowNPCSubtitles("Sam", "These people were gunned down.\nWho would do this?", 3.5);
+		CharacterSays($player1,"e1m3_1_Player_GunnedDown");
+		$func_static_100000.show();
+	}
+	
+	void PostObjectives()
+	{		
+		sys.quickSave("The Beginning of The End - Checkpoint 1");
+
+		sys.wait(2);
+		
+		thread ShowNPCSubtitles("Sam", "Stranded...I should call Miles.", 3.15);
+		$player1.startSoundShader("e1m3_1_Player_Stranded", SND_CHANNEL_ANY);		
+	}
+	
+	//1560
+	//640
+	
+	//===========================================
+	// START CHECKPOINTS
+	//===========================================
+	
+	void secondfloorunlocked_checkpoint()
+	{
+		sys.quickSave("The Beginning of The End - Checkpoint 3");
+	}
+	
+	void backtohangar_checkpoint()
+	{
+		sys.quickSave("The Beginning of The End - Checkpoint 4");
+	}
+	
+	//===========================================
+	// END CHECKPOINTS
+	//===========================================
+	
+	//===========================================
+	// RANDOM MONSTER SPAWNS
+	//===========================================		
+	
+	void select_monsterconfig(float encounterNum)
+	{
+		float monsterselect;
+		entity monster_config_a = sys.getEntity("monster_config_a" + encounterNum);
+		entity monster_config_b = sys.getEntity("monster_config_b" + encounterNum);
+
+
+		while (1)
+		{
+			monsterselect = sys.random(15);
+		
+				if (monsterselect <= 8){
+					sys.trigger (monster_config_a);
+					//sys.println("monster_configa" + encounterNum + "selected");
+					sys.wait(.5);
+				} else {
+					sys.trigger (monster_config_b);
+					//sys.println("monster_configb" + encounterNum + "selected");
+					sys.wait(.5);
+				} 
+		}
+	}
+	
+	void select_monsterconfig1()
+	{
+		select_monsterconfig(1);
+	}		
+	
+	void kill_monster_selection1()
+	{sys.killthread ("map_e1m3_1::select_monsterconfig1");}	
+	
+	//===========================================
+	// END RANDOM MONSTER SPAWNS
+	//===========================================
+	float skipIntro = 0;
+
+	void main()
+	{	
+		if(skipIntro == 0)
+		{
+			map_e1m3_1_intro::main2();
+		}
+		else
+		{
+			sys.trigger($info_player_teleport_1);
+			sys.trigger($trigger_relay_624);
+			sys.trigger($trigger_relay_610);
+		}
+
+		thread select_monsterconfig1();
+
+		sys.trigger($hangarlock_inner_clip);
+		$hangarlock_inner_r.move(180, 56);
+		$hangarlock_inner_l.move(0, 56);
+		thread TimelinePosters();
+		sys.trigger($trigger_count_4);
+		sys.trigger($trigger_count_6);
+		sys.trigger($trigger_relay_692);
+		sys.trigger($func_static_77865);
+		$trigger_multiple_19.disable();
+		$trigger_multiple_21.disable();
+		$trigger_multiple_22.disable();
+		$trigger_multiple_25.disable();
+		$trigger_multiple_26.disable();
+		$trigger_multiple_27.disable();
+		$trigger_multiple_5.disable();
+		$trigger_multiple_4.disable();
+		$trigger_multiple_7.disable();
+		$trigger_multiple_13.disable();
+		$trigger_multiple_11.disable();
+		$trigger_multiple_9.disable();
+		$sentry_scan_lp.rotateOnce('70 0 0');
+		$sentry_scan_rp.rotateOnce('-70 0 0');
+		sys.waitFor($sentry_scan_rp);
+		$sentry_scan_luparm.bind($sentry_scan_lp);
+		$sentry_scan_ruparm.bind($sentry_scan_rp);
+	}
+}

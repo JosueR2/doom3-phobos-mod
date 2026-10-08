@@ -1,0 +1,1284 @@
+namespace map_e1m3_1_intro
+{
+	float hideSubTime = 0;
+
+	void SubtitlesRunning()
+	{
+		while(hideSubTime > sys.getTime())		
+		{			
+			sys.waitFrame();
+		}
+		sys.hideSubtitles();
+	}
+
+	void ShowNPCSubtitles(string name, string titles, float duration)
+	{
+		PhobosShowSubtitle_e1m3_1_intro(name, titles);
+		hideSubTime = sys.getTime() + duration;
+		sys.wait(duration);
+		if(hideSubTime <= sys.getTime())
+		{
+			sys.hideSubtitles();
+		}
+		else
+		{
+			thread SubtitlesRunning();
+		}
+	}
+
+	float crossTodo = 0;
+
+	void HideIntroClickers()
+	{
+		sys.disableItemGroup("barn");
+	}
+
+	void ShowIntroClickers()
+	{
+		sys.enableItemGroups();
+	}
+
+	void Intro_CharacterSays(entity characterEntity, string line)
+	{
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY));
+	}
+	
+	void Intro_CharacterSaysInterupt(entity characterEntity, string line, float interrupt)
+    {
+		sys.wait(characterEntity.startSoundShader(line, SND_CHANNEL_ANY) - interrupt);
+    }	
+
+	void Beat(float delay)
+	{
+		sys.wait(delay);
+	}
+	
+	float stillCalling = 1;
+	
+	void RemoveFuseDoor()
+	{
+		thread Intro_CharacterSays($player1, "e1m3_1_placebox");
+		
+		$item_fuse_pickup.setKey("click_item", 1);
+	
+		$fuseboard_door.hide();
+		
+		$fuseboard_door_open.show();		
+	}
+	
+	void PickupFuse()
+	{
+		thread Intro_CharacterSays($player1, "e1m3_1_pickupbox");
+		
+		$fuse.hide();
+		
+		$item_fuse_insert.setKey("click_item", 1);
+	}
+	
+	void MoveBear()
+	{
+		sys.wait(1.25);
+			
+		$LeeStepSpeaker.startSoundShader("e1m3_1_Leestep5", SND_CHANNEL_ANY);		
+
+		thread ShowNPCSubtitles("Lee", "Watch out below!", 2);
+		Intro_CharacterSays($LeeAtticSpeaker, "e1m3_1_intro_Lee15");		
+		
+		sys.wait(1.25);
+		
+		sys.trigger($bear_moveable);
+		
+		sys.wait(1.5);
+		
+		thread ShowNPCSubtitles("Lee", "Find a nice spot to hang it.", 2.15);
+		Intro_CharacterSays($LeeAtticSpeaker, "e1m3_1_intro_Lee16");
+		
+		sys.wait(1.25);
+		
+		$bear_moveable.setKey("click_item", 1);
+	}	
+	
+	void PickupBear()
+	{
+		HideIntroClickers();
+	
+		thread Intro_CharacterSays($player1, "e1m3_1_pickupbox");
+		
+		$bear_moveable.hide();		
+		
+		$item_bear_putup.setKey("click_item", 1);
+		
+		sys.wait(0.75);
+		
+		thread ShowNPCSubtitles("Sam", "Damn its heavy.", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player16");
+
+		sys.wait(.5);
+
+		ShowIntroClickers();
+	}
+	
+	void PlaceBear()
+	{
+		HideIntroClickers();
+
+		thread Intro_CharacterSays($player1, "e1m3_1_placebox");
+	
+		$bear.show();
+		
+		sys.wait(.25);
+		
+		thread ShowNPCSubtitles("Sam", "Classy.", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player17");	
+	
+		sys.trigger($todo_setkeyval_2);
+		crossTodo = 1;
+
+		sys.wait(3.5);
+		
+		thread ShowNPCSubtitles("Sam", "I think I'll put up the lights.\nWill look nice over the beds.", 3.25);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player18");
+		
+		$item_intro_pickup_lights.setKey("click_item", 1);
+
+		sys.wait(.5);
+
+		ShowIntroClickers();
+	}
+	
+	void OpenHidingSpot()
+	{
+		HideIntroClickers();
+
+		$intro_secret_hatch.rotateOnce('-95 0 0');
+
+		thread Intro_CharacterSays($player1, "e1m3_1_hatchopen");
+		
+		sys.wait(1);
+		
+		$item_hide_box.setKey("click_item", 1);
+
+		sys.wait(.5);
+
+		ShowIntroClickers();
+	}
+	
+	void MoveCarpet()
+	{
+		HideIntroClickers();
+
+		$func_mover_carpet.move(-65, 65);
+		
+		$intro_carpet.rotateOnce('0 -25 0');
+		
+		thread Intro_CharacterSays($player1, "e1m3_1_slidebox");
+		
+		sys.wait(0.125);
+		
+		$intro_secret_hatch_handle.show();
+		
+		sys.wait(1.125);
+		
+		$item_secret_hatch.setKey("click_item", 1);
+
+		sys.wait(.5);
+
+		ShowIntroClickers();
+	}
+	
+	void HideBox()
+	{
+		thread Intro_CharacterSays($player1, "e1m3_1_placeboxecho");
+
+		$the_box_hidden.show();
+		
+		sys.wait(0.25);
+		
+		sys.fadeTo('0 0 0', 1, 0.01);
+		
+		sys.trigger($intro_camera_0);
+
+		sys.trigger($speaker_summer_low);
+
+		// We stop sound instead of triggering it in case it's done
+		$speaker_intro_music.stopSound(SND_CHANNEL_ANY,0);		
+
+		sys.trigger($speaker_intro_generator);
+		sys.trigger($speaker_intro_creaking);
+		
+		sys.wait(1);		
+
+		sys.trigger($SpeakerDownTheLadder);
+		
+		Beat(10);
+		
+		thread ShowNPCSubtitles("Sam", "So are you all done up there?", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player23");		
+		
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "I can't find anything else we can use.\nI'll come down in a second.", 4);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee20");
+		Intro_CharacterSays($player1, "e1m3_1_walkie_beep");
+
+		$LeeStepSpeaker.startSoundShader("e1m3_1_Leestep4", SND_CHANNEL_ANY);		
+		
+		Beat(.75);
+
+		sys.fadeTo('0 0 0', 0, 1);
+		sys.trigger($intro_camera_4);
+		$mover_intro_camera_4.moveTo($target_null_intro_camera_4);		
+
+		Beat(.75);
+		
+		thread Intro_CharacterSays($player1, "e1m3_1_ladderdown");
+		
+		Beat(1);
+		
+		thread ShowNPCSubtitles("Lee", "By the way hotshot. I think I may know someone who can help us.\n You know...Get out of here.", 5.25);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee21");
+		
+		Beat(.5);			
+		
+		thread ShowNPCSubtitles("Sam", "Your boyfriend?", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player24");
+		
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "Maybe. Who knows.\nHe has connection with the feds. He knows my brother.", 4.75);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee22");
+		
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "He IS a fed! Remember? The bad guys!", 3);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player25");
+		
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "I know. But he is not like that.", 3);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee23");
+		
+		Beat(1.5);
+				
+		thread ShowNPCSubtitles("Lee", "He's...different.", 2); 
+		thread Intro_CharacterSays($player1, "e1m3_1_intro_Lee24");
+
+		sys.wait(.9);
+
+		//Fade to black
+		sys.fadeTo('0 0 0', 1, 0.0625);
+
+		sys.wait(3);
+
+		thread Intro_CharacterSays($player1, "e1m3_1_lowkey");
+
+		//DONE. CUT TO LANDING TERMINAL
+		sys.trigger($info_player_teleport_1);
+		sys.trigger($intro_target_setinfluence_1);
+		sys.trigger($trigger_relay_624);
+		sys.trigger($trigger_relay_610);
+	}
+	
+	void PickUpLights()
+	{
+		thread Intro_CharacterSays($player1, "e1m3_1_pickupbox");
+		
+		$light_chain.hide();
+		
+		$item_intro_setup_lights.setKey("click_item", 1);
+	}
+	
+	void PlaceLights()
+	{
+		thread Intro_CharacterSays($player1, "e1m3_1_pickupbox");
+	
+		$item_light_switch_on.setKey("click_item", 1);
+		
+		$light_chain_up.show();
+		$light_chain_up_off.show();
+		$light_chain_up_shadow.show();
+	}
+	
+	vector offColor = '0 0 0';
+	vector onColor = '0.1 0.38 0.47';
+	vector white = '1 1 1';
+	
+	void LightFlicker()
+	{
+		sys.trigger($fusebox_emitter);
+		sys.trigger($fusebox_light);
+		thread Intro_CharacterSays($player1, "e1m3_1_fuseblow");		
+		
+		thread crossFadeEnt ($intro_blue_light_1, onColor, offColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_1, white, offColor, .0625);
+		$intro_blue_light_flare_1.hide();
+		
+		thread crossFadeEnt ($intro_blue_light_2, onColor, offColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_2, white, offColor , .0625);
+		$intro_blue_light_flare_2.hide();
+		
+		thread crossFadeEnt ($intro_blue_light_3, onColor, offColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_4, onColor, offColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_3, white, offColor, .0625);
+		$intro_blue_light_flare_3.hide();
+		
+		thread crossFadeEnt ($intro_blue_light_5, onColor, offColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_6, onColor, offColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_6_ambient, onColor, offColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_4, white, offColor, .0625);
+		$intro_blue_light_flare_4.hide();
+		
+		thread crossFadeEnt ($intro_blue_light_7, onColor, offColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_8, onColor, offColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_8_ambient, onColor, offColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_5, white, offColor, .0625);
+		$intro_blue_light_flare_5.hide();
+			
+		$item_fuse_door.setKey("click_item", 1);
+
+		sys.wait(.125);
+
+		sys.trigger($fusebox_emitter);
+		sys.trigger($fusebox_light);
+
+		sys.wait(.125);		
+		
+		sys.wait(2.5);
+		
+		thread ShowNPCSubtitles("Lee", "What hap....ugh", 2);
+		Intro_CharacterSays($LeeAtticSpeaker, "e1m3_1_intro_Lee16_1");
+		
+		sys.wait(.5);
+		
+		thread ShowNPCSubtitles("Lee", "What happened?", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee16_2");
+		Intro_CharacterSays($player1, "e1m3_1_walkie_beep");
+		
+		sys.wait(.75);
+		
+		thread ShowNPCSubtitles("Sam", "I think I broke a fuse. I'll look for another.", 3);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player18_1");
+
+		sys.wait(.75);
+		
+		thread ShowNPCSubtitles("Lee", "Bleep bloop.", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee16_3");
+		Intro_CharacterSays($player1, "e1m3_1_walkie_beep");
+		
+		sys.wait(2);
+
+		sys.trigger($speaker_intro_generator);
+		thread Intro_CharacterSays($player1, "e1m3_1_generator_end");
+		sys.trigger($func_shaking_intro_generator);
+	}
+	
+	void LightFlickerTwo()
+	{
+		Beat(1.5);
+	
+		thread ShowNPCSubtitles("Sam", "Hey Lee. Got the fuse.\nBut I think the generator was running on fumes.", 4);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player19");
+		
+		Beat(1);
+		
+		thread ShowNPCSubtitles("Lee", "Give me a second. There might be some up here.", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee17");
+		Intro_CharacterSays($player1, "e1m3_1_walkie_beep");
+
+		$LeeStepSpeaker.startSoundShader("e1m3_1_Leestep3", SND_CHANNEL_ANY);
+		
+		Beat(4);
+		
+		thread ShowNPCSubtitles("Lee", "Bombs away!", 2);
+		Intro_CharacterSays($LeeAtticSpeaker, "e1m3_1_intro_Lee14");
+		
+		sys.wait(1);
+		
+		sys.trigger($gascan_moveable);
+		
+		sys.wait(1.5);
+		
+		thread ShowNPCSubtitles("Sam", "Hey watch out will you?!", 4);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player20");
+		
+		sys.wait(.5);
+		
+		$gascan_moveable.setKey("click_item", 1);
+		
+		thread ShowNPCSubtitles("Lee", "Sorry!\nSee if that has enough to hold us for a while.", 4);
+		Intro_CharacterSays($LeeAtticSpeaker, "e1m3_1_intro_Lee18");
+	}
+	
+	void PlaceFuse()
+	{			
+		HideIntroClickers();
+		
+		$fuse_broken.hide();
+		
+		thread Intro_CharacterSays($player1, "e1m3_1_pickupbox");
+
+		sys.wait(1);
+		
+		thread Intro_CharacterSays($player1, "e1m3_1_insertfuse");
+	
+		$fuse_inserted.show();
+		
+		$fuse_light_1.hide();
+		$fuse_light_1_on.show();
+
+        crossFadeEnt ($fuse_light_light_1, '1 0 0', '0 1 0', .01);
+		
+		LightFlickerTwo();		
+		
+		sys.wait(.5);
+
+		ShowIntroClickers();
+	}
+	
+	void PickupGasCan()
+	{
+		thread Intro_CharacterSays($player1, "e1m3_1_pickup_gas");
+	
+		$gascan_moveable.hide();
+		$gascan_model.hide();
+
+		$item_fill_up_generator.setKey("click_item", 1);
+	}
+	
+	void FillUpGenerator()
+	{		
+		Intro_CharacterSays($func_static_53945, "e1m3_1_fillup_generator");
+		
+		sys.wait(0.25);
+		
+		thread Intro_CharacterSays($player1, "e1m3_1_gascan_down");		
+		$gascan_empty.show();
+	
+		$item_restart_generator.setKey("click_item", 1);
+	}	
+
+	float lightSwitchState = 0;
+	
+	void RestartGenerator()
+	{
+		$item_light_switch_on.setKey("click_item", 1);
+		
+		thread Intro_CharacterSays($func_static_53945, "e1m3_1_generator_start");
+		
+		sys.wait(0.025);
+		
+		$fuse_light_2.hide();
+		$fuse_light_2_on.show();
+		
+		crossFadeEnt ($fuse_light_2_on, '1 0 0', '0 1 0', .01);
+		
+		sys.trigger($speaker_intro_generator);
+		sys.trigger($func_shaking_intro_generator);
+
+		while(lightSwitchState == -1)
+		{
+			sys.waitFrame();
+		}
+
+		lightSwitchState = 2;
+	}	
+	
+	void TurnOnSwitchTwo()
+	{		
+		HideIntroClickers();
+
+		$func_mover_intro_switch.rotateOnce('-90 0 0');
+		$func_mover_intro_switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+		
+		$switch_light_1.hide();
+		$switch_light_1_on.show();
+		
+		crossFadeEnt ($switch_light_light_1, '1 0 0', '0 1 0', .01);
+		
+		$light_chain_up_off.hide();
+		
+		//Turn on light chain
+		$light_chain_light_1.show();
+		$light_chain_light_2.show();
+		$light_chain_light_3.show();
+		$light_chain_light_4.show();
+		$light_chain_light_5.show();
+		$light_chain_light_6.show();
+		$light_chain_light_7.show();
+		$light_chain_light_8.show();
+		$light_chain_light_9.show();
+		$light_chain_light_10.show();
+		$light_chain_light_11.show();
+		$light_chain_light_12.show();
+		$light_chain_light_13.show();
+		$light_chain_light_14.show();
+		$light_chain_light_15.show();
+		$light_chain_light_16.show();
+		$light_chain_light_17.show();
+		$light_chain_light_18.show();
+		$light_chain_light_19.show();
+		$light_chain_light_20.show();
+		$light_chain_light_21.show();
+		$light_chain_light_22.show();
+		$light_chain_light_23.show();
+		
+		$light_chain_light_entity_1.show();
+		$light_chain_light_entity_2.show();
+		$light_chain_light_entity_3.show();
+		$light_chain_light_entity_4.show();
+		$light_chain_light_entity_5.show();
+		$light_chain_light_entity_6.show();
+		$light_chain_light_entity_7.show();
+		$light_chain_light_entity_8.show();
+		
+		//Turn on lights
+		thread crossFadeEnt ($intro_blue_light_1, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_1, white, offColor, .0625);
+		$intro_blue_light_flare_1.show();
+		
+		thread crossFadeEnt ($intro_blue_light_2, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_2_ambient, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_2, offColor, white, .0625);
+		$intro_blue_light_flare_2.show();
+		
+		thread crossFadeEnt ($intro_blue_light_3, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_4, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_3, offColor, white, .0625);
+		$intro_blue_light_flare_3.show();
+		
+		thread crossFadeEnt ($intro_blue_light_5, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_6, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_6_ambient, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_4, offColor, white, .0625);
+		$intro_blue_light_flare_4.show();
+		
+		thread crossFadeEnt ($intro_blue_light_7, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_8, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_8_ambient, offColor, onColor, .0625);
+		thread crossFadeEnt ($intro_blue_light_bulb_5, offColor, white, .0625);
+		$intro_blue_light_flare_5.show();
+	
+		sys.wait(1.25);
+	
+		thread ShowNPCSubtitles("Sam", "Generator is back up!", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player21");
+		
+		crossTodo = 1;
+		sys.trigger($todo_setkeyval_3);
+
+		Beat(1.5);
+		
+		thread ShowNPCSubtitles("Lee", "Perfect. Did you put the thing back in its spot?", 3);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee19");
+		Intro_CharacterSays($player1, "e1m3_1_walkie_beep");
+		
+		Beat(0.5);
+		
+		thread ShowNPCSubtitles("Sam", "I will. I will.", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player22");
+		
+		$item_intro_pickup_box.setKey("click_item", 1);		
+
+		ShowIntroClickers();
+	}
+
+	float goFlick = 0;
+	
+	void TurnOnSwitch()
+	{		
+		$func_mover_intro_switch.rotateOnce('-90 0 0');
+		$func_mover_intro_switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);		
+		
+		if(goFlick == 0)
+		{
+			thread LightFlicker();			
+		}
+
+		sys.wait(.75);
+
+		$func_mover_intro_switch.time(2);
+		$func_mover_intro_switch.rotateOnce('90 0 0');
+
+		sys.wait(3);
+
+		$func_mover_intro_switch.time(.25);
+
+		$item_light_switch_on.setKey("click_item", 1);
+	}
+
+	void ToggleLightSwitch()
+	{
+		if(lightSwitchState == 0 || lightSwitchState == 1)
+		{
+			lightSwitchState = -1;
+
+			TurnOnSwitch();
+
+			goFlick = 1;
+
+			lightSwitchState = 1;
+		}
+		else if(lightSwitchState == 2)
+		{
+			lightSwitchState = -1;
+			
+			TurnOnSwitchTwo();
+
+			lightSwitchState = 3;			
+		}
+	}
+	
+	void PickupBox()
+	{
+		thread Intro_CharacterSays($player1, "e1m3_1_pickupbox");
+	
+		$the_box.hide();		
+		
+		$item_move_carpet.setKey("click_item", 1);
+	}
+	
+	void PickupWalkieTalkie()
+	{
+		HideIntroClickers();
+
+		stillCalling = 0;
+		$LeeWalkieSpeaker.stopSound(SND_CHANNEL_ANY,0);
+		
+		thread Intro_CharacterSays($player1, "e1m3_1_pickupbox");
+		
+		$intro_sam_walkietalkie.hide();
+		
+		sys.wait(2.25);
+		
+		thread ShowNPCSubtitles("Sam", "Hello? Its working! Over.", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player8");
+		
+		Beat(.15);
+		
+		thread ShowNPCSubtitles("Lee", "You're such a nerd.", 3);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee8");
+		Intro_CharacterSays($player1, "e1m3_1_walkie_beep");
+		
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "What. Sorry? Couldn't quite hear that. Over.", 3);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player9");
+		
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "Okay that's it. We're over!", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee9");
+		Intro_CharacterSays($player1, "e1m3_1_walkie_beep");
+		
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "We're what? Over.", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player10");	
+		
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "*Sigh*", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee10");
+		Intro_CharacterSays($player1, "e1m3_1_walkie_beep");
+		
+		Beat(.25);
+		
+		thread ShowNPCSubtitles("Sam", "Gotem!", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player11");
+		
+		sys.trigger($todo_setkeyval_1);
+		crossTodo = 1;
+
+		Beat(2.5);
+		
+		thread ShowNPCSubtitles("Sam", "I think we should do it.", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player12");
+		
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Lee", "The vice?", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee11");
+		
+		Beat(.125);
+		
+		Intro_CharacterSays($player1, "e1m3_1_walkie_beep");
+		
+		Beat(.5);
+		
+		thread ShowNPCSubtitles("Sam", "Yup.", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player13");
+		
+		Beat(1);
+		
+		thread ShowNPCSubtitles("Lee", "Just...be careful.", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee12");		
+		
+		Beat(.125);
+		
+		Intro_CharacterSays($player1, "e1m3_1_walkie_beep");
+		
+		$item_intro_tighten_vice.setKey("click_item", 1);
+
+		sys.wait(.5);
+
+		ShowIntroClickers();
+	}
+	
+	void TightenVice()
+	{
+		HideIntroClickers();
+
+		//Move vice and make sounds etc.
+		sys.trigger($func_rotating_vice_handle);
+		
+		Intro_CharacterSays($player1, "e1m3_1_vicecreak");
+		
+		Beat(.25);
+		
+		Intro_CharacterSays($player1, "e1m3_1_boxcreak");
+		
+		sys.trigger($func_rotating_vice_handle);
+		
+		//Snap off vice handle handle
+		$vice_outer.startSoundShader("e1m3_1_vent_step03", SND_CHANNEL_ANY);
+		$vice_handle.hide();
+		$vice_handle_2.show();
+		sys.trigger($moveable_vice_handle);
+
+		$vice_outer.move(0, 1);
+		$box_mover.move(0, 0.5);
+		$box_mover.rotateOnce('0 5 0');		
+
+		Beat(.25);
+	
+		Intro_CharacterSays($vice_handle_2, "e1m3_1_metalbar_drop");
+		
+		Beat(.10);
+	
+		thread ShowNPCSubtitles("Sam", "Oh fuck! Old piece of shit.", 2.25);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player14");
+		
+		$LeeStepSpeaker.startSoundShader("e1m3_1_Leestep1", SND_CHANNEL_ANY);
+
+		Beat(1);
+		
+		thread ShowNPCSubtitles("Lee", "Hey! Told you it wouldn't work.\nOh I think I found something. You're gonna love this.", 6.5);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Lee13");
+		Intro_CharacterSays($player1, "e1m3_1_walkie_beep");
+		
+		Beat(.20);
+		
+		thread ShowNPCSubtitles("Sam", "What?", 2);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player15");
+		
+		Beat(.75);
+		
+		MoveBear();
+
+		sys.wait(.5);
+
+		ShowIntroClickers();
+	}
+
+	void showTextCam(string text, entity e)
+	{		
+		e.setGuiParm("gui_parm1", text);
+		e.setGuiParm("gui_parm2", 0);
+		sys.trigger(e);
+
+		sys.fadeTo('0 0 0', 0, 2);
+
+		sys.wait(7);
+
+		e.setGuiParm("gui_parm2", 1);
+		sys.trigger(e);
+
+		sys.fadeTo('0 0 0', 1, 1);
+
+		sys.wait(1);		
+	}
+
+	void showText(string text)
+	{
+		entity e = sys.getEntity("cameraGui1");
+		showTextCam(text, e);
+	}
+
+	float eqPeak = 5;
+
+	void ManageEq()
+	{
+		sys.wait(114);
+
+		float i = 0;
+		while(i < 5)
+		{
+			eqPeak--;
+			sys.wait(.5);
+			i++;
+		}
+
+		sys.wait(6);
+
+		i = 0;
+		while(i < 5)
+		{
+			eqPeak++;
+			sys.wait(.5);
+			i++;
+		}		
+	}
+
+	void StartIntroTalk()
+	{				
+		sys.fadeTo('0 0 0', 1, 0.01);
+		sys.trigger($introCameraEp2);
+		
+		thread Intro_CharacterSays($player1, "e1m3_1_wind");
+		
+		if(1)
+		{
+			Beat(10);
+			
+			thread ShowNPCSubtitles("Sam", "Lee?", 2);
+			Intro_CharacterSays($player1, "e1m3_1_intro_Player1");
+		
+			Beat(3.5);
+			
+			thread ShowNPCSubtitles("Sam", "Lee are you still there?", 2);
+			Intro_CharacterSays($player1, "e1m3_1_intro_Player2");
+		
+			Beat(1.75);
+			
+			thread Intro_CharacterSays($player1, "e1m3_1_smallwind");
+						
+			thread ShowNPCSubtitles("Lee", "I can't see.", 2);
+			Intro_CharacterSays($player1, "e1m3_1_intro_Lee1");
+							
+			Beat(1.75);
+			
+			thread ShowNPCSubtitles("Sam", "Tell me about the device. The box. ", 2);
+			Intro_CharacterSays($player1, "e1m3_1_intro_Player3");
+			
+			Beat(1.75);
+			
+			thread ShowNPCSubtitles("Lee", "Its...been so long.", 2);
+			Intro_CharacterSays($player1, "e1m3_1_intro_Lee2");
+			
+			Beat(1.75);
+			
+			thread ShowNPCSubtitles("Sam", "Why do you need me to find it?", 2);
+			Intro_CharacterSays($player1, "e1m3_1_intro_Player4");
+			
+			Beat(1.75);			
+			
+			thread ShowNPCSubtitles("Lee", "Its a key. Our only chance to get out.", 3.5);
+			Intro_CharacterSays($player1, "e1m3_1_intro_Lee3");
+			
+			thread showText("TEAM FUTURE PRESENTS");			
+
+			Beat(1.75);
+			
+			thread ShowNPCSubtitles("Sam", "A key? But we had it. What happened?", 4);
+			Intro_CharacterSays($player1, "e1m3_1_intro_Player5");
+					
+			Beat(1.75);			
+
+			thread ShowNPCSubtitles("Lee", "I...I was in the attic. You were down below.", 4);
+			Intro_CharacterSays($player1, "e1m3_1_intro_Lee4");
+		}
+		
+		Beat(3.5);
+		
+		sys.trigger($speaker_summer);
+
+		sys.trigger($intro_camera_0_1);
+		sys.fadeTo('0 0 0', 0, 1);
+		
+		sys.wait(4);
+		
+		$target_null_intro_camera_0_1_mover.move(DOWN, 96);
+		
+		sys.wait(1);
+		
+		sys.trigger($speaker_intro_music_global);		
+		
+		sys.wait(8);
+
+		float del = 0.05;
+
+		$mc_636987864932753974_func_static_99297.setGuiParm("gui_parm3", "D");		
+		sys.wait(del);
+		$mc_636987864932753974_func_static_99297.setGuiParm("gui_parm3", "DI");		
+		sys.wait(del);
+		$mc_636987864932753974_func_static_99297.setGuiParm("gui_parm3", "DIS");		
+		sys.wait(del);
+		$mc_636987864932753974_func_static_99297.setGuiParm("gui_parm3", "DISR");		
+		sys.wait(del);
+		$mc_636987864932753974_func_static_99297.setGuiParm("gui_parm3", "DISRU");		
+		sys.wait(del);
+		$mc_636987864932753974_func_static_99297.setGuiParm("gui_parm3", "DISRUP");		
+		sys.wait(del);
+		$mc_636987864932753974_func_static_99297.setGuiParm("gui_parm3", "DISRUPT");		
+		sys.wait(del);
+		$mc_636987864932753974_func_static_99297.setGuiParm("gui_parm3", "DISRUPTI");		
+		sys.wait(del);
+		$mc_636987864932753974_func_static_99297.setGuiParm("gui_parm3", "DISRUPTIO");		
+		sys.wait(del);
+		$mc_636987864932753974_func_static_99297.setGuiParm("gui_parm3", "DISRUPTION");		
+		sys.wait(del);
+
+		sys.wait(1 - (del * 10));
+
+		sys.wait(6);
+		
+		float dt = 1.0;
+		sys.fadeTo('0 0 0', 1, dt * 0.67);
+		float max = 4;
+		float interval = dt / (max / .25); 
+		float i = 0;
+		while(i < max)
+		{
+			$blurscreen.setShaderParm( 3, i );
+			i += .25;
+			sys.wait(interval);
+		}
+		
+		sys.trigger($intro_camera_2);
+		$intro_camera_2_mover.move(90, 128);			
+		sys.fadeTo('0 0 0', 0, .5);
+
+		sys.wait(9.875);
+
+		sys.fadeTo('0 0 0', 1, 1.75);
+
+		sys.wait(1.75);
+
+		sys.trigger($intro_camera_1);
+		$intro_camera_1_mover.move(90, 64);
+		
+		sys.fadeTo('0 0 0', 0, 1.75);
+
+		sys.wait(5.825);
+		sys.fadeTo('0 0 0', 1, 0.125);
+		sys.wait(0.0625);
+
+		sys.trigger($func_cameraview_eq_closeup);
+		sys.fadeTo('0 0 0', 0, 0.0625);
+
+		$func_mover_eq_closeup.move(225, 64);
+
+		sys.wait(3.9);
+		
+		sys.trigger($intro_camera_map);
+		$intro_camera_mover_map.move(270, 64);
+
+		sys.wait(4.5);
+
+		sys.trigger($intro_camera_box);
+		$intro_camera_mover_box.moveTo($target_null_box);
+
+		sys.wait(5);
+
+		sys.trigger($intro_camera_3);
+		$movable_intro_camera_3.move(UP, 64);
+
+		sys.wait(4.5);
+
+		$intro_lee_walkietalkie.hide();
+		
+		$item_intro_todolist.setKey("click_item", 1);
+		$item_intro_vice_reaction.setKey("click_item", 1);
+		
+		sys.trigger($speaker_intro_music_global);
+		sys.trigger($speaker_intro_music);		
+		sys.trigger($speaker_intro_creaking);
+		sys.trigger($speaker_summer);
+		sys.trigger($speaker_summer_low);	
+		
+		$tag_water_the_plants.show();
+		
+		sys.trigger($intro_camera_3);
+		sys.trigger($intro_target_setinfluence_1);
+
+		ManageEq();
+	}
+	
+	void ViceReaction()
+	{	
+		HideIntroClickers();
+
+		thread ShowNPCSubtitles("Sam", "We tried to open this box gently. Now it's time for force.", 4);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player6");
+		
+		Beat(1.5);
+
+		$LeeStepSpeaker.startSoundShader("e1m3_1_Leestep2", SND_CHANNEL_ANY);
+
+		Beat(4);
+		
+		thread ShowNPCSubtitles("Lee", "Hey cowgirl. Grab the walkie.", 2.25);
+		Intro_CharacterSays($LeeAtticSpeaker, "e1m3_1_intro_Lee5");
+		
+		Beat(.75);
+		
+		thread ShowNPCSubtitles("Sam", "Cowgirl? Seriously?", 2.5);
+		Intro_CharacterSays($player1, "e1m3_1_intro_Player7");
+		
+		Beat(2);
+	
+		thread ShowNPCSubtitles("Lee", "Testing testing. Hello?", 2);
+		Intro_CharacterSays($LeeWalkieSpeaker, "e1m3_1_intro_Lee6");
+		Intro_CharacterSays($LeeWalkieSpeaker, "e1m3_1_walkie_beep");
+
+		sys.wait(.5);
+
+		ShowIntroClickers();
+		
+		$item_intro_sam_walkietalkie.setKey("click_item", 1);
+		
+		while(stillCalling == 1)
+		{
+			sys.wait(5);
+			
+			if(stillCalling == 0)
+				break;			
+			
+			thread ShowNPCSubtitles("Lee", "Hellloooooo...", 2);
+			Intro_CharacterSays($LeeWalkieSpeaker, "e1m3_1_intro_Lee7");
+			Intro_CharacterSays($LeeWalkieSpeaker, "e1m3_1_walkie_beep");
+
+			sys.wait(5);
+
+			if(stillCalling == 0)
+				break;				
+
+			thread ShowNPCSubtitles("Lee", "Hey! Fuckwad.", 2);
+			Intro_CharacterSays($LeeWalkieSpeaker, "e1m3_1_intro_Lee7_3");
+			Intro_CharacterSays($LeeWalkieSpeaker, "e1m3_1_walkie_beep");
+
+			sys.wait(5);
+
+			if(stillCalling == 0)
+				break;
+
+			thread ShowNPCSubtitles("Lee", "Hello?", 2);
+			Intro_CharacterSays($LeeWalkieSpeaker, "e1m3_1_intro_Lee7_1");
+			Intro_CharacterSays($LeeWalkieSpeaker, "e1m3_1_walkie_beep");
+
+			sys.wait(5);
+
+			if(stillCalling == 0)
+				break;
+			
+			thread ShowNPCSubtitles("Lee", "Fuckwaaad...", 2);
+			Intro_CharacterSays($LeeWalkieSpeaker, "e1m3_1_intro_Lee7_2");
+			Intro_CharacterSays($LeeWalkieSpeaker, "e1m3_1_walkie_beep");
+		}
+
+	}
+	
+	void MapReaction()
+	{
+		HideIntroClickers();
+		
+		thread ShowNPCSubtitles("Sam", "It's a long shot. But Lee is confident one of these will work.\nI don't know.", 4.5);
+		Intro_CharacterSays($player1, "e1m3_1_intro_MapReaction");
+
+		sys.wait(.5);
+
+		ShowIntroClickers();
+	}
+	
+	void FlagReactionSubs()
+	 {
+		ShowNPCSubtitles("Sam", "Lee was ecstatic when she snatched this.\nIt's like capture the flag, but with only one side.", 5.1);
+		ShowNPCSubtitles("Sam", "Loose and you go to jail.\nProbably.", 2.75);
+	 }
+
+	void FlagReaction()
+	{
+		HideIntroClickers();
+		
+		thread FlagReactionSubs();
+		Intro_CharacterSays($player1, "e1m3_1_intro_FlagReaction");
+
+		sys.wait(.5);
+
+		ShowIntroClickers();
+	}
+	
+	void RadioReactionSubs()
+	{
+		ShowNPCSubtitles("Sam", "At first I was worried people would hear us.\nBut turns out nobody ever comes this far into the woods.", 5.6);
+		ShowNPCSubtitles("Sam", "Let's hope it stays that way.", 2);
+	}
+
+	void RadioReaction()
+	{
+		HideIntroClickers();
+		
+		thread RadioReactionSubs();
+		Intro_CharacterSays($player1, "e1m3_1_intro_RadioReaction");
+
+		sys.wait(.5);
+
+		ShowIntroClickers();
+	}
+	
+	void SleepingbagReactionSub()
+	{
+		ShowNPCSubtitles("Sam", "Lee spends a lot of time here. Is she ever home?\nI try to be here as much as I can.", 6.4);
+		ShowNPCSubtitles("Sam", "But the folks want me home.\nI wonder if Lee's dad misses her.", 4.3);
+	}
+
+	void SleepingbagReaction()
+	{
+		HideIntroClickers();
+
+		thread SleepingbagReactionSub();
+		Intro_CharacterSays($player1, "e1m3_1_intro_SleepingbagReaction");
+
+		sys.wait(.5);
+
+		ShowIntroClickers();
+	}
+
+	void SetEqValues(entity gui, float value)
+	{
+		float iN = 6;
+		float jN = 5;
+		float i = 0;
+		float j = 0;
+
+		while(i < iN)
+		{
+			while(j < jN)
+			{
+				gui.setGuiParm("gui_parm" + (i+1) + (j+1), value);
+				j++;
+			}
+			j = 0;
+			i++;
+		}
+	}
+
+	float Floor(float value, float max)
+	{
+		float i = max;
+
+		while(i > 0)
+		{
+			if(value < i && value > i - 1)
+				return i - 1;
+
+				i--;
+		}
+		return value;
+	}	
+
+	void RandomEq(entity gui)
+	{
+		float iN = 6;
+		float jN = 5;
+		float i = 0;
+		float j = 0;
+
+		while(1)
+		{
+			while(i < iN)
+			{
+				float r = Floor(sys.random(eqPeak), eqPeak);				
+				while(j < jN)
+				{
+					float val = 0;
+					if((j-1) < r)
+					{
+						val = 1;
+					}
+					gui.setGuiParm("gui_parm" + (i+1) + (j+1), val);
+					j++;
+				}
+				j = 0;
+				i++;
+			}
+			i = 0;
+
+			sys.wait(.125);
+		}
+	}
+
+	void InspectTodo()
+	{
+		if(crossTodo == 1)
+		{
+			crossTodo = 0;
+			$player1.startSoundShader("e1m3_1_intro_marker", SND_CHANNEL_ANY);			
+		}
+	}
+
+	void InspectDiary()
+	{
+		sys.trigger($SpeakerTheDiary);
+		$SpeakerTheDiary.fadeSound(SND_CHANNEL_ANY, 0, .1);
+		$speaker_intro_music.fadeSound(SND_CHANNEL_ANY, -100, 60);		
+	}
+
+	void LeaveDiary()
+	{
+		$SpeakerTheDiary.fadeSound(SND_CHANNEL_ANY, -100, 1);
+		$speaker_intro_music.fadeSound(SND_CHANNEL_ANY, 0, .5);
+		sys.wait(1);
+		sys.trigger($SpeakerTheDiary);
+		sys.wait(.25);
+		$item_intro_inspectdiary.setKey("click_item", 1);
+	}
+
+	void Havreknas()
+	{
+		entity gui = sys.getEntity("func_static_3");
+		SetEqValues(gui, 0);
+
+		thread RandomEq(gui);
+	}
+
+	void main2()
+	{				
+		$betterladder.rotateOnce('0 0 7.9');
+		$func_mover_intro_switch.rotateOnce('-45 0 0');
+
+		thread Havreknas();
+		StartIntroTalk();
+	}
+
+	void SewerPlates()
+	{
+		sys.wait(2);
+
+		sys.trigger($sewer_vent_plate_01);
+		$sewer_vent_plate_01.startSoundShader("e1m3_1_vent_step03", SND_CHANNEL_ANY);
+
+		sys.wait(1);
+
+		sys.trigger($sewer_vent_plate_02);
+		$sewer_vent_plate_02.startSoundShader("e1m3_1_vent_step02", SND_CHANNEL_ANY);
+
+		sys.wait(0.5);
+
+		sys.trigger($sewer_vent_plate_01);
+		$sewer_vent_plate_01.startSoundShader("e1m3_1_vent_step03", SND_CHANNEL_ANY);
+
+		sys.wait(1);
+
+		sys.trigger($sewer_vent_plate_02);
+		$sewer_vent_plate_02.startSoundShader("e1m3_1_vent_step02", SND_CHANNEL_ANY);
+
+		sys.trigger($sewer_vent_plate_03);
+		$sewer_vent_plate_03.startSoundShader("e1m3_1_vent_step03", SND_CHANNEL_ANY);
+
+		sys.wait(1);
+
+		sys.trigger($sewer_vent_plate_03);
+		$sewer_vent_plate_03.startSoundShader("e1m3_1_vent_step02", SND_CHANNEL_ANY);
+	}
+}

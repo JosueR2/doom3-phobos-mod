@@ -1,0 +1,895 @@
+namespace map_e1m4_4
+{
+
+	//0 = closed
+	//1 = open
+	//2 = transitioning
+
+	float sewerhole_state = 0;
+
+	void OpenSewerHole()
+	{
+		if( sewerhole_state == 0)
+		{
+			$SewerHole_Switch.setKey("click_item", "0");	
+			sewerhole_state = 2;
+
+			$sewerhole_switch.rotateOnce('-90 0 0');
+			sys.waitFor($sewerhole_switch);
+
+			$sewerhole_switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+			$sewerhole_arm.rotateOnce('-135 0 0');
+
+			sys.waitFor($sewerhole_arm);
+
+			sewerhole_state = 1;
+			
+			$SewerHole_Switch.setKey("click_item", "1");			
+		}
+		else if( sewerhole_state == 1)
+		{
+			$SewerHole_Switch.setKey("click_item", "0");
+			sewerhole_state = 2;
+
+			$sewerhole_switch.rotateOnce('90 0 0');
+			sys.waitFor($sewerhole_switch);
+
+			$sewerhole_switch.startSoundShader("one_shot_electrical_switch_heavy_1", SND_CHANNEL_ANY);
+			$sewerhole_arm.rotateOnce('135 0 0');
+
+			sys.waitFor($sewerhole_arm);
+
+			sewerhole_state = 0;
+			
+			$SewerHole_Switch.setKey("click_item", "1");			
+		}
+	}
+	
+	void BreakLadder()
+	{
+		$StartLadder1.move(DOWN, 56);
+		
+		sys.waitFor($StartLadder1);
+		$StartLadder1.startSoundShader("al4_pounder_1second", SND_CHANNEL_ANY);
+		$StartLadder1.startSoundShader("sound/shav/e1m4_4/ladderslide.ogg", SND_CHANNEL_ANY);
+
+		sys.wait(.2);
+		
+		$StartLadder2.move(DOWN, 56);
+		
+		$StartLadder1.time(0.125);
+		$StartLadder1.accelTime(0);		
+		$StartLadder1.move(UP, 4);
+
+		sys.waitFor($StartLadder2);
+
+		$StartLadder1.move(DOWN, 4);
+		
+		$StartLadder2.time(0.125);
+		$StartLadder2.accelTime(0);		
+		
+		$StartLadder2.move(UP, 4);
+
+		sys.waitFor($StartLadder2);
+
+		$StartLadder2.move(DOWN, 4);
+		
+		$StartLadder2.startSoundShader("al4_pounder_1second", SND_CHANNEL_ANY);
+		
+		sys.waitFor($StartLadder2);
+		
+		sys.trigger($func_static_85944);
+	}	
+		
+	void SetTime( float one, float two, float three, float four, float five)
+	{
+		$hatchcounter.setGuiParm("gui_parm1", one);
+		$hatchcounter.setGuiParm("gui_parm2", two);
+		$hatchcounter.setGuiParm("gui_parm3", three);
+		$hatchcounter.setGuiParm("gui_parm4", four);
+		$hatchcounter.setGuiParm("gui_parm5", five);
+		sys.trigger($hatchcounter);
+	}
+
+	void bloom_on()
+	{
+		float bloomFactor = -0.1;
+		$player1.setBloomParms( 0, 0.01 );
+		$player1.toggleBloom( 1 );
+		
+		while( bloomFactor > 0 )
+		{
+			$player1.setBloomParms( 0, bloomFactor );
+			bloomFactor = bloomFactor - 0.001;
+			sys.wait(.025);
+		}
+	}
+
+	void bloom_off()
+	{
+       	$player1.toggleBloom( 0 );
+	}
+
+	void LostSign()
+	{		
+		sys.trigger($func_cameraview_1);	
+		
+		thread bloom_on();
+
+		sys.fadeTo('0 0 0', 0, 1);
+		
+		$lostSign.startSoundShader("sound/shav/e1m4_2/losttitles.ogg", SND_CHANNEL_ANY);
+		$lostSign.move(UP, 768);
+		$lostSign.rotateOnce('0 -70 0');
+		
+		sys.waitFor($lostSign);
+		
+		//sys.wait(50);
+		bloom_off();
+		sys.trigger($func_cameraview_1);
+	}
+
+	float roundDone = 0;
+
+void LostCounter()
+{
+	while(1 == 1)
+	{
+	//float max = 60 * 4;
+	float max = 72;
+
+	float one = 0;
+	float two = 0;
+	float three = 0;
+	float four = 0;
+	float five = 0;
+
+	float secondCounter = 0;
+	float minuteCounter = 108;
+
+	if( roundDone > 0 )
+	{			
+		max = 108*60;				
+	}
+	
+	while( max >= 0 )
+	{						
+		float minutes = (max / 60);
+		minutes = int(minutes);
+		
+		float seconds = (max % 60);
+		seconds = int(seconds);
+
+		if( minutes > 2 )
+		{
+			if (max - minutes*60 > 0 )
+			{
+				minutes++;
+			}
+
+			seconds = 0;
+		}		
+	
+		one = (minutes / 100);
+		one = int(one);
+		
+		two = ((minutes - (one * 100)) / 10);
+		two = int(two);
+		
+		three = ((minutes - (one * 100)) % 10);
+		three = int(three);
+		
+		four = (seconds / 10 );
+		four = int(four);
+		
+		five = (seconds % 10);
+		five = int(five);
+		
+		SetTime( one, two, three, four, five);
+		
+		if(roundDone > 0)
+		{
+			sys.wait(1);
+			$player1.startSoundShader("sound/shav/e1m4_2/lostend.wav", SND_CHANNEL_ANY);
+			sys.wait(4.6);
+
+			sys.fadeTo('0 0 0', 1, 0.01);
+
+			sys.wait(5);			
+
+			LostSign();
+			
+			sys.trigger($teleport_postlost);
+
+			$bomb_hatch.show();
+
+			return;			
+		}
+
+		if( minutes < 3 )
+		{
+			$hatchcounter.startSoundShader("sound/shav/e1m4_2/timer_tick.wav", SND_CHANNEL_ANY);
+		}
+		else
+		{
+			if( max % 60 == 0)
+			{
+				$hatchcounter.startSoundShader("sound/shav/e1m4_2/timer_tick.wav", SND_CHANNEL_ANY);
+			}
+		}
+
+		if( minutes < 4 )
+		{
+			if( minutes < 1 )
+			{
+				if( seconds <= 10 )
+				{
+					$hatchcounter.startSoundShader("sound/shav/e1m4_2/timer_alarm.wav", SND_CHANNEL_ANY);										
+				}
+				else
+				{
+					if( seconds % 2 == 0 )
+						$hatchcounter.startSoundShader("sound/shav/e1m4_2/timer_alarm.wav", SND_CHANNEL_ANY);										
+				}
+			}
+			else
+			{				
+				if( seconds % 2 == 0 )
+					$hatchcounter.startSoundShader("sound/shav/e1m4_2/timer_beep.wav", SND_CHANNEL_ANY);		
+			}
+		}	
+		
+		max--;
+		
+		sys.wait(.75);
+
+		if( roundDone > 0)
+		{
+			$hatchcounter.startSoundShader("sound/shav/e1m4_2/code_ok.wav", SND_CHANNEL_ANY);
+			break;
+		}
+	}	
+
+	sys.wait(.75);		
+	
+	if( roundDone > 0)
+	{
+		$hatchcounter.startSoundShader("sound/shav/e1m4_2/timer_reset.wav", SND_CHANNEL_ANY);		
+	}
+	else
+	{
+		$hatchcounter.startSoundShader("sound/shav/e1m4_2/time_out_and_abort.wav", SND_CHANNEL_ANY);
+	}
+	
+	if( roundDone == 0)
+	{
+		float index = 0;
+		while( index < 110 )
+		{
+			one = int(sys.random(9));
+			two = int(sys.random(9));
+			three = int(sys.random(9));
+			four = int(sys.random(9));
+			five = int(sys.random(9));		
+
+			if( index > 54 )
+				four = 11;
+		
+			if( index > 60 )
+				three = 11;
+				
+			if( index > 76 )
+				five = 11;
+				
+			if( index > 94 )
+				one = 11;
+				
+			if( index > 99 )
+				two = 11;
+				
+			//if( index == 100 )
+				//$func_static_1.startSoundShader("sound/shav/e1m4_2/em_spinup_full.ogg", SND_CHANNEL_ANY);
+		
+			SetTime( one, two, three, four, five);
+		
+			index = index + 1;
+			sys.wait(0.1);
+			
+			roundDone = 1;
+		}
+	}	
+	
+	$hatchcounter.startSoundShader("sound/shav/e1m4_2/timer_reset.wav", SND_CHANNEL_ANY);
+	
+	index = 0;
+	while( index < 10 )
+	{
+		one = int(sys.random(9));
+		two = int(sys.random(9));
+		three = int(sys.random(9));
+		four = int(sys.random(9));
+		five = int(sys.random(9));
+	
+		SetTime( one, two, three, four, five);	
+	
+		index = index + 1;
+			sys.wait(0.1);			
+		}
+		
+		//$func_static_1.setGuiParm("gui_parm7", 0);
+		//sys.trigger($func_static_1);
+		}
+	}
+
+	void Execute()
+	{
+		roundDone = 1;
+	}
+
+	void LostHatch()
+	{
+		LostSign();
+		sys.trigger($teleport_hatch);
+		LostCounter();
+	}
+
+	void PickupBomb()
+	{
+		$bomb_template.hide();
+		$bomb_template_light.hide();
+		sys.wait(0.1);
+		$place_bomb_item.setKey("click_item", 1);		
+	}
+
+	void PlaceBomb()
+	{
+		$bomb2.show();
+		$place_bomb_item.hide();
+	}	
+
+	void SetBombTime( float one, float two, float three, float four, float five)
+	{
+		$bomb.setGuiParm("gui_parm11", one);
+		$bomb.setGuiParm("gui_parm12", two);
+		$bomb.setGuiParm("gui_parm13", three);
+		$bomb.setGuiParm("gui_parm14", four);
+		$bomb.setGuiParm("gui_parm15", five);
+		sys.trigger($bomb);
+	}	
+	
+	void spectrum_wave()
+	{
+		sys.trigger($spectrum_wave_light);
+		sys.trigger($spectrum_wave_light2);
+		sys.trigger($spectrum_wave_spkr);
+		$spectrum_wave_mover.moveTo($spectrum_wave_mover_dest);
+		sys.waitFor($spectrum_wave_mover);
+		$spectrum_wave_mover.remove();
+		$spectrum_wave_light.remove();
+		$spectrum_wave_light2.remove();
+		sys.trigger($spectrum_static);
+	}
+	
+	void TurnOffBombFire()
+	{		
+		$dumbfilter_rotator.rotateOnce('0 270 0');
+		
+		sys.wait(5);
+		
+		sys.trigger($light_fire_bomb);
+		sys.trigger($func_emitter_bomb1);
+		sys.trigger($func_emitter_bomb2);
+		sys.trigger($func_emitter_bomb3);
+		sys.trigger($speaker_bomb);
+		sys.trigger($trigger_hurt_20);
+	}	
+
+	void MilesElevator1Subs()
+	{
+		PhobosShowSubtitle_e1m4_4("Miles", "Sam...");
+	}
+
+	void MilesElevator2Subs()
+	{
+		PhobosShowSubtitle_e1m4_4("Miles", "You're moving out of range. Get to...Bulwark...");
+	}
+
+	void PlayerElevator1Subs()
+	{
+		PhobosShowSubtitle_e1m4_4("Sam", "Miles? Are you there?");
+	}
+
+	void PlayerElevator2Subs()
+	{
+		PhobosShowSubtitle_e1m4_4("Sam", "I left the...");
+	}
+
+	void PlayerElevator3Subs()
+	{
+		PhobosShowSubtitle_e1m4_4("Sam", "Comm device...");
+	}
+	
+	void MilesElevatorTalk()
+	{
+		sys.trigger($func_radiochatter_1);
+	
+		thread MilesElevator1Subs();
+		CharacterSays($player1, "sound/vo/e1m4_4/elevator/miles1.ogg");
+		
+		Beat(.75);
+		
+		thread PlayerElevator1Subs();
+		CharacterSays($player1, "sound/vo/e1m4_4/elevator/player1.ogg");
+		
+		Beat(.75);
+		
+		thread MilesElevator2Subs();
+		CharacterSays($player1, "sound/vo/e1m4_4/elevator/miles2.ogg");
+		
+		Beat(.75);
+
+		thread PlayerElevator2Subs();
+		CharacterSays($player1, "sound/vo/e1m4_4/elevator/player2.ogg");
+		
+		Beat(.75);
+		
+		thread PlayerElevator3Subs();
+		CharacterSays($player1, "sound/vo/e1m4_4/elevator/player3.ogg");
+
+		Beat(.5);
+
+		sys.hideSubtitles();
+	}	
+
+	void WaitBombComment()
+	{
+		sys.wait(1.0);
+		CharacterSays($player1, "sound/vo/player/general/shitinternal.ogg");
+	}
+	
+
+	void BombIntro()
+	{
+		sys.wait(3);
+
+		VoidLeeTalk();
+
+		sys.wait(1);
+
+		sys.trigger($SpeakerShitShitShit);
+
+		sys.wait(14);
+
+		thread CharacterSays($player1, "sound/shav/e1m4_4/bomb_countdown.ogg");		
+
+		sys.wait(3.25);
+		
+		CharacterSays($player1, "e1_bomb_keypunches");
+		sys.wait(.35);		
+		thread CharacterSays($player1, "e1_bomb_placement");
+		
+		sys.wait(1.5);
+
+		sys.fadeTo('0 0 0', 0, 0.1);
+
+		sys.trigger($bomb);
+
+		sys.wait(.5);
+		
+		// Max is how long the timer should be - in milliseconds
+		float max = 2000;
+
+		float one = 0;
+		float two = 0;
+		float three = 0;
+		float four = 0;
+		float five = 0;
+
+		// Store the start in lastFrame. We will wait one frame before starting so we know how long has passed.
+		float lastFrame = sys.getTime();		
+
+		thread WaitBombComment();
+
+		while( max >= 0 )
+		{
+			sys.waitFrame();
+			float timeDiff = sys.getTime() - lastFrame;
+
+			float seconds = (max / 1000);
+			float milliseconds = max % 1000;						
+
+			// DecaSeconds
+			one = seconds / 10;
+			one = int(one);
+
+			// Seconds
+			two = seconds % 10;
+			two = int(two);
+			
+			// Tenths
+			three = milliseconds / 100;
+			three = int(three);
+			
+			// Hundredths
+			four = (milliseconds % 100) / 10;
+			four = int(four);
+
+			// Milliseconds
+			five = milliseconds % 10;
+			five = int(five);
+
+			SetBombTime( one, two, three, four, five);
+			
+			max -= (timeDiff * 1000);
+
+			lastFrame = sys.getTime();
+		}
+
+		sys.fadeTo('1 1 1', 1, 0.1);
+		sys.trigger($SpeakerCrickets);
+
+		sys.wait(0.25);		
+
+		sys.trigger($introCamera);		
+		
+		sys.fadeTo('1 1 1', 0, 0.1);
+		
+		sys.wait(2.5);
+		
+		entity textCam = sys.getEntity("cameraGui1");
+		showTextCamDuration("Emerald Valley, Oregon\nFederal Commonwealth of Earth", textCam, 0, 4);
+		sys.wait(1);
+
+		showTextCamDuration("Samantha Miles", textCam, 0, 4);
+		sys.wait(1);
+
+		sys.trigger($SpeakerRemember);
+
+		sys.wait(2);
+
+		sys.fadeTo('1 1 1', 1, 0);
+
+		sys.trigger($intro_target_setinfluence_1);
+
+		sys.wait(1);
+
+		sys.trigger($info_teleport_mroom);
+		sys.trigger($introCamera);
+
+		sys.fadeTo('1 1 1', 0, 1);		
+
+		sys.wait(10);
+
+		thread turnOffHouseLights();
+
+		crossFadeEnt ($LeeLight, offColor, onColor, .0625);
+
+		sys.wait(.25);
+
+		crossFadeEnt ($LeeLight, onColor, offColor, .0625);
+
+		sys.wait(.75);
+
+		crossFadeEnt ($LeeLight, offColor, onColor, .0625);
+
+		sys.wait(.25);
+
+		crossFadeEnt ($LeeLight, onColor, offColor, .0625);
+
+		sys.wait(.75);
+
+		crossFadeEnt ($LeeLight, offColor, onColor, .0625);
+
+		sys.wait(.25);
+
+		crossFadeEnt ($LeeLight, onColor, offColor, .0625);
+
+		sys.wait(.5);
+
+		sys.trigger($LightClicker);
+	}
+
+	void SetBombTime2( float one, float two, float three, float four, float five)
+	{
+		$bomb2.setGuiParm("gui_parm11", one);
+		$bomb2.setGuiParm("gui_parm12", two);
+		$bomb2.setGuiParm("gui_parm13", three);
+		$bomb2.setGuiParm("gui_parm14", four);
+		$bomb2.setGuiParm("gui_parm15", five);
+		sys.trigger($bomb2);
+	}
+
+	void BombCountdown2()
+	{
+		// Set up the bomb
+		$bomb2.setGuiParm ("gui_parm61", 1);
+		$bomb2.setKey("gui_noninteractive", 1);
+		sys.trigger($bomb2);					
+
+		// Max is how long the timer should be - in milliseconds
+		float max = 5000;		
+
+		float one = 0;
+		float two = 0;
+		float three = 0;
+		float four = 0;
+		float five = 0;
+
+		// Store the start in lastFrame. We will wait one frame before starting so we know how long has passed.
+		float lastFrame = sys.getTime();
+
+		while( max >= 0 )
+		{
+			sys.waitFrame();
+			float timeDiff = sys.getTime() - lastFrame;
+
+			float seconds = (max / 1000);
+			float milliseconds = max % 1000;			
+
+			// DecaSeconds
+			one = seconds / 10;
+			one = int(one);
+
+			// Seconds
+			two = seconds % 10;
+			two = int(two);
+			
+			// Tenths
+			three = milliseconds / 100;
+			three = int(three);
+			
+			// Hundredths
+			four = (milliseconds % 100) / 10;
+			four = int(four);
+
+			// Milliseconds
+			five = milliseconds % 10;
+			five = int(five);
+
+			SetBombTime2( one, two, three, four, five);
+			
+			max -= (timeDiff * 1000);
+
+			lastFrame = sys.getTime();
+		}
+
+		sys.trigger($bomb_explosion);
+		sys.trigger($bomb_hatch);
+		$bomb2.hide();	
+	}
+	
+	void select_monsterconfig1()
+	{
+		float monsterselect1;
+
+		while (1)
+		{
+			monsterselect1 = sys.random(15);
+		
+				if (monsterselect1 <= 8){
+					sys.trigger ($monster_select_count1a);
+					//sys.println("monster_select_count1a selected");
+					sys.wait(.5);
+				}
+				  else {
+					sys.trigger ($monster_select_count1b);
+					//sys.println("monster_select_count1b selected");
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_monster_selection1()
+	{
+		sys.killthread("map_e1m4_4::select_monsterconfig1");
+	}
+	
+	void select_monsterconfig2()
+	{
+		float monsterselect2;
+
+		while (1)
+		{
+			monsterselect2 = sys.random(15);
+		
+				if (monsterselect2 <= 5){
+					sys.trigger ($monster_select_count2a);
+					//sys.println("monster_select_count2a selected");
+					sys.wait(.5);
+				} else if (monsterselect2 >= 11){
+					sys.trigger ($monster_select_count2b);
+					//sys.println("monster_select_count2b selected");
+					sys.wait(.5);
+				} 
+				  else {
+					sys.trigger ($monster_select_count2c);
+					//sys.println("monster_select_count2c selected");
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_monster_selection2()
+	{
+		sys.killthread("map_e1m4_4::select_monsterconfig2");
+	}
+	
+	void select_monsterconfig3()
+	{
+		float monsterselect3;
+
+		while (1)
+		{
+			monsterselect3 = sys.random(15);
+		
+				if (monsterselect3 <= 5){
+					sys.trigger ($monster_select_count3a);
+					//sys.println("monster_select_count3a selected");
+					sys.wait(.5);
+				} else if (monsterselect3 >= 11){
+					sys.trigger ($monster_select_count3b);
+					//sys.println("monster_select_count3b selected");
+					sys.wait(.5);
+				} 
+				  else {
+					sys.trigger ($monster_select_count3c);
+					//sys.println("monster_select_count3c selected");
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_monster_selection3()
+	{
+		sys.killthread("map_e1m4_4::select_monsterconfig3");
+	}
+	
+	void select_monsterconfig4()
+	{
+		float monsterselect4;
+
+		while (1)
+		{
+			monsterselect4 = sys.random(15);
+		
+				if (monsterselect4 <= 5){
+					sys.trigger ($monster_select_count4a);
+					//sys.println("monster_select_count4a selected");
+					sys.wait(.5);
+				} else if (monsterselect4 >= 11){
+					sys.trigger ($monster_select_count4b);
+					//sys.println("monster_select_count4b selected");
+					sys.wait(.5);
+				} 
+				  else {
+					sys.trigger ($monster_select_count4c);
+					//sys.println("monster_select_count4c selected");
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_monster_selection4()
+	{
+		sys.killthread("map_e1m4_4::select_monsterconfig4");
+	}
+	
+	void select_monsterconfig5()
+	{
+		float monsterselect5;
+
+		while (1)
+		{
+			monsterselect5 = sys.random(15);
+		
+				if (monsterselect5 <= 5){
+					sys.trigger ($monster_select_count5a);
+					//sys.println("monster_select_count5a selected");
+					sys.wait(.5);
+				} else if (monsterselect5 >= 11){
+					sys.trigger ($monster_select_count5b);
+					//sys.println("monster_select_count5b selected");
+					sys.wait(.5);
+				} 
+				  else {
+					sys.trigger ($monster_select_count5c);
+					//sys.println("monster_select_count5c selected");
+					sys.wait(.5);
+				}
+		}
+	}
+	
+	void kill_monster_selection5()
+	{
+		sys.killthread("map_e1m4_4::select_monsterconfig5");
+	}
+
+	void checkpoint1()
+	{
+		sys.quickSave("Plan B - Checkpoint 2");
+	}
+
+	void checkpoint2()
+	{
+		sys.quickSave("Plan B - Checkpoint 3");
+	}
+
+	void checkpoint3()
+	{
+		sys.quickSave("Plan B - Checkpoint 4");
+	}
+	
+	void map_test_trigger()
+	{	
+		sys.trigger($intro_target_setinfluence_1);
+		sys.trigger($func_teleporter_2);
+		sys.trigger($SpeakerRemember);
+		sys.trigger($SpeakerCrickets);
+		$trigger_once_364.remove();
+		sys.trigger($bomb_wakeup_insanity_speaker);
+		sys.wait(15);
+		BombAreaSoundFadeIn();
+	}
+
+	void select_monster_configs()
+		{
+			thread select_monsterconfig1();
+			sys.wait(3.5);
+			thread select_monsterconfig2();
+			sys.wait(2.5);
+			thread select_monsterconfig3();
+			sys.wait(5);
+			thread select_monsterconfig4();
+			sys.wait(7);
+			thread select_monsterconfig5();
+		}
+
+	void main()
+	{
+		//StartupRealm();
+		//return;
+
+		{
+		// BOMB SCENE
+		{
+			sys.fadeTo('0 0 0', 1, 0);
+			sys.trigger($bomb_cam);
+			BombIntro();
+		}
+
+		// SET UP BOMB AREA
+		{
+			$void_toggle_portal_rotator.rotateOnce('35 0 0');
+			$bomb2.hide();
+			
+			BombAreaSoundFadeOut();
+		}
+
+
+		// SET UP MOTEL
+		{
+			$motel_phone_mover.rotateOnce('0 38 0');
+			$door_bathroom_mover.rotateOnce('0 -105 0');
+			$func_static_100455.setKey("click_item", "0");
+			$func_static_100081.setKey("click_item", "0");
+			$func_static_100080.setKey("click_item", "0");
+			$func_static_100082.setKey("click_item", "0");
+			$func_static_107939.setKey("click_item", "0");
+			$invoice_item.setKey("click_item", "0");
+			$lee_bag_inspect.setKey("click_item", "0");
+			$lee_bag.hide();
+			$lee_flannel_jacket.hide();
+		}				
+		
+		// SET UP MISC. OBJECTS 
+		{
+			sys.trigger ($func_static_108110);
+		}
+		}
+		// START UP REALM
+		StartupRealm();
+				
+		//sys.fadeTo('0 0 0', 1, 0);
+		//BackToVoid();
+	}		
+}

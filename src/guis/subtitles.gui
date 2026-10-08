@@ -1,0 +1,141 @@
+windowDef Desktop {
+	forceaspectwidth 1120
+	rect	0 ,0 ,1120 ,480 
+	backcolor	0 ,0 ,0 ,0 
+	visible "gui::subtitle1_visible"
+	float "sub_scale" 0.275
+
+	editDef SizeSync
+	{
+		rect 0, 0, 0, 0
+		visible 1
+		noevents 1
+		cvar "g_subSize"
+		liveUpdate 1
+		text "gui::sub_scale"
+	}
+	
+	windowDef Subtitles_4_3
+	{						
+		rect 0, 385, 640, 95
+		backcolor 0, 0, 0, .5
+
+		visible "gui::aspect_0_visible"
+
+		windowDef Name
+		{
+			rect 0, 2, 640, 22
+			forecolor 1, .5, .25, 1
+			text "gui::subtitle1_name"
+			textalign 1
+			textscale "gui::sub_scale"
+			shadow 1
+			font "fonts/an"
+		}
+
+		windowDef Text
+		{	
+			rect 0, 24, 640, 68
+			forecolor .5, .75, 1, 1		
+			text "gui::subtitle1_text"
+			textalign 1
+			textscale "gui::sub_scale"
+			shadow 1
+			font "fonts/an"
+		}
+	}
+
+	windowDef Subtitles_16_9
+	{				
+		forceaspectwidth 853
+		rect 0, 385, 853, 95
+		backcolor 0, 0, 0, .5
+
+		visible "gui::aspect_1_visible"
+
+		windowDef Name
+		{
+			rect 0, 2, 853, 22
+			forecolor 1, .5, .25, 1
+			text "gui::subtitle1_name"
+			textalign 1
+			textscale "gui::sub_scale"
+			shadow 1
+			font "fonts/an"
+		}
+
+		windowDef Text
+		{	
+			rect 0, 24, 853, 68
+			forecolor .5, .75, 1, 1		
+			text "gui::subtitle1_text"
+			textalign 1
+			textscale "gui::sub_scale"
+			shadow 1
+			font "fonts/an"
+		}
+	}
+
+	windowDef Subtitles_16_10
+	{				
+		forceaspectwidth 768
+		rect 0, 385, 768, 95
+		backcolor 0, 0, 0, .5
+
+		visible "gui::aspect_2_visible"
+
+		windowDef Name
+		{
+			rect 0, 2, 768, 22
+			forecolor 1, .5, .25, 1
+			text "gui::subtitle1_name"
+			textalign 1
+			textscale "gui::sub_scale"
+			shadow 1
+			font "fonts/an"
+		}
+
+		windowDef Text
+		{	
+			rect 0, 24, 768, 68
+			forecolor .5, .75, 1, 1		
+			text "gui::subtitle1_text"
+			textalign 1
+			textscale "gui::sub_scale"
+			shadow 1
+			font "fonts/an"
+		}
+	}
+
+	windowDef Subtitles_21_9
+	{				
+		forceaspectwidth 1120
+		rect 0, 385, 1120, 95
+		backcolor 0, 0, 0, .5
+
+		visible "gui::aspect_3_visible"
+
+		windowDef Name
+		{
+			rect 0, 2, 1120, 22
+			forecolor 1, .5, .25, 1
+			text "gui::subtitle1_name"
+			textalign 1
+			textscale "gui::sub_scale"
+			shadow 1
+			font "fonts/an"
+		}
+
+		windowDef Text
+		{	
+			rect 0, 24, 1120, 68
+			forecolor .5, .75, 1, 1		
+			text "gui::subtitle1_text"
+			textalign 1
+			textscale "gui::sub_scale"
+			shadow 1
+			font "fonts/an"
+		}
+	}
+}
+

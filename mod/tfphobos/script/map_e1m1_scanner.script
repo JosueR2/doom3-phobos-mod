@@ -1,0 +1,507 @@
+namespace map_e1m1
+{
+	void RotateBed()
+	{
+		$scanner_toffel_5.move(DOWN,2);
+		sys.wait(.1);
+		$scanner_toffel_4.move(DOWN,2);
+		sys.wait(.1);
+		$scanner_toffel_3.move(DOWN,2);
+		sys.wait(.1);
+		$scanner_toffel_2.move(DOWN,2);
+		sys.wait(.1);
+		$scanner_toffel_1.move(DOWN,2);
+		
+		$scanner_toffel_1.rotateOnce('0 -35 0');
+		$scanner_toffel_2.rotateOnce('0 0 2.5');
+		$scanner_toffel_3.rotateOnce('0 0 2.5');
+		$scanner_toffel_4.rotateOnce('0 0 2.5');
+		$scanner_toffel_5.rotateOnce('0 0 2.5');
+				
+		sys.wait(.25);
+		$scanner_bed.move(REL_LEFT, 16);
+
+		sys.wait(.1);
+		$scanner_fork.rotateOnce('0 0 42.5');
+		sys.wait(.1);
+		$scanner_foot_left.rotateOnce('0 0 -65');
+		sys.wait(.1);
+		$scanner_foot_right.rotateOnce('0 0 -65');
+		
+		sys.wait(.1);
+		$scanner_headlight.rotateOnce('0 0 -25');
+
+		sys.waitFor($scanner_headlight);
+	}
+
+	void BringOutScannerBed()
+	{
+		$scanner_bed.unbind();
+		sys.wait(.1);
+
+		$scanner_toffel_5.move(UP,4);
+		sys.wait(.1);
+		$scanner_toffel_4.move(UP,4);
+		sys.wait(.1);
+		$scanner_toffel_3.move(UP,4);
+		sys.wait(.1);
+		$scanner_toffel_2.move(UP,4);
+		sys.wait(.1);
+		$scanner_toffel_1.move(UP,4);		
+
+		sys.waitFor($scanner_toffel_1);
+
+		$scanner_bed.move(270, 136);		
+			
+		sys.waitFor($scanner_bed);
+
+		$scanner_bed.bind($scanner_fork);
+		sys.wait(.25);
+				
+		sys.waitFor($scanner_bed);		
+	}
+
+	void PrepareScannerBed()
+	{
+		BringOutScannerBed();
+		RotateBed();
+
+		$scanner_bed.setKey ("click_item", "1");
+		sys.trigger($scanner_bed_clip);
+	}
+
+	float ring1Status = 0;
+	float ring2Status = 0;
+	float ring3Status = 0;
+
+	void RunRing(entity ring, float direction, float isStarting)
+	{
+		float i,v,t,blendtime,velmult,final;
+		vector rotvector;
+		
+		blendtime = 25;
+		velmult = .3;			
+
+		if( isStarting == 0)
+		{
+			blendtime /= 2;
+			velmult *= 2;
+		}
+
+		t = blendtime * GAME_FPS;
+		final = (t-1) * velmult;
+
+		for ( i = 0; i < t; i++ )
+		{
+			if(isStarting == 1)
+			{
+				v = (i * velmult);
+			}
+			else
+			{
+				v = final - (i * velmult);				
+			}
+			
+			rotvector_x=v * direction ;rotvector_y=0 ; rotvector_z=0;
+			
+			ring.rotate ( rotvector );
+			
+			sys.wait( GAME_FRAMETIME );
+		}
+	}
+
+	void RunRing1(float isStarting)
+	{
+		ring1Status = 1;
+		RunRing($scanner_ring_1, -1, isStarting);
+		ring1Status = 2;
+	}
+
+	void RunRing2(float isStarting)
+	{
+		ring2Status = 1;
+		RunRing($scanner_ring_2, 1, isStarting);
+		ring2Status = 2;
+	}
+
+	void RunRing3(float isStarting)
+	{
+		ring3Status = 1;
+		RunRing($scanner_ring_3, -1, isStarting);
+		ring3Status = 2;
+
+		sys.wait(3);
+
+		ring3Status = 3;		
+	}
+
+	void StartScannerRings()
+	{
+		sys.trigger($scanner_ring_1_lamp_1_activator);
+		sys.trigger($scanner_ring_2_lamp_1_activator);
+		sys.trigger($scanner_ring_3_lamp_1_activator);			
+		
+		thread RunRing1(1);
+		sys.wait(.5);
+		thread RunRing2(1);
+		sys.wait(.5);
+		thread RunRing3(1);
+	}
+
+	void WarmupLights(float t)
+	{
+		sys.fadeTo('1 0.65 0.3', .25, t);
+
+		float l = 1;
+		while(l < 9)
+		{
+			thread crossFadeEnt (sys.getEntity("scanner_ring_1_lamp_" + l), '0 0 0', '1 0.65 0.3', t);
+			thread crossFadeEnt (sys.getEntity("scanner_ring_1_lamp_" + l + "_flare"), '0 0 0', '1 0.65 0.3', t);			
+
+			thread crossFadeEnt (sys.getEntity("scanner_ring_2_lamp_" + l), '0 0 0', '1 0.65 0.3', t);
+			thread crossFadeEnt (sys.getEntity("scanner_ring_2_lamp_" + l + "_flare"), '0 0 0', '1 0.65 0.3', t);
+			
+			thread crossFadeEnt (sys.getEntity("scanner_ring_3_lamp_" + l), '0 0 0', '1 0.65 0.3', t);
+			thread crossFadeEnt (sys.getEntity("scanner_ring_3_lamp_" + l + "_flare"), '0 0 0', '1 0.65 0.3', t);
+
+			l++;
+		}
+
+		thread crossFadeEnt ($scanner_ring_1_light, '0 0 0', '1 0.65 0.3', t);
+		thread crossFadeEnt ($scanner_ring_2_light, '0 0 0', '1 0.65 0.3', t);
+		thread crossFadeEnt ($scanner_ring_3_light, '0 0 0', '1 0.65 0.3', t);
+	}
+
+	void ShutdownLights(float t)
+	{
+		sys.fadeTo('1 1 1', 0, t);
+
+	float l = 1;
+		while(l < 9)
+		{
+			thread crossFadeEnt (sys.getEntity("scanner_ring_1_lamp_" + l), '1 0.65 0.3', '0 0 0', t);
+			thread crossFadeEnt (sys.getEntity("scanner_ring_1_lamp_" + l + "_flare"), '1 0.65 0.3', '0 0 0', t);
+
+			thread crossFadeEnt (sys.getEntity("scanner_ring_2_lamp_" + l), '1 0.65 0.3', '0 0 0', t);
+			thread crossFadeEnt (sys.getEntity("scanner_ring_2_lamp_" + l + "_flare"), '1 0.65 0.3', '0 0 0', t);
+			
+			thread crossFadeEnt (sys.getEntity("scanner_ring_3_lamp_" + l), '1 0.65 0.3', '0 0 0', t);
+			thread crossFadeEnt (sys.getEntity("scanner_ring_3_lamp_" + l + "_flare"), '1 0.65 0.3', '0 0 0', t);
+
+			l++;
+		}
+
+		thread crossFadeEnt ($scanner_ring_1_light, '1 0.65 0.3', '0 0 0', t);
+		thread crossFadeEnt ($scanner_ring_2_light, '1 0.65 0.3', '0 0 0', t);
+		thread crossFadeEnt ($scanner_ring_3_light, '1 0.65 0.3', '0 0 0', t);
+	}
+	
+	float scannerActive = 0;
+	float canSkipScanner = 0;
+	float scannerSkipped = 0;
+
+	void EnableScannerSkipTimer()
+	{
+		sys.wait(1.5);
+		if (scannerActive == 1 && scannerSkipped == 0)
+		{
+			canSkipScanner = 1;
+			PhobosShowSubtitle_e1m1("", "[ Press SPACE or X to skip ]");
+			sys.wait(5.0);
+			if (scannerActive == 1 && scannerSkipped == 0)
+			{
+				sys.hideSubtitles();
+			}
+		}
+	}
+
+	void SkipScannerSequence()
+	{
+		if (canSkipScanner == 0 || scannerActive == 0 || scannerSkipped == 1)
+		{
+			return;
+		}
+
+		scannerSkipped = 1;
+		canSkipScanner = 0;
+		scannerActive = 0;
+
+		// Terminate scanner threads
+		sys.killthread("map_e1m1::EnableScannerSkipTimer");
+		sys.killthread("map_e1m1::UpdateCameraAngle");
+		sys.killthread("map_e1m1::BoardScanner");
+		sys.killthread("map_e1m1::StartScanner");
+		sys.killthread("map_e1m1::StartScannerRings");
+		sys.killthread("map_e1m1::WarmupLights");
+		sys.killthread("map_e1m1::ShutdownLights");
+		sys.killthread("map_e1m1::AdjustScreenAlpha");
+		sys.killthread("map_e1m1::MoveIntoScanner");
+		sys.killthread("map_e1m1::RotateScannerBed");
+
+		// Hide any lingering subtitles
+		sys.hideSubtitles();
+
+		// Stop sounds
+		$scanner_warmup_speaker.stopSound(SND_CHANNEL_ANY, 0);
+		$scanner_headlight.stopSound(SND_CHANNEL_ANY, 0);
+		$speaker_scanner_music.stopSound(SND_CHANNEL_ANY, 0);
+		$player1.stopSound(SND_CHANNEL_ANY, 0);
+
+		// Toggle off scanner camera
+		sys.trigger($scanner_camera);
+
+		// Teleport player directly to exit position
+		sys.trigger($info_player_teleport_2);
+
+		sys.fadeTo('0 0 0', 1, 0.1);
+		sys.wait(0.15);
+
+		// Trigger level change to next map (e1m1_1)
+		sys.trigger($target_endlevel_1);
+		sys.print("Phobos Mod: Medical scanner skipped!\n");
+	}
+
+	vector screenColor;
+	float screenAlpha;
+
+	void AdjustScreenAlpha(float t)
+	{
+		float max = t / GAME_FRAMETIME;		
+		float i = 0;
+		while(i < max)
+		{	
+			screenAlpha = (i / max);
+			sys.wait(GAME_FRAMETIME);
+			i++;
+		}
+	}
+	
+	void MoveIntoScanner()
+	{
+		$scanner_bed.move(90, 136);			
+
+		sys.waitFor($scanner_bed);
+	}
+	
+	void MoveOutOfScanner()
+	{
+		$scanner_bed.move(270, 136);			
+
+		sys.waitFor($scanner_bed);
+	}
+
+	void RotateScannerBed()
+	{
+		$scanner_toffel_2.rotateOnce('0 0 -2.5');
+		$scanner_toffel_3.rotateOnce('0 0 -2.5');
+		$scanner_toffel_4.rotateOnce('0 0 -2.5');
+		$scanner_toffel_5.rotateOnce('0 0 -2.5');
+		$scanner_toffel_1.rotateOnce('0 35 0');		
+
+		$scanner_toffel_5.move(UP,2);
+		$scanner_toffel_4.move(UP,2);
+		$scanner_toffel_3.move(UP,2);
+		$scanner_toffel_2.move(UP,2);
+		$scanner_toffel_1.move(UP,2);
+		
+		$scanner_bed.move(REL_RIGHT, 16);
+
+		$scanner_fork.rotateOnce('0 0 -42.5');
+		$scanner_foot_left.rotateOnce('0 0 65');
+		$scanner_foot_right.rotateOnce('0 0 65');
+		$scanner_headlight.rotateOnce('0 0 25');
+		
+		sys.waitFor($scanner_headlight);
+	}	
+
+	void StartScanner()
+	{	
+		float waitTime = $scanner_warmup_speaker.startSoundShader("sound/shav/e1m1/scanner.ogg", SND_CHANNEL_ANY);
+		
+		sys.wait(waitTime / 2);
+
+		thread WarmupLights(waitTime / 2);
+
+		sys.wait((waitTime / 2) - 0.125);		
+
+		waitTime = $scanner_warmup_speaker.startSoundShader("sound/shav/e1m1/scanner2.ogg", SND_CHANNEL_ANY);
+		
+		thread ShutdownLights(waitTime * 0.75);
+
+		sys.wait(waitTime - 0.25);
+
+		thread StartScannerRings();		
+		waitTime = $scanner_headlight.startSoundShader("sound/shav/e1m1/scanner3.ogg", SND_CHANNEL_BODY);
+
+		thread AdjustScreenAlpha(waitTime - 1);
+
+		sys.trigger($speaker_scanner_music);
+
+		screenColor = '0 0 0';
+		screenAlpha = 0.0f;
+
+		float interval = waitTime / 8;
+		float i = 0;
+		while(i < 7)
+		{
+			if(i == 4)
+			{
+				playerC.startSoundShader("sound/shav/e1m1/breathing.ogg", SND_CHANNEL_BODY);
+			}
+			$player1.startSoundShader("sound/shav/e1m1/flash.ogg", SND_CHANNEL_ANY);
+
+			sys.fadeTo('1 .7 .4', .25 + .125 * i, 0);
+			ShutdownLights(0.5);			
+			sys.fadeTo('0 0 0', screenAlpha, .25 + .25 * i);
+			sys.wait(interval);
+			i++;
+		}
+
+		sys.wait(interval - 0.25);
+
+		sys.fadeTo('0 0 0', 1, .1);
+		
+		float sdelay = $player1.startSoundShader("sound/shav/e1m1/endflash.ogg", SND_CHANNEL_BODY);
+
+		sys.wait(.1);
+
+		sys.trigger($scanner_camera);
+		sys.trigger($info_player_teleport_2);		
+
+		sys.wait(sdelay);
+
+		sys.trigger($target_endlevel_1);
+	}
+
+	float b = 0;
+
+	void UpdateCameraAngle()
+	{	
+		scannerActive = 1;
+		while(scannerActive == 1)
+		{						
+			$scanner_camera.setAngles($player1.getHead().getAngles());
+			sys.wait(GAME_FRAMETIME);
+		}
+	}
+
+	void BoardScanner()
+	{
+		if(b == 0)
+		{
+			b = 1;
+			scannerActive = 1;
+			scannerSkipped = 0;
+			canSkipScanner = 0;
+			thread EnableScannerSkipTimer();
+
+			thread UpdateCameraAngle();
+
+			sys.fadeTo('1 1 1', 1, .0625);
+			sys.wait(0.0625);			
+			$scanner_playerbody.show();
+			sys.trigger($info_player_teleport_3);
+			sys.trigger($scanner_camera);
+
+			sys.fadeTo('1 1 1', 0, .125);
+
+			$scanner_bed.setKey ("click_item", "0");
+
+			RotateScannerBed();
+
+			sys.wait(2);
+
+			thread StartScanner();
+
+			PhobosShowSubtitle_e1m1("Dr. Nielsen", "The procedure will start in just a few seconds.\nPlease. Lie still. It will only take a minute.");
+			thread CharacterSays(doctorC, "sound/vo/e1m1/doctorsappointment/Doctor5.ogg");
+
+			sys.wait(6);
+
+			MoveIntoScanner();
+
+			sys.wait(2);
+
+			PhobosShowSubtitle_e1m1("Sam", "All this for a scratch?");
+			CharacterSays(playerC, "sound/vo/e1m1/doctorsappointment/Player6.ogg");
+
+			sys.wait(1.3);
+
+			sys.hideSubtitles();
+		}
+	}
+
+	float ring1Pulse = 1;
+	float ring2Pulse = 1;
+	float ring3Pulse = 1;
+
+	float total3Pulse = 0;
+
+	float ScannerRingPulse(float pulse, float ringNumber)
+	{
+		entity onLamp = sys.getEntity("scanner_ring_" + ringNumber + "_lamp_" + pulse);
+		
+		pulse = pulse + 1;
+		if(pulse > 8)
+			pulse = 1;
+
+		entity offLampActivator = sys.getEntity("scanner_ring_" + ringNumber + "_lamp_" + pulse + "_activator");
+
+		sys.trigger(offLampActivator);		
+
+		return pulse;
+	}
+
+	void ScannerRing1Pulse()
+	{
+		ring1Pulse = ScannerRingPulse(ring1Pulse, 1);
+	}
+
+	void ScannerRing2Pulse()
+	{					
+		ring2Pulse = ScannerRingPulse(ring2Pulse, 2);
+	}	
+	
+	void ScannerRing3Pulse()
+	{
+		ring3Pulse = ScannerRingPulse(ring3Pulse, 3);
+
+		total3Pulse++;
+	}
+
+	void InitScanner()
+	{
+		//Set up the lights
+		float l = 1;
+		while(l < 9)
+		{
+			sys.getEntity("scanner_ring_1_lamp_" + l).setColor(0,0,0);
+			sys.getEntity("scanner_ring_1_lamp_" + l + "_flare").setColor(0,0,0);
+
+			sys.getEntity("scanner_ring_2_lamp_" + l).setColor(0,0,0);
+			sys.getEntity("scanner_ring_2_lamp_" + l + "_flare").setColor(0,0,0);
+
+			sys.getEntity("scanner_ring_3_lamp_" + l).setColor(0,0,0);
+			sys.getEntity("scanner_ring_3_lamp_" + l + "_flare").setColor(0,0,0);
+
+			l++;
+		}
+
+		$scanner_ring_1_light.setColor(0,0,0);
+		$scanner_ring_2_light.setColor(0,0,0);
+		$scanner_ring_3_light.setColor(0,0,0);
+
+		$scanner_bed.unbind();
+		$scanner_bed.move(90, 112);
+
+		$scanner_toffel_5.move(DOWN,4);
+		$scanner_toffel_4.move(DOWN,4);		
+		$scanner_toffel_3.move(DOWN,4);		
+		$scanner_toffel_2.move(DOWN,4);		
+		$scanner_toffel_1.move(DOWN,4);		
+
+		sys.waitFor($scanner_toffel_1);
+		
+		$scanner_bed.bind($scanner_fork);
+	}
+}

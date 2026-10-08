@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+
+# Editor / System
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini

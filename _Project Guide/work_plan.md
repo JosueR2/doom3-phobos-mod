@@ -82,3 +82,18 @@ Permitir al jugador saltar ("skip") las cinemáticas y secuencias no interactiva
     - Se actualizó `tools/patch_gamex86.py` para inyectar la DLL parcheada no solo en `tfphobos/gamex86.dll`, sino también directamente dentro del paquete `game00.pk4` (respaldando previamente `game00.pk4.orig`).
     - De esta manera, incluso si el motor extrae la DLL en el inicio del juego, la extrae ya parcheada.
     - Se sincronizó `mod/tfphobos/game00.pk4` y `mod/tfphobos/gamex86.dll` mediante `tools/build_mod.py`.
+- [x] **Localización Completa del UI (Menús e Interfaz) al Español y Soporte de Caracteres Especiales (Letra 'ñ'):**
+  - **Causa Raíz del Glifo Faltante ('ñ' / 'Ñ'):**
+    - Doom 3 mapea el glifo `ñ` (código ASCII 241) a la hoja de textura de fuente `fonts/fontImage_7_48.tga`.
+    - En los paquetes originales de Phobos, dicha hoja estaba ubicada erróneamente en `fonts/english/bank/fontimage_7_*.tga` y faltaba en el directorio padre `fonts/english/`.
+    - Se extrajo `fontimage_7_12.tga`, `fontimage_7_24.tga` y `fontimage_7_48.tga` a `src/fonts/english/` y `src/fonts/english/bank/`.
+  - **Selector Unificado de Idioma:**
+    - Se renombró la opción "Subtitle Language" por **"Language"** (en inglés) / **"Idioma"** (en español).
+    - Opciones disponibles: `ENGLISH;ESPAÑOL` controlando la variable `g_subLang`.
+  - **Traducción Dinámica y Reactiva del UI:**
+    - Se desacoplaron todos los textos estáticos en los archivos de menú (`MainButtons.pd`, `OptionsMenu.pd`, `GameButton.pd`, `VideoButton.pd`, `AudioButton.pd`, `ControlsMovement.pd`, `ControlsWeapons.pd`, `ControlsAttack.pd`, `DefaultsButton.pd`, `LoadGameMenu.pd`, `SaveGameMenu.pd`, `SelectSkillLevel.pd`, `ExitGame.pd`, `DeleteGame.pd`, `EndGame.pd`, `OverwriteSaveGame.pd`, `ApplyChanges.pd`, `Episodes/*.pd`).
+    - En `mainmenu.gui`, se implementó `editDef LangSync` para escuchar cambios en `g_subLang` y disparar el evento `UpdateLanguage`.
+    - Al alternar el idioma, el menú y los subtítulos cambian simultáneamente en tiempo real e instantáneamente sin reiniciar el juego ni recargar el motor.
+  - **Empaquetado y Distribución:**
+    - Empaquetado en `pak003_skipcinematics.pk4` (341.02 KB) y sincronizado a `mod/tfphobos/`.
+

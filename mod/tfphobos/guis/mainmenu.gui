@@ -1,0 +1,330 @@
+windowDef Desktop 
+{
+	rect		0 ,0 ,640 ,480
+	backcolor	0, 0, 0, 1
+	float selected	0
+	float roqon	0
+	float activate2 0
+	float doomme	1
+	menugui		1
+	float prevMenu 0
+	float menu 0
+	float inModal 0
+	float EpisodeCount 3
+	float MenuUp 0
+	float SelectedEpisode 1
+	float menuTransitioning 0
+
+	editDef LangSync
+	{
+		rect 0, 0, 0, 0
+		visible 1
+		noevents 1
+		cvar "g_subLang"
+		liveUpdate 1
+		onCvarChanged {
+			namedEvent "Desktop" "UpdateLanguage";
+		}
+	}
+
+	onESC {
+		if ("desktop::doomme" == 0) {
+			showcursor "1" ;
+
+			set "idlogo::rect" "0 0 0 0" ;
+			set "nerveLogo::rect" "0 0 0 0" ;
+			resetTime "SoundrunMenu" "0" ; 
+			set "desktop::doomme" "1" ;
+			set "cmd" "play """ ;
+		} 
+
+		set "DeleteGameWindowHolder::visible" "0" ;
+
+		set "cmd" "close" ;
+	}
+
+	onActivate
+	{ 
+		resetTime "SoundrunMenu" "0" ;
+		namedEvent "Desktop" "UpdateLanguage" ;
+	} 
+
+	onNamedEvent NoIntro
+	{   
+	 
+	}
+
+	onNamedEvent UpdateLanguage
+	{
+		if ("gui::g_subLang" == "english")
+		{
+			set "gui::txt_newgame" "NEW GAME" ;
+			set "gui::txt_loadgame" "LOAD GAME" ;
+			set "gui::txt_savegame" "SAVE GAME" ;
+			set "gui::txt_options" "OPTIONS" ;
+			set "gui::txt_endgame" "END GAME" ;
+			set "gui::txt_returngame" "BACK TO GAME" ;
+			set "gui::txt_exitgame" "EXIT GAME" ;
+
+			set "gui::txt_tab_controls" "Controls" ;
+			set "gui::txt_tab_game" "Game" ;
+			set "gui::txt_tab_video" "Video" ;
+			set "gui::txt_tab_audio" "Audio" ;
+			set "gui::txt_tab_defaults" "Defaults" ;
+
+			set "gui::txt_gamesettings" "Game Settings" ;
+			set "gui::txt_subtitles" "Show Subtitles" ;
+			set "gui::txt_lang_label" "Language" ;
+			set "gui::txt_size_label" "Subtitle Size" ;
+
+			set "gui::txt_videosettings" "Video Settings" ;
+			set "gui::txt_screenwidth" "Screen Width" ;
+			set "gui::txt_screenheight" "Screen Height" ;
+			set "gui::txt_aspectratio" "Aspect Ratio" ;
+			set "gui::txt_restartvideo" "Restart Video" ;
+			set "gui::txt_advanced" "Advanced" ;
+
+			set "gui::txt_audiosettings" "Audio Settings" ;
+
+			set "gui::txt_movement" "Movement" ;
+			set "gui::txt_weapons" "Weapons" ;
+			set "gui::txt_misc" "Miscellaneous" ;
+			set "gui::txt_use_btn" "Use Button" ;
+			set "gui::txt_objectives" "Show Objectives" ;
+
+			set "gui::txt_loadgame_title" "LOAD GAME" ;
+			set "gui::txt_savegame_title" "SAVE GAME" ;
+			set "gui::txt_col_name" "NAME" ;
+			set "gui::txt_col_date" "DATE" ;
+			set "gui::txt_col_time" "TIME" ;
+			set "gui::txt_btn_load" "LOAD SAVEGAME" ;
+			set "gui::txt_btn_save" "SAVE GAME" ;
+			set "gui::txt_btn_delete" "DELETE SAVEGAME" ;
+			set "gui::txt_btn_cancel" "CANCEL" ;
+
+			set "gui::txt_skill_title" "Choose a skill level" ;
+			set "gui::txt_skill_1" "I'm too young to die!" ;
+			set "gui::txt_skill_2" "Hurt me plenty" ;
+			set "gui::txt_skill_3" "Ultra-violence" ;
+			set "gui::txt_skill_4" "NIGHTMARE" ;
+			set "gui::txt_skill_cancel" "CANCEL" ;
+
+			set "gui::txt_exit_title" "EXIT GAME?" ;
+			set "gui::txt_exit_msg" "Are you sure you want to quit?" ;
+			set "gui::txt_yes" "YES" ;
+			set "gui::txt_no" "NO" ;
+
+			set "gui::txt_del_title" "DELETE SAVEGAME?" ;
+			set "gui::txt_delete" "DELETE" ;
+
+			set "gui::txt_end_title" "END GAME" ;
+			set "gui::txt_end_msg" "Are you sure you want to end the game?" ;
+
+			set "gui::txt_ovr_title" "Overwrite SAVEGAME?" ;
+			set "gui::txt_overwrite" "Overwrite" ;
+
+			set "gui::txt_apply_title" "RESTART VIDEO" ;
+			set "gui::txt_apply_msg" "Do you wish to restart video?" ;
+			set "gui::txt_ok" "OK" ;
+
+			set "gui::txt_ep_unavail" "EPISODE UNAVAILABLE" ;
+		}
+		else
+		{
+			set "gui::txt_newgame" "NUEVA PARTIDA" ;
+			set "gui::txt_loadgame" "CARGAR PARTIDA" ;
+			set "gui::txt_savegame" "GUARDAR PARTIDA" ;
+			set "gui::txt_options" "OPCIONES" ;
+			set "gui::txt_endgame" "FINALIZAR JUEGO" ;
+			set "gui::txt_returngame" "VOLVER AL JUEGO" ;
+			set "gui::txt_exitgame" "SALIR DEL JUEGO" ;
+
+			set "gui::txt_tab_controls" "Controles" ;
+			set "gui::txt_tab_game" "Juego" ;
+			set "gui::txt_tab_video" "V\xeddeo" ;
+			set "gui::txt_tab_audio" "Audio" ;
+			set "gui::txt_tab_defaults" "Por Defecto" ;
+
+			set "gui::txt_gamesettings" "Ajustes de Juego" ;
+			set "gui::txt_subtitles" "Mostrar Subt\xedtulos" ;
+			set "gui::txt_lang_label" "Idioma" ;
+			set "gui::txt_size_label" "Tama\xf1o Subt\xedtulos" ;
+
+			set "gui::txt_videosettings" "Ajustes de V\xeddeo" ;
+			set "gui::txt_screenwidth" "Anchura Pantalla" ;
+			set "gui::txt_screenheight" "Altura Pantalla" ;
+			set "gui::txt_aspectratio" "Relaci\xf3n de Aspecto" ;
+			set "gui::txt_restartvideo" "Reiniciar V\xeddeo" ;
+			set "gui::txt_advanced" "Avanzado" ;
+
+			set "gui::txt_audiosettings" "Ajustes de Audio" ;
+
+			set "gui::txt_movement" "Movimiento" ;
+			set "gui::txt_weapons" "Armas" ;
+			set "gui::txt_misc" "Varios" ;
+			set "gui::txt_use_btn" "Bot\xf3n Usar" ;
+			set "gui::txt_objectives" "Mostrar Objetivos" ;
+
+			set "gui::txt_loadgame_title" "CARGAR PARTIDA" ;
+			set "gui::txt_savegame_title" "GUARDAR PARTIDA" ;
+			set "gui::txt_col_name" "NOMBRE" ;
+			set "gui::txt_col_date" "FECHA" ;
+			set "gui::txt_col_time" "HORA" ;
+			set "gui::txt_btn_load" "CARGAR PARTIDA" ;
+			set "gui::txt_btn_save" "GUARDAR PARTIDA" ;
+			set "gui::txt_btn_delete" "ELIMINAR PARTIDA" ;
+			set "gui::txt_btn_cancel" "CANCELAR" ;
+
+			set "gui::txt_skill_title" "Elige un nivel de dificultad" ;
+			set "gui::txt_skill_1" "\xa1Soy muy joven para morir!" ;
+			set "gui::txt_skill_2" "Hazme da\xf1o" ;
+			set "gui::txt_skill_3" "Ultraviolencia" ;
+			set "gui::txt_skill_4" "PESADILLA" ;
+			set "gui::txt_skill_cancel" "CANCELAR" ;
+
+			set "gui::txt_exit_title" "\xbfSALIR DEL JUEGO?" ;
+			set "gui::txt_exit_msg" "\xbfSeguro que deseas salir?" ;
+			set "gui::txt_yes" "S\xcd" ;
+			set "gui::txt_no" "NO" ;
+
+			set "gui::txt_del_title" "\xbfELIMINAR PARTIDA?" ;
+			set "gui::txt_delete" "ELIMINAR" ;
+
+			set "gui::txt_end_title" "FINALIZAR JUEGO" ;
+			set "gui::txt_end_msg" "\xbfSeguro que deseas finalizar el juego?" ;
+
+			set "gui::txt_ovr_title" "\xbfSOBRESCRIBIR PARTIDA?" ;
+			set "gui::txt_overwrite" "Sobrescribir" ;
+
+			set "gui::txt_apply_title" "REINICIAR V\xcdDEO" ;
+			set "gui::txt_apply_msg" "\xbfDeseas reiniciar el v\xeddeo?" ;
+			set "gui::txt_ok" "ACEPTAR" ;
+
+			set "gui::txt_ep_unavail" "EPISODIO NO DISPONIBLE" ;
+		}
+	}
+
+	onTime 0
+	{		
+		set "Desktop::menuTransitioning" "1";
+		namedEvent "Desktop" "UpdateLanguage" ;
+
+		if("Desktop::menu" == 1 && "Desktop::MenuUp" == "0")
+		{
+			transition "Mars4::rect" "0 -100 1040 1310" "0 -180 1040 1310" "5000" ".2" ".6";			
+		}
+	}
+
+	onTime 500
+	{
+		set "Desktop::menuTransitioning" "0";
+	}
+
+	windowDef Mars4	
+	{
+		rect 0, -180, 1040, 1310
+		background "guis/assets/ballg.jpg"
+		matcolor .1,.1,.1,.1
+		noevents 1
+
+		onTime 0
+		{
+			transition "matcolor" "0.1 0.1 0.1 .1" "0.2 0.1 0.1 .2" "2000";
+		}	
+		
+		onTime 2000 
+		{
+			transition "matcolor" "0.2 0.1 0.1 .2" "0.1 0.1 0.1 .1" "2000";
+		}
+
+		onTime 4000
+		{
+			resetTime "0";
+		}
+	}
+
+	windowDef Mars3	
+	{
+		rect 0, -180, 1040, 1310
+		background "guis/assets/ballg.jpg"
+		matcolor .1,.1,.1,.1
+		noevents 1
+
+		onTime 0
+		{
+			transition "matcolor" "0.1 0.1 0.1 .1" "0.2 0.1 0.1 .2" "2000";
+		}	
+		
+		onTime 2000 
+		{
+			transition "matcolor" "0.2 0.1 0.1 .2" "0.1 0.1 0.1 .1" "2000";
+		}
+
+		onTime 4000
+		{
+			resetTime "0";
+		}
+	}
+
+	windowDef Mars2	
+	{
+		rect 0, -180, 1040, 1310
+		background "guis/assets/ballg.jpg"
+		matcolor .1,.1,.1,.1
+		noevents 1
+
+		onTime 0
+		{
+			transition "matcolor" "0.1 0.1 0.1 .1" "0.2 0.1 0.1 .2" "2000";
+		}	
+		
+		onTime 2000 
+		{
+			transition "matcolor" "0.2 0.1 0.1 .2" "0.1 0.1 0.1 .1" "2000";
+		}
+
+		onTime 4000
+		{
+			resetTime "0";
+		}
+	}
+
+	#include "guis/mainmenu/MainButtons.pd"
+	#include "guis/mainmenu/NewGameMenu.pd"	
+	#include "guis/mainmenu/LoadGameMenu.pd"
+	#include "guis/mainmenu/OptionsMenu.pd"
+	#include "guis/mainmenu/SaveGameMenu.pd"
+
+	#include "guis/mainmenu/ExitGame.pd"
+
+	windowDef SoundrunMenu {
+		rect		0,0,0,0
+		visible		0
+		notime		1
+
+		onTime 0 {
+		
+		}
+		onTime 10 {
+			set	"cmd"	"music guisounds_menu2" ;
+			set "cmd"	"checkKeys" ;
+		}
+		onTime 52000 {
+			if ("gui::inGame" == 0) {
+				resetTime "10";
+			}
+		}
+	}
+	windowDef SoundrunInGame {
+		rect		0,0,0,0
+		visible		0
+		notime		1
+
+		onTime 0 {
+			set	"cmd"	"music guisounds_menuingame" ;
+		}
+	}
+	
+	#include "guis/mainmenu/EndGame.pd"
+
+}

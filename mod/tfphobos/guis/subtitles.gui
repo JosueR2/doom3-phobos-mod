@@ -16,13 +16,13 @@ windowDef Desktop {
 	
 	windowDef Subtitles
 	{						
-		rect 0, 385, 640, 95
+		rect 0, 355, 640, 125
 		backcolor 0, 0, 0, .5
 		visible 1
 
 		windowDef Name
 		{
-			rect 0, 2, 640, 22
+			rect 0, 3, 640, 22
 			forecolor 1, .5, .25, 1
 			text "gui::subtitle1_name"
 			textalign 1
@@ -33,7 +33,7 @@ windowDef Desktop {
 
 		windowDef Text
 		{	
-			rect 0, 24, 640, 68
+			rect 0, 26, 640, 95
 			forecolor .5, .75, 1, 1		
 			text "gui::subtitle1_text"
 			textalign 1

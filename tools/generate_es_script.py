@@ -85,8 +85,8 @@ def generate_script():
         subs_dict = map_to_subs[map_key]
         lines.append(f"string LocalizeSubtitle_{map_key}(string text) {{")
         for orig, trans in subs_dict.items():
-            clean_orig = orig.replace('\r', '').replace('\n', '\\n')
-            clean_trans = trans.replace('\r', '').replace('\n', '\\n')
+            clean_orig = orig.replace('\r', '').replace('\n', '\\n').replace('"', "'")
+            clean_trans = trans.replace('\r', '').replace('\n', '\\n').replace('"', "'")
             lines.append(f'\tif (text == "{clean_orig}") return "{clean_trans}";')
         lines.append("\treturn text;")
         lines.append("}")

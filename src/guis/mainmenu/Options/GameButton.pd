@@ -872,23 +872,34 @@ windowDef GamePanel
 				forecolor 0.2,0.56,0.88,.8
 				onAction
 				{
-					set "LanguageReload::visible" "1";
-				resetTime "LanguageReload" "0";
+					set "LanguageRestartNotice::visible" "1";
 				}
 			}
 
 		}
 
-		windowDef LanguageReload
+		windowDef LanguageRestartNotice
 		{
-			rect 0, 0, 1, 1
-			visible 0
-			noevents 1
+			rect		3, 214, 380, 28
+			visible		0
+			noevents	1
 
-			onTime 250
+			windowDef LanguageRestartEnglish
 			{
-				set "cmd" "reloadLanguage; reloadGuis";
-				set "visible" "0";
+				rect		0, 0, 380, 14
+				text		"Restart the game to apply the new language."
+				font		"fonts/bank"
+				textscale	0.12
+				forecolor 0.2,0.56,0.88,.8
+			}
+
+			windowDef LanguageRestartSpanish
+			{
+				rect		0, 14, 380, 14
+				text		"Reinicia el juego para aplicar el nuevo idioma."
+				font		"fonts/bank"
+				textscale	0.12
+				forecolor 0.2,0.56,0.88,.8
 			}
 		}
 

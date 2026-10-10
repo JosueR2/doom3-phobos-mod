@@ -344,7 +344,7 @@
 		bindDef BackpedalSelector
 		{
 			rect		100, 0, 90, 14
-			bind		"_impulse0"
+			bind		"_button5"
 			font		"fonts/bank"
 			textscale	0.125			
 			textaligny  2

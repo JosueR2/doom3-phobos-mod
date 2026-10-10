@@ -571,6 +571,8 @@ namespace map_e1m1
 
 		map_intro::activeCam = 0;
 		map_intro::introActive = 0;
+		map_intro::canSkipIntro = 0;
+		PhobosSetCanSkip(0);
 	}
 
 	void showTextCam(string text, entity e)
@@ -611,6 +613,7 @@ namespace map_e1m1
 		map_intro::introSkipped = 1;
 		map_intro::introActive = 0;
 		map_intro::canSkipIntro = 0;
+		PhobosSetCanSkip(0);
 
 		// Terminate all possible intro threads
 		sys.killthread("map_e1m1::RunIntroGogo");
@@ -676,12 +679,7 @@ namespace map_e1m1
 		if (map_intro::introSkipped == 0 && map_intro::introActive == 1)
 		{
 			map_intro::canSkipIntro = 1;
-			PhobosShowSubtitle_e1m1("", "[ Press SPACE or X to skip ]");
-			sys.wait(5.0);
-			if (map_intro::introSkipped == 0 && map_intro::introActive == 1)
-			{
-				sys.hideSubtitles();
-			}
+			PhobosSetCanSkip(1);
 		}
 	}
 

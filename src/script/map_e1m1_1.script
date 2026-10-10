@@ -866,6 +866,8 @@ namespace map_e1m1_1
 
 		sys.trigger($relay_objective_doctor_complete);
 		hospitalActive = 0;
+		canSkipHospital = 0;
+		PhobosSetCanSkip(0);
 	}
 
 	void SetupScanner()
@@ -1087,12 +1089,7 @@ namespace map_e1m1_1
 		if (hospitalActive == 1 && hospitalSkipped == 0)
 		{
 			canSkipHospital = 1;
-			PhobosShowSubtitle_e1m1_1("", "[ Press SPACE or X to skip ]");
-			sys.wait(5.0);
-			if (hospitalActive == 1 && hospitalSkipped == 0)
-			{
-				sys.hideSubtitles();
-			}
+			PhobosSetCanSkip(1);
 		}
 	}
 
@@ -1106,6 +1103,7 @@ namespace map_e1m1_1
 		hospitalSkipped = 1;
 		canSkipHospital = 0;
 		hospitalActive = 0;
+		PhobosSetCanSkip(0);
 
 		// 1. Terminate all hospital memory & scanner threads
 		sys.killthread("map_e1m1_1::StartHospitalScene");

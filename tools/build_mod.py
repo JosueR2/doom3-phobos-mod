@@ -34,6 +34,11 @@ def build():
     # 1. Copy pk4
     shutil.copy2(output_pk4, os.path.join(mod_tfphobos, "pak003_skipcinematics.pk4"))
     
+    # 1b. Copy pak004 if exists
+    pk4_flash = os.path.join(game_tfphobos_dir, "pak004_weapon_flashlight.pk4")
+    if os.path.exists(pk4_flash):
+        shutil.copy2(pk4_flash, os.path.join(mod_tfphobos, "pak004_weapon_flashlight.pk4"))
+
     # 2. Copy autoexec.cfg
     cfg_src = os.path.join(game_tfphobos_dir, "autoexec.cfg")
     if os.path.exists(cfg_src):

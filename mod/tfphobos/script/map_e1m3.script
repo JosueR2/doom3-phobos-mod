@@ -14,12 +14,7 @@ namespace map_e1m3
 		if (departureActive == 1 && departureSkipped == 0)
 		{
 			canSkipDeparture = 1;
-			PhobosShowSubtitle_e1m3("", "[ Press SPACE or X to skip ]");
-			sys.wait(5.0);
-			if (departureActive == 1 && departureSkipped == 0)
-			{
-				sys.hideSubtitles();
-			}
+			PhobosSetCanSkip(1);
 		}
 	}
 
@@ -33,6 +28,7 @@ namespace map_e1m3
 		departureSkipped = 1;
 		canSkipDeparture = 0;
 		departureActive = 0;
+		PhobosSetCanSkip(0);
 
 		// Terminate departure & outro threads
 		sys.killthread("map_e1m3::fce_departure");
@@ -858,6 +854,8 @@ namespace map_e1m3
 		sys.trigger($PreOutroCam);
 		activeDepartureCam = 0;
 		departureActive = 0;
+		canSkipDeparture = 0;
+		PhobosSetCanSkip(0);
 		sys.trigger($info_player_teleport_outro);
 		sys.wait(.1);
 		sys.trigger($setinfluence_outro);

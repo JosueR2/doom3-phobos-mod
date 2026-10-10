@@ -206,12 +206,7 @@ namespace map_e1m1
 		if (scannerActive == 1 && scannerSkipped == 0)
 		{
 			canSkipScanner = 1;
-			PhobosShowSubtitle_e1m1("", "[ Press SPACE or X to skip ]");
-			sys.wait(5.0);
-			if (scannerActive == 1 && scannerSkipped == 0)
-			{
-				sys.hideSubtitles();
-			}
+			PhobosSetCanSkip(1);
 		}
 	}
 
@@ -225,6 +220,7 @@ namespace map_e1m1
 		scannerSkipped = 1;
 		canSkipScanner = 0;
 		scannerActive = 0;
+		PhobosSetCanSkip(0);
 
 		// Terminate scanner threads
 		sys.killthread("map_e1m1::EnableScannerSkipTimer");
@@ -370,6 +366,7 @@ namespace map_e1m1
 
 		sys.wait(sdelay);
 
+		PhobosSetCanSkip(0);
 		sys.trigger($target_endlevel_1);
 	}
 

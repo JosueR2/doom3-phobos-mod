@@ -7,6 +7,12 @@ void InitSubtitleCVars() {
 	string lang = sys.getcvar("g_subLang");
 	if (lang != "spanish" && lang != "english") {
 		sys.setcvar("g_subLang", "english");
+		lang = "english";
+	}
+	if (lang == "spanish") {
+		sys.setcvar("g_subLangIsES", "1");
+	} else {
+		sys.setcvar("g_subLangIsES", "0");
 	}
 	string size = sys.getcvar("g_subSize");
 	if (size == "0" || size == "") {
@@ -15,6 +21,19 @@ void InitSubtitleCVars() {
 		sys.setcvar("g_subSize", "0.35");
 	} else if (size == "2") {
 		sys.setcvar("g_subSize", "0.43");
+	}
+}
+
+void PhobosSetCanSkip(float canSkipState) {
+	if (canSkipState == 1) {
+		sys.setcvar("g_canSkip", "1");
+		if (sys.getcvar("g_subLang") == "spanish") {
+		sys.setcvar("g_subLangIsES", "1");
+		} else {
+		sys.setcvar("g_subLangIsES", "0");
+		}
+	} else {
+		sys.setcvar("g_canSkip", "0");
 	}
 }
 

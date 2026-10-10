@@ -162,12 +162,7 @@ namespace map_e1m3_outro
 		if (outroActive == 1 && outroSkipped == 0)
 		{
 			canSkipOutro = 1;
-			PhobosShowSubtitle_e1m3_outro("", "[ Press SPACE or X to skip ]");
-			sys.wait(5.0);
-			if (outroActive == 1 && outroSkipped == 0)
-			{
-				sys.hideSubtitles();
-			}
+			PhobosSetCanSkip(1);
 		}
 	}
 
@@ -181,6 +176,7 @@ namespace map_e1m3_outro
 		outroSkipped = 1;
 		canSkipOutro = 0;
 		outroActive = 0;
+		PhobosSetCanSkip(0);
 
 		// Terminate outro threads
 		sys.killthread("map_e1m3_outro::PlaceBox");
@@ -309,6 +305,9 @@ namespace map_e1m3_outro
 		sys.wait(212);
 		sys.fadeTo('0 0 0', 1, 4);
 		sys.wait(12);
+		outroActive = 0;
+		canSkipOutro = 0;
+		PhobosSetCanSkip(0);
 		sys.trigger($EndEpisodeOne);
 	}
 	

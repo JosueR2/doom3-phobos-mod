@@ -1,0 +1,10 @@
+// Cadenas del menu Phobos
+{
+	"#str_90000" "Configuraci\u00f3n del juego"
+	"#str_90001" "Mostrar subt\u00edtulos"
+	"#str_90002" "Idioma"
+	"#str_90003" "Tama\u00f1o de subt\u00edtulos"
+	"#str_90004" "Normal"
+	"#str_90005" "Grande"
+	"#str_90006" "Muy grande"
+}

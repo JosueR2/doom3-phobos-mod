@@ -12,7 +12,7 @@ windowDef OMGameOptionsButton
 
 	font	"fonts/bank"
 
-	text "Game"
+	text "#str_90031"
 
 	textalign 1
 
@@ -184,6 +184,7 @@ windowDef GamePanel
 
 {
 
+
 	rect 53, 47, 540, 330
 
 	visible 0
@@ -196,7 +197,7 @@ windowDef GamePanel
 
 		rect		3, 5, 320, 20
 
-		text		"Game Settings"
+		text		"#str_90000"
 
 		forecolor 0.2,0.56,0.88,.8
 
@@ -804,7 +805,7 @@ windowDef GamePanel
 
 				rect		0, 0, 100, 14
 
-				text		"Show Subtitles"
+				text		"#str_90001"
 
 				font		"fonts/bank"
 
@@ -853,7 +854,7 @@ windowDef GamePanel
 			windowDef SubtitlesLangTitle
 			{
 				rect		0, 0, 100, 14
-				text		"Subtitle Language"
+				text		"#str_90002"
 				font		"fonts/bank"
 				textscale	0.15
 				forecolor 0.15,0.42,0.66,.8
@@ -862,13 +863,32 @@ windowDef GamePanel
 			choiceDef SubtitlesLangSelector
 			{
 				rect		129, 0, 90, 14
-				choices		"English;Español"
+				choices		"#str_90008"
 				values		"english;spanish"
-				cvar		"g_subLang"
+				cvar		"sys_lang"
 				choiceType	1
 				font		"fonts/bank"
 				textscale	0.15
 				forecolor 0.2,0.56,0.88,.8
+				onAction
+				{
+					set "LanguageReload::visible" "1";
+				resetTime "LanguageReload" "0";
+				}
+			}
+
+		}
+
+		windowDef LanguageReload
+		{
+			rect 0, 0, 1, 1
+			visible 0
+			noevents 1
+
+			onTime 250
+			{
+				set "cmd" "reloadLanguage; reloadGuis";
+				set "visible" "0";
 			}
 		}
 
@@ -887,7 +907,7 @@ windowDef GamePanel
 			windowDef SubtitlesSizeTitle
 			{
 				rect		0, 0, 100, 14
-				text		"Subtitle Size"
+				text		"#str_90003"
 				font		"fonts/bank"
 				textscale	0.15
 				forecolor 0.15,0.42,0.66,.8
@@ -896,7 +916,7 @@ windowDef GamePanel
 			choiceDef SubtitlesSizeSelector
 			{
 				rect		129, 0, 90, 14
-				choices		"Normal;Grande;Muy Grande"
+				choices		"#str_90007"
 				values		"0.275;0.35;0.43"
 				cvar		"g_subSize"
 				choiceType	1

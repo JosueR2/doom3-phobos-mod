@@ -4,9 +4,9 @@
 // =============================================================================
 
 void InitSubtitleCVars() {
-	string lang = sys.getcvar("g_subLang");
+	string lang = sys.getcvar("sys_lang");
 	if (lang != "spanish" && lang != "english") {
-		sys.setcvar("g_subLang", "english");
+		sys.setcvar("sys_lang", "english");
 		lang = "english";
 	}
 	if (lang == "spanish") {
@@ -27,7 +27,7 @@ void InitSubtitleCVars() {
 void PhobosSetCanSkip(float canSkipState) {
 	if (canSkipState == 1) {
 		sys.setcvar("g_canSkip", "1");
-		if (sys.getcvar("g_subLang") == "spanish") {
+		if (sys.getcvar("sys_lang") == "spanish") {
 		sys.setcvar("g_subLangIsES", "1");
 		} else {
 		sys.setcvar("g_subLangIsES", "0");
@@ -38,7 +38,7 @@ void PhobosSetCanSkip(float canSkipState) {
 }
 
 string LocalizeSpeaker(string name) {
-	if (sys.getcvar("g_subLang") != "spanish") {
+	if (sys.getcvar("sys_lang") != "spanish") {
 		return name;
 	}
 	if (name == "Girl") return "Chica";
@@ -126,7 +126,7 @@ string LocalizeSubtitle_e1m1(string text) {
 
 void PhobosShowSubtitle_e1m1(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m1(text);
 	}
@@ -257,7 +257,7 @@ string LocalizeSubtitle_e1m1_1(string text) {
 
 void PhobosShowSubtitle_e1m1_1(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m1_1(text);
 	}
@@ -300,7 +300,7 @@ string LocalizeSubtitle_e1m1_2(string text) {
 
 void PhobosShowSubtitle_e1m1_2(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m1_2(text);
 	}
@@ -368,7 +368,7 @@ string LocalizeSubtitle_e1m2(string text) {
 
 void PhobosShowSubtitle_e1m2(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m2(text);
 	}
@@ -386,7 +386,7 @@ string LocalizeSubtitle_e1m3(string text) {
 
 void PhobosShowSubtitle_e1m3(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m3(text);
 	}
@@ -438,7 +438,7 @@ string LocalizeSubtitle_e1m3_1(string text) {
 
 void PhobosShowSubtitle_e1m3_1(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m3_1(text);
 	}
@@ -514,7 +514,7 @@ string LocalizeSubtitle_e1m3_1_intro(string text) {
 
 void PhobosShowSubtitle_e1m3_1_intro(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m3_1_intro(text);
 	}
@@ -554,7 +554,7 @@ string LocalizeSubtitle_e1m3_2(string text) {
 
 void PhobosShowSubtitle_e1m3_2(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m3_2(text);
 	}
@@ -617,7 +617,7 @@ string LocalizeSubtitle_e1m3_outro(string text) {
 
 void PhobosShowSubtitle_e1m3_outro(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m3_outro(text);
 	}
@@ -710,7 +710,7 @@ string LocalizeSubtitle_e1m4(string text) {
 
 void PhobosShowSubtitle_e1m4(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m4(text);
 	}
@@ -835,7 +835,7 @@ string LocalizeSubtitle_e1m4_1(string text) {
 
 void PhobosShowSubtitle_e1m4_1(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m4_1(text);
 	}
@@ -850,7 +850,7 @@ string LocalizeSubtitle_e1m4_2(string text) {
 
 void PhobosShowSubtitle_e1m4_2(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m4_2(text);
 	}
@@ -936,7 +936,7 @@ string LocalizeSubtitle_e1m4_3(string text) {
 
 void PhobosShowSubtitle_e1m4_3(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m4_3(text);
 	}
@@ -1107,7 +1107,7 @@ string LocalizeSubtitle_e1m4_4(string text) {
 
 void PhobosShowSubtitle_e1m4_4(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m4_4(text);
 	}
@@ -1231,7 +1231,7 @@ string LocalizeSubtitle_e1m5(string text) {
 
 void PhobosShowSubtitle_e1m5(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m5(text);
 	}
@@ -1388,7 +1388,7 @@ string LocalizeSubtitle_e1m5_2(string text) {
 
 void PhobosShowSubtitle_e1m5_2(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m5_2(text);
 	}
@@ -1404,7 +1404,7 @@ string LocalizeSubtitle_e1m5_3(string text) {
 
 void PhobosShowSubtitle_e1m5_3(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m5_3(text);
 	}
@@ -1448,7 +1448,7 @@ string LocalizeSubtitle_e1m5_4(string text) {
 
 void PhobosShowSubtitle_e1m5_4(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m5_4(text);
 	}
@@ -1630,7 +1630,7 @@ string LocalizeSubtitle_e1m5_5(string text) {
 
 void PhobosShowSubtitle_e1m5_5(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m5_5(text);
 	}
@@ -1706,7 +1706,7 @@ string LocalizeSubtitle_e1m5_6(string text) {
 
 void PhobosShowSubtitle_e1m5_6(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_e1m5_6(text);
 	}
@@ -1753,7 +1753,7 @@ string LocalizeSubtitle_intro(string text) {
 
 void PhobosShowSubtitle_intro(string speaker, string text) {
 	InitSubtitleCVars();
-	if (sys.getcvar("g_subLang") == "spanish") {
+	if (sys.getcvar("sys_lang") == "spanish") {
 		speaker = LocalizeSpeaker(speaker);
 		text = LocalizeSubtitle_intro(text);
 	}

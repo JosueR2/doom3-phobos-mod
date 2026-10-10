@@ -1,0 +1,10 @@
+// Phobos menu strings
+{
+	"#str_90000" "Game Settings"
+	"#str_90001" "Show Subtitles"
+	"#str_90002" "Language"
+	"#str_90003" "Subtitle Size"
+	"#str_90004" "Normal"
+	"#str_90005" "Large"
+	"#str_90006" "Very Large"
+}
